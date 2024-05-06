@@ -1,0 +1,4 @@
+name: everything
+version: '${project.version}'
+main: me.crazyg.everything.Everything
+api-version: '1.20'
