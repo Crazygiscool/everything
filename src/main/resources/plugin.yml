@@ -4,19 +4,17 @@ main: me.crazyg.everything.Everything
 api-version: '1.20'
 commands:
   god:
-    description: MAKE YOU LIKE "HIM"
+    description: MAKE YOU/OTHERS LIKE "HIM"
     permission: everything.god
-    usage: /<command>
+    usage: /<command> <player>
     aliases:
       - invulnerable
       - jesus
-  suicide:
-    description: kills yourself
-    permission: everything.suicide
-    usage: /<command>
+  kill:
+    description: kills yourself/others
+    permission: everything.kill
+    usage: /<command> <player>
     aliases:
-      - killurself
-      - kus
       - ihatethisworld
   repeat:
     description: REPEAT WHAT YOU SAID
