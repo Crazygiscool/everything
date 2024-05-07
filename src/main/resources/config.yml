@@ -1,3 +1,5 @@
+##placeholders
+##player displayname: %player%
 first-join-message: "&b&l%player%&r &bHas Joined for the first time!"
 join-message: "&b&l%player%&r &bHas Joined, welcome back"
 leave-message: "&b&l%player%&r &bHas Lefted"

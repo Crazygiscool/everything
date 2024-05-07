@@ -24,7 +24,7 @@ public class KillCommand implements CommandExecutor{
                     p.sendMessage("This Player is not online");
                 }else{
                     target.setHealth(0);
-                    target.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"You Have been Opted To DIE by "+ p.displayName());
+                    target.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"You Have been Opted To DIE by "+ playername);
                     p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"BRO DIED, UAHAHAH");
                 }
             }

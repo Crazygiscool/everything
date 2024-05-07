@@ -24,7 +24,7 @@ public class onJoinleaveListener implements Listener {
         String leavemsg = this.plugin.getConfig().getString("leave-message");
 
         if(leavemsg != null){
-
+            leavemsg = leavemsg.replace("%player%", e.getPlayer().getDisplayName());
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', leavemsg));
 
         }else{
@@ -43,7 +43,7 @@ public class onJoinleaveListener implements Listener {
         if (player.hasPlayedBefore()){
 
             if(joinmsg != null){
-
+                joinmsg = joinmsg.replace("%player%", e.getPlayer().getDisplayName());
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', joinmsg));
 
             }else{
@@ -53,7 +53,7 @@ public class onJoinleaveListener implements Listener {
         }else{
 
             if(firstjoinmsg != null){
-
+                firstjoinmsg = firstjoinmsg.replace("%player%", e.getPlayer().getDisplayName());
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', firstjoinmsg));
 
             }else{
