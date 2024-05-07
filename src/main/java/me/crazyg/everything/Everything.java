@@ -27,7 +27,7 @@ public final class Everything extends JavaPlugin {
         getCommand("setspawn").setExecutor(new SetSpawnCommand(this));
         getCommand("spawn").setExecutor(new SpawnCommand(this));
         // Listeners
-        getServer().getPluginManager().registerEvents((Listener) new onJoinleaveListener(), (Plugin) this);
+        getServer().getPluginManager().registerEvents((Listener) new onJoinleaveListener(this), (Plugin) this);
         //.yml
         getConfig().options().copyDefaults();
         saveDefaultConfig();

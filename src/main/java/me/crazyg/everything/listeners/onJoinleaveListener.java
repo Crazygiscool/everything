@@ -1,5 +1,6 @@
 package me.crazyg.everything.listeners;
 
+import me.crazyg.everything.Everything;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -8,21 +9,57 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 
 public class onJoinleaveListener implements Listener {
+
+    private final Everything plugin;
+
+    public onJoinleaveListener(Everything plugin) {
+        this.plugin = plugin;
+    }
+
     @EventHandler
     public void onLeave(PlayerQuitEvent e){
 
         Player player = e.getPlayer();
-        e.setQuitMessage(ChatColor.BOLD+""+ ChatColor.DARK_AQUA+player.getDisplayName()+ChatColor.BOLD+""+ChatColor.RED+"Has Left the Server");
+
+        String leavemsg = this.plugin.getConfig().getString("leave-message");
+
+        if(leavemsg != null){
+
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', leavemsg));
+
+        }else{
+            System.out.println("SET THE LEAVE-MESSAGE IN CONFIG.YML");
+        }
     }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent e){
 
         Player player = e.getPlayer();
+
+        String joinmsg = this.plugin.getConfig().getString("join-message");
+
+        String firstjoinmsg = this.plugin.getConfig().getString("first-join-message");
         if (player.hasPlayedBefore()){
-            e.setJoinMessage(ChatColor.BOLD+""+ChatColor.RED+"Welcome "+ChatColor.BOLD+""+ChatColor.DARK_AQUA+player.getDisplayName()+ChatColor.BOLD+""+ChatColor.RED+" Back to the server!");
+
+            if(joinmsg != null){
+
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', joinmsg));
+
+            }else{
+                System.out.println("SET THE JOIN-MESSAGE IN CONFIG.YML");
+            }
+
         }else{
-            e.setJoinMessage(ChatColor.BOLD+""+ChatColor.RED+"Welcome "+ChatColor.BOLD+""+ChatColor.DARK_AQUA+player.getDisplayName()+ChatColor.BOLD+""+ChatColor.RED+" to the server! he Has Joined For the First Time!");
+
+            if(firstjoinmsg != null){
+
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', firstjoinmsg));
+
+            }else{
+                System.out.println("SET THE FIRST-JOIN-MESSAGE IN CONFIG.YML");
+            }
+
         }
 
     }
