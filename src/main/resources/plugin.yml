@@ -18,3 +18,10 @@ commands:
       - killurself
       - kus
       - ihatethisworld
+  repeat:
+    description: REPEAT WHAT YOU SAID
+    permission: everything.repeat
+    usage: /<command> <word>
+    aliases:
+      - sayitagain
+      - botit
