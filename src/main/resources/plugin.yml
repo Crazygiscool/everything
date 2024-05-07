@@ -9,13 +9,14 @@ commands:
     usage: /<command> <player>
     aliases:
       - invulnerable
-      - jesus
+      - jesusitis
   kill:
     description: kills yourself/others
     permission: everything.kill
     usage: /<command> <player>
     aliases:
       - ihatethisworld
+      - suicide
   repeat:
     description: REPEAT WHAT YOU SAID
     permission: everything.repeat
