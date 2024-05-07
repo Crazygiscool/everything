@@ -2,3 +2,19 @@ name: everything
 version: '${project.version}'
 main: me.crazyg.everything.Everything
 api-version: '1.20'
+commands:
+  god:
+    description: MAKE YOU LIKE "HIM"
+    permission: everything.god
+    usage: /<command>
+    aliases:
+      - invulnerable
+      - jesus
+  suicide:
+    description: kills yourself
+    permission: everything.suicide
+    usage: /<command>
+    aliases:
+      - killurself
+      - kus
+      - ihatethisworld

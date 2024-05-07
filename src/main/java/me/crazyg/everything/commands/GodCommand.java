@@ -1,9 +1,7 @@
 package me.crazyg.everything.commands;
 
 import org.bukkit.ChatColor;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 
@@ -15,11 +13,15 @@ public class GodCommand implements CommandExecutor{
         if(sender instanceof Player p){
             if(p.isInvulnerable()){
                 p.setInvulnerable(false);
-                p.sendMessage(ChatColor.RED+"GOD MODE disabled");
+                p.sendMessage(ChatColor.DARK_RED+"GOD MODE disabled");
             }else{
                 p.setInvulnerable(true);
                 p.sendMessage(ChatColor.GOLD+"GOD MODE Enabled");
             }
+        }else if (sender instanceof ConsoleCommandSender p) {
+            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by console");
+        } else if (sender instanceof BlockCommandSender p) {
+            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by command block");
         }
         return true;
     }
