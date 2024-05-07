@@ -24,3 +24,7 @@ commands:
     aliases:
       - sayitagain
       - botit
+  setspawn:
+    description: Sets the Spawn
+    permission: everything.setspawn
+    usage: /<command>
