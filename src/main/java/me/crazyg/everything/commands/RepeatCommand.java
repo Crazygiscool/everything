@@ -1,8 +1,7 @@
 package me.crazyg.everything.commands;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.ChatColor;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 public class RepeatCommand implements CommandExecutor {
@@ -39,6 +38,10 @@ public class RepeatCommand implements CommandExecutor {
 
             }
 
+        }else if (sender instanceof ConsoleCommandSender p) {
+            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by console");
+        } else if (sender instanceof BlockCommandSender p) {
+            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by command block");
         }
         return true;
     }
