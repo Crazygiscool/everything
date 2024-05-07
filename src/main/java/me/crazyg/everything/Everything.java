@@ -1,5 +1,6 @@
 package me.crazyg.everything;
 
+import me.crazyg.everything.commands.GodCommand;
 import me.crazyg.everything.commands.SuicideCommand;
 import me.crazyg.everything.listeners.onJoinleaveListener;
 import org.bukkit.event.Listener;
@@ -22,6 +23,7 @@ public final class Everything extends JavaPlugin {
                 "╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░");
         // Commands
         getCommand("suicide").setExecutor(new SuicideCommand());
+        getCommand("god").setExecutor(new GodCommand());
         // Listeners
         getServer().getPluginManager().registerEvents((Listener) new onJoinleaveListener(), (Plugin) this);
 
