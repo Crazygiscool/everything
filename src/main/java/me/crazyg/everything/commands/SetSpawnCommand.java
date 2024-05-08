@@ -24,13 +24,13 @@ public class SetSpawnCommand implements CommandExecutor {
             Location location = p.getLocation();
 
             //method 1
-            //plugin.getConfig().set("spawn.x", location.getX());
-            //plugin.getConfig().set("spawn.y", location.getY());
-            //plugin.getConfig().set("spawn.z", location.getZ());
-            //plugin.getConfig().set("spawn.worldName", location.getWorld().getName());
+            plugin.getConfig().set("spawn.x", location.getX());
+            plugin.getConfig().set("spawn.y", location.getY());
+            plugin.getConfig().set("spawn.z", location.getZ());
+            plugin.getConfig().set("spawn.worldName", location.getWorld().getName());
 
             //method 2
-            plugin.getConfig().set("spawn", location);
+            //plugin.getConfig().set("spawn", location);
 
             plugin.saveConfig();
 
