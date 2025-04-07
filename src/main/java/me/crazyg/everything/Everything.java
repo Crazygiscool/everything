@@ -2,18 +2,20 @@ package me.crazyg.everything;
 
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.onJoinleaveListener;
+import org.bukkit.Bukkit;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
-
+    ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
     @Override
     public void onEnable() {
         // Plugin startup logic
-        System.out.println("THIS PLUGIN IS WRITTENED BY CRAZYG");
-        System.out.println("THANKS FOR USING THE PLUGIN");
-        System.out.println("\n" +
+        console.sendMessage("THIS PLUGIN IS WRITTENED BY CRAZYG");
+        console.sendMessage("THANKS FOR USING THE PLUGIN");
+        console.sendMessage("\n" +
                 "███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n" +
                 "██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n" +
                 "█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n" +
@@ -36,7 +38,7 @@ public final class Everything extends JavaPlugin {
     @Override
     public void onDisable() {
         // Plugin shutdown logic
-        System.out.println("\n" +
+        console.sendMessage("\n" +
                 "░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n" +
                 "██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n" +
                 "██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n" +
