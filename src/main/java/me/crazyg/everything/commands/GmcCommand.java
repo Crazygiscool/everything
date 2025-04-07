@@ -28,11 +28,9 @@ public class GmcCommand implements CommandExecutor{
                     if (target == null) {
                         p.sendMessage("This Player is not online");
                     } else {
-                        if (p.isInvulnerable()) {
                             target.setGameMode(GameMode.CREATIVE);
                             target.sendMessage(ChatColor.DARK_RED + "Set to " + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode " + ChatColor.DARK_RED + "by " + ChatColor.DARK_AQUA + ChatColor.BOLD + p.getDisplayName());
                             p.sendMessage(ChatColor.BLUE + "Set " + ChatColor.DARK_AQUA + ChatColor.BOLD + p.getDisplayName() + ChatColor.BLUE + "to " + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode");
-                        }
 
                     }
                 }
