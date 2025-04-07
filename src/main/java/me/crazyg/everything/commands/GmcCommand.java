@@ -17,28 +17,28 @@ public class GmcCommand implements CommandExecutor{
                 if (p.getGameMode() == GameMode.CREATIVE) {
                     p.setGameMode(GameMode.CREATIVE);
                     p.sendMessage(ChatColor.DARK_RED + "Gamemode set to" + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode");
-                } else {
-
-                    //set the string playername to the first argument
-                    String playername = args[0];
-
-                    //get the target player name to store in to the target argument
-                    Player target = Bukkit.getServer().getPlayerExact(playername);
-
-                    if (target == null) {
-                        p.sendMessage("This Player is not online");
-                    } else {
-                            target.setGameMode(GameMode.CREATIVE);
-                            target.sendMessage(ChatColor.DARK_RED + "Set to " + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode " + ChatColor.DARK_RED + "by " + ChatColor.DARK_AQUA + ChatColor.BOLD + p.getDisplayName());
-                            p.sendMessage(ChatColor.BLUE + "Set " + ChatColor.DARK_AQUA + ChatColor.BOLD + p.getDisplayName() + ChatColor.BLUE + "to " + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode");
-
-                    }
                 }
-            } else if (sender instanceof ConsoleCommandSender m) {
-                m.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Command Cannot be runned by console");
-            } else if (sender instanceof BlockCommandSender m) {
-                m.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Command Cannot be runned by command block");
+            }else{
+
+                //set the string playername to the first argument
+                String playername = args[0];
+
+                //get the target player name to store in to the target argument
+                Player target = Bukkit.getServer().getPlayerExact(playername);
+
+                if (target == null) {
+                    p.sendMessage("This Player is not online");
+                } else {
+                    target.setGameMode(GameMode.CREATIVE);
+                    target.sendMessage(ChatColor.DARK_RED + "Set to " + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode " + ChatColor.DARK_RED + "by " + ChatColor.DARK_AQUA + ChatColor.BOLD + p.getDisplayName());
+                    p.sendMessage(ChatColor.BLUE + "Set " + ChatColor.DARK_AQUA + ChatColor.BOLD + p.getDisplayName() + ChatColor.BLUE + "to " + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode");
+
+                }
             }
+        }else if (sender instanceof ConsoleCommandSender m) {
+            m.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Command Cannot be runned by console");
+        } else if (sender instanceof BlockCommandSender m) {
+            m.sendMessage(ChatColor.DARK_RED + "" + ChatColor.BOLD + "Command Cannot be runned by command block");
         }
         return true;
     }
