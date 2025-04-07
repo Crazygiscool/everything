@@ -15,7 +15,17 @@ public class onJoinleaveListener implements Listener {
     public onJoinleaveListener(Everything plugin) {
         this.plugin = plugin;
     }
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // What to do when the player joins?
+        event.setJoinMessage("");
+    }
 
+    @EventHandler
+    public void onPlayerLeave(PlayerQuitEvent event) {
+        // What to do when the player leaves?
+        event.setQuitMessage("");
+    }
     @EventHandler
     public void onLeave(PlayerQuitEvent e){
 

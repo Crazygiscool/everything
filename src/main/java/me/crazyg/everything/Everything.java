@@ -25,6 +25,7 @@ public final class Everything extends JavaPlugin {
         getCommand("god").setExecutor(new GodCommand());
         getCommand("repeat").setExecutor(new RepeatCommand());
         getCommand("gmc").setExecutor(new GmcCommand());
+        getCommand("gms").setExecutor(new GmsCommand());
         // Listeners
         getServer().getPluginManager().registerEvents((Listener) new onJoinleaveListener(this), (Plugin) this);
         //config.yml
