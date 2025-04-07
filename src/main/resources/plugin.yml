@@ -6,14 +6,14 @@ commands:
   god:
     description: MAKE YOU/OTHERS LIKE "HIM"
     permission: everything.god
-    usage: /<command> <player>
+    usage: /<command> <target>
     aliases:
       - invulnerable
-      - jesusitis
+      - jesus
   kill:
     description: kills yourself/others
     permission: everything.kill
-    usage: /<command> <player>
+    usage: /<command> <target>
     aliases:
       - ihatethisworld
       - suicide
@@ -24,3 +24,17 @@ commands:
     aliases:
       - sayitagain
       - botit
+  gmc:
+    description: changes target gamemode to creative
+    permission: everything.gamemode.creative
+    usage: /<command> <target>
+    aliases:
+      - gamemodec
+      - !c
+  gms:
+    description: changes target gamemode to survival
+    permission: everything.gamemode.survival
+    usage: /<command> <target>
+    aliases:
+      - gamemodes
+      - !s
