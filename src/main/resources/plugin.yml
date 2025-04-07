@@ -30,11 +30,11 @@ commands:
     usage: /<command> <target>
     aliases:
       - gamemodec
-      - !c
+      - creative
   gms:
     description: changes target gamemode to survival
     permission: everything.gamemode.survival
     usage: /<command> <target>
     aliases:
       - gamemodes
-      - !s
+      - survival
