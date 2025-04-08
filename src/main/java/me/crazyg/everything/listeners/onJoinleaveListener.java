@@ -1,7 +1,9 @@
 package me.crazyg.everything.listeners;
 
 import me.crazyg.everything.Everything;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -15,17 +17,7 @@ public class onJoinleaveListener implements Listener {
     public onJoinleaveListener(Everything plugin) {
         this.plugin = plugin;
     }
-    @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent event) {
-        // What to do when the player joins?
-        event.setJoinMessage("");
-    }
-
-    @EventHandler
-    public void onPlayerLeave(PlayerQuitEvent event) {
-        // What to do when the player leaves?
-        event.setQuitMessage("");
-    }
+    ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
     @EventHandler
     public void onLeave(PlayerQuitEvent e){
 
@@ -35,10 +27,10 @@ public class onJoinleaveListener implements Listener {
 
         if(leavemsg != null){
             leavemsg = leavemsg.replace("%player%", e.getPlayer().getDisplayName());
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', leavemsg));
+            e.setQuitMessage(ChatColor.translateAlternateColorCodes('&', leavemsg));
 
         }else{
-            System.out.println("SET THE LEAVE-MESSAGE IN CONFIG.YML");
+            console.sendMessage("SET THE LEAVE-MESSAGE IN CONFIG.YML");
         }
     }
 
@@ -54,20 +46,20 @@ public class onJoinleaveListener implements Listener {
 
             if(joinmsg != null){
                 joinmsg = joinmsg.replace("%player%", e.getPlayer().getDisplayName());
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', joinmsg));
+                e.setJoinMessage(ChatColor.translateAlternateColorCodes('&', joinmsg));
 
             }else{
-                System.out.println("SET THE JOIN-MESSAGE IN CONFIG.YML");
+                console.sendMessage("SET THE JOIN-MESSAGE IN CONFIG.YML");
             }
 
         }else{
 
             if(firstjoinmsg != null){
                 firstjoinmsg = firstjoinmsg.replace("%player%", e.getPlayer().getDisplayName());
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', firstjoinmsg));
+                e.setJoinMessage(ChatColor.translateAlternateColorCodes('&', firstjoinmsg));
 
             }else{
-                System.out.println("SET THE FIRST-JOIN-MESSAGE IN CONFIG.YML");
+                console.sendMessage("SET THE FIRST-JOIN-MESSAGE IN CONFIG.YML");
             }
 
         }
