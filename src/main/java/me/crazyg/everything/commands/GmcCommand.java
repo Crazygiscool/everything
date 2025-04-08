@@ -14,7 +14,7 @@ public class GmcCommand implements CommandExecutor{
 
         if (sender instanceof Player p) {
             if (args.length == 0) {
-                if (p.getGameMode() == GameMode.CREATIVE) {
+                if (p.getGameMode() != GameMode.CREATIVE) {
                     p.setGameMode(GameMode.CREATIVE);
                     p.sendMessage(ChatColor.DARK_RED + "Gamemode set to" + ChatColor.GOLD + ChatColor.BOLD + "Creative Mode");
                 }

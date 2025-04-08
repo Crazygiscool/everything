@@ -14,7 +14,7 @@ public class GmsCommand implements CommandExecutor{
 
         if (sender instanceof Player p) {
             if (args.length == 0) {
-                if (p.getGameMode() == GameMode.SURVIVAL) {
+                if (p.getGameMode() != GameMode.SURVIVAL) {
                     p.setGameMode(GameMode.SURVIVAL);
                     p.sendMessage(ChatColor.DARK_RED + "Gamemode set to" + ChatColor.GOLD + ChatColor.BOLD + "Survival Mode");
                 }
