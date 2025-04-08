@@ -3,3 +3,6 @@
 first-join-message: "&b&l%player%&r &bHas Joined for the first time!"
 join-message: "&b&l%player%&r &bHas Joined, welcome back"
 leave-message: "&b&l%player%&r &bHas Lefted"
+#Chat Formatting
+#message: &f%message%
+chat-format: "&b%player% &7> &f%message%"
