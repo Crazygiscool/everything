@@ -34,7 +34,7 @@ public class GodCommand implements CommandExecutor{
                     if(p.isInvulnerable()){
                         target.setInvulnerable(false);
                         target.sendMessage(ChatColor.DARK_RED+"GOD MODE disabled by "+p.getDisplayName());
-                        p.sendMessage(ChatColor.BLUE+"MADE HIM UNGOD");
+                        p.sendMessage(ChatColor.BLUE+"MADE HIM NO LONGER GOD");
                     }else {
                         target.setInvulnerable(true);
                         target.sendMessage(ChatColor.GOLD + "GOD MODE Enabled by "+p.getDisplayName());
