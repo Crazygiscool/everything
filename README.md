@@ -132,6 +132,7 @@ See the [open issues](https://github.com/crazygiscool/everything/issues) for a f
 ## License
 
 Distributed under the Unlicense License. See `LICENSE.txt` for more information.
+ [everything](https://github.com/Crazygiscool/everything/) © 2025 by [Crazygiscool](https://github.com/Crazygiscool) is licensed under [Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International](https://creativecommons.org/licenses/by-nc-sa/4.0/?ref=chooser-v1)
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
