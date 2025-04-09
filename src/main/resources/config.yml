@@ -1,8 +1,22 @@
-##placeholders
-##player displayname: %player%
-first-join-message: "&b&l%player%&r &bHas Joined for the first time!"
-join-message: "&b&l%player%&r &bHas Joined, welcome back"
-leave-message: "&b&l%player%&r &bHas Lefted"
-#Chat Formatting
-#message: &f%message%
-chat-format: "&b%player% &7> &f%message%"
+# Everything Plugin Configuration
+# Join / Leave Messages
+# Use '&' for color codes.
+# Use PlaceholderAPI placeholders (e.g., %player_name%, %player_displayname%).
+# PlaceholderAPI must be installed for its placeholders to work.
+messages:
+  # Set to "" (empty string) to disable a specific message.
+  join: "&e%player_name% joined the game."
+  leave: "&e%player_name% left the game."
+  first-join: "&aWelcome %player_name% to the server for the first time!"
+
+# Define the chat format here.
+# Use standard Minecraft color codes with '&' (e.g., &6 for gold, &f for white).
+# Use %1$s where you want the player's name/displayname to appear.
+# Use %2$s where you want the player's message to appear.
+# You can include PlaceholderAPI placeholders (e.g., %player_world%, %vault_prefix%).
+# PlaceholderAPI must be installed for its placeholders to work.
+chat:
+  # Example format using world, vault prefix (if vault is installed), player name, and message:
+  # format: "&8[&b%player_world%&8] %vault_prefix%&r &6%1$s&f: %2$s"
+  # Simpler default example:
+  format: "&b%player% &7> &f%message%"

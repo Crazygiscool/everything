@@ -1,42 +1,56 @@
 name: everything
-version: '${project.version}'
+version: 1.1-SNAPSHOT # Or use ${project.version}
 main: me.crazyg.everything.Everything
-softdepend:
-  - PlaceholderAPI
 api-version: '1.20'
+authors: [crazyg]
+description: Does everything!
+softdepend: [PlaceholderAPI, Vault]
+
 commands:
+  suicide:
+    description: Kills the player.
+    usage: /<command>
+    permission: everything.suicide
   god:
-    description: MAKE YOU/OTHERS LIKE "HIM"
-    permission: everything.god
-    usage: /<command> <target>
-    aliases:
-      - invulnerable
-      - jesus
-  kill:
-    description: kills yourself/others
-    permission: everything.kill
-    usage: /<command> <target>
-    aliases:
-      - ihatethisworld
-      - suicide
-  repeat:
-    description: REPEAT WHAT YOU SAID
-    permission: everything.repeat
-    usage: /<command> <word>
-    aliases:
-      - sayitagain
-      - botit
-  gmc:
-    description: changes target gamemode to creative
-    permission: everything.gamemode.creative
-    usage: /<command> <target>
-    aliases:
-      - gamemodec
-      - creative
-  gms:
-    description: changes target gamemode to survival
-    permission: everything.gamemode.survival
-    usage: /<command> <target>
-    aliases:
-      - gamemodes
-      - survival
+    description: Toggles god mode.
+    usage: /<command> [player]
+    permission: everything.god # Add permission for self
+    # permission-message: You do not have permission! # Optional default message
+  # REMOVED: gmc and gms
+  # NEW: gm command
+  gm: # Or name it gamemode if you prefer a longer command
+    description: Changes player gamemode.
+    usage: /<command> <c|s|sp|a> [player]
+    aliases: [gamemode] # Optional aliases
+    permission: everything.gamemode # Base permission (implicitly required for specific modes)
+    permission-message: You don't have permission to use gamemode commands. # Optional
+
+permissions:
+  everything.suicide:
+    description: Allows using /suicide
+    default: op
+  everything.god:
+    description: Allows using /god on self
+    default: op
+  everything.god.others:
+    description: Allows using /god on other players
+    default: op
+  # Gamemode Permissions
+  everything.gamemode:
+    description: Base permission for using /gm. Recommended to grant this if granting any specific mode.
+    default: op
+  everything.gamemode.creative:
+    description: Allows setting gamemode to Creative.
+    default: op
+  everything.gamemode.survival:
+    description: Allows setting gamemode to Survival.
+    default: op
+  everything.gamemode.spectator:
+    description: Allows setting gamemode to Spectator.
+    default: op
+  everything.gamemode.adventure:
+    description: Allows setting gamemode to Adventure.
+    default: op
+  everything.gamemode.others:
+    description: Allows setting the gamemode of other players using /gm.
+    default: op
