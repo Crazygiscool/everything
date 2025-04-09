@@ -6,104 +6,117 @@ import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.ConsoleCommandSender; // Import for clarity, although not strictly needed for instanceof
+import org.bukkit.command.BlockCommandSender; // Import for clarity
 import org.bukkit.entity.Player;
 
 public class GamemodeCommand implements CommandExecutor {
 
-    // Using constants for messages makes them easier to manage/change later
+    // Constants for messages
     private static final String NO_PERMISSION = ChatColor.RED + "You do not have permission to use this command.";
-    private static final String INVALID_MODE = ChatColor.RED + "Invalid gamemode specified. Use 'c', 's', 'sp', or 'a'.";
-    private static final String PLAYER_NOT_FOUND = ChatColor.RED + "Player not found.";
-    private static final String CONSOLE_NEEDS_PLAYER = ChatColor.RED + "Console must specify a player name.";
-    private static final String USAGE = ChatColor.RED + "Usage: /gm <c|s|sp|a> [player]";
+    private static final String PLAYER_NOT_FOUND = ChatColor.RED + "Player not found or not online.";
+    // private static final String CONSOLE_NEEDS_PLAYER = ChatColor.RED + "Console must specify a player name for this command."; // No longer needed with the new check
+    private static final String DISALLOWED_SENDER = ChatColor.RED + "This command can only be executed by players.";
+    private static final String GENERIC_USAGE = ChatColor.RED + "Usage: /<command> [player]"; // <command> will be replaced
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        // --- Basic Argument Checks ---
-        if (args.length < 1 || args.length > 2) {
-            sender.sendMessage(USAGE);
-            return true; // Indicate command was handled (usage error)
+        // --- Check if sender is a Player ---
+        // If not a player (e.g., Console, CommandBlock), deny execution immediately.
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(DISALLOWED_SENDER);
+            return true; // Command handled (by denying it)
         }
+
+        // --- Sender is definitely a Player now ---
+        Player playerSender = (Player) sender; // Cast sender to Player for convenience
+
+        GameMode targetMode;
+        String modeName;
+        String basePermission; // Permission needed specifically for this mode
+
+        // Determine the gamemode based on the command name used
+        switch (command.getName().toLowerCase()) {
+            case "gmc":
+                targetMode = GameMode.CREATIVE;
+                modeName = "Creative";
+                basePermission = "everything.gamemode.creative";
+                break;
+            case "gms":
+                targetMode = GameMode.SURVIVAL;
+                modeName = "Survival";
+                basePermission = "everything.gamemode.survival";
+                break;
+            case "gmsp":
+                targetMode = GameMode.SPECTATOR;
+                modeName = "Spectator";
+                basePermission = "everything.gamemode.spectator";
+                break;
+            case "gma":
+                targetMode = GameMode.ADVENTURE;
+                modeName = "Adventure";
+                basePermission = "everything.gamemode.adventure";
+                break;
+            default:
+                // Should not happen if plugin.yml is set up correctly
+                playerSender.sendMessage(ChatColor.RED + "Unknown gamemode command executed.");
+                return true;
+        }
+
+        // Now call the shared logic handler, passing the Player sender
+        return handleGamemodeChange(playerSender, targetMode, modeName, basePermission, args, command.getName());
+    }
+
+    /**
+     * Handles the common logic for setting gamemode for a specific command.
+     * Assumes the 'sender' is a Player.
+     */
+    private boolean handleGamemodeChange(Player sender, GameMode targetMode, String modeName, String modePermission, String[] args, String commandName) {
 
         // --- Determine Target Player ---
         Player targetPlayer;
-        boolean targetingSelf = (args.length == 1);
+        boolean targetingSelf = (args.length == 0);
 
         if (targetingSelf) {
-            if (!(sender instanceof Player)) {
-                sender.sendMessage(CONSOLE_NEEDS_PLAYER);
-                return true; // Handled
+            // No need to check if sender is Player here, already confirmed
+            targetPlayer = sender;
+            // Check permission for self
+            if (!sender.hasPermission(modePermission)) {
+                sender.sendMessage(NO_PERMISSION + " (to set your gamemode to " + modeName + ")");
+                return true;
             }
-            targetPlayer = (Player) sender;
-        } else { // Targeting another player (args.length == 2)
-            targetPlayer = Bukkit.getPlayerExact(args[1]);
+        } else { // Targeting another player (args.length == 1 expected now)
+            if (args.length > 1) {
+                sender.sendMessage(GENERIC_USAGE.replace("<command>", commandName));
+                return true; // Too many arguments
+            }
+
+            targetPlayer = Bukkit.getPlayerExact(args[0]);
             if (targetPlayer == null) {
                 sender.sendMessage(PLAYER_NOT_FOUND);
-                return true; // Handled
+                return true;
             }
-            // Check permission to target others
+
+            // Check general 'others' permission AND specific mode permission
             if (!sender.hasPermission("everything.gamemode.others")) {
-                sender.sendMessage(NO_PERMISSION + " (to change other players)");
-                return true; // Handled (permission denied)
+                sender.sendMessage(NO_PERMISSION + " (to change other players' gamemodes)");
+                return true;
+            }
+            // Also check if they have permission for the specific mode they are trying to set *for others*
+            if (!sender.hasPermission(modePermission)) {
+                sender.sendMessage(NO_PERMISSION + " (to set other players' gamemode to " + modeName + ")");
+                return true;
             }
         }
-
-        // --- Determine Gamemode ---
-        String modeArg = args[0].toLowerCase(); // Case-insensitive
-        GameMode selectedMode;
-        String modeName; // For user feedback messages
-        String modePermission; // Specific permission for this mode
-
-        switch (modeArg) {
-            case "c":
-            case "creative":
-            case "1": // Optional: Allow numbers too
-                selectedMode = GameMode.CREATIVE;
-                modeName = "Creative";
-                modePermission = "everything.gamemode.creative";
-                break;
-            case "s":
-            case "survival":
-            case "0": // Optional
-                selectedMode = GameMode.SURVIVAL;
-                modeName = "Survival";
-                modePermission = "everything.gamemode.survival";
-                break;
-            case "sp":
-            case "spectator":
-            case "3": // Optional
-                selectedMode = GameMode.SPECTATOR;
-                modeName = "Spectator";
-                modePermission = "everything.gamemode.spectator";
-                break;
-            case "a":
-            case "adventure":
-            case "2": // Optional
-                selectedMode = GameMode.ADVENTURE;
-                modeName = "Adventure";
-                modePermission = "everything.gamemode.adventure";
-                break;
-            default:
-                sender.sendMessage(INVALID_MODE);
-                return true; // Handled
-        }
-
-        // --- Check Permissions for Specific Mode ---
-        // Check base permission first (applies to self targeting)
-        if (!sender.hasPermission(modePermission)) {
-            sender.sendMessage(NO_PERMISSION + " (to set gamemode to " + modeName + ")");
-            return true; // Handled (permission denied)
-        }
-        // (Permission for 'others' was checked earlier if args.length == 2)
 
         // --- Apply Gamemode ---
-        targetPlayer.setGameMode(selectedMode);
+        targetPlayer.setGameMode(targetMode);
 
         // --- Feedback Messages ---
-        String feedbackColor = ChatColor.GREEN.toString(); // Use green for success
+        String feedbackColor = ChatColor.GREEN.toString();
         String targetName = targetPlayer.getName();
-        String senderName = (sender instanceof Player) ? ((Player)sender).getName() : "Console";
+        // String senderName = sender.getName(); // Already know sender is a Player
 
         // Message to the command sender
         if (targetingSelf) {
@@ -113,8 +126,8 @@ public class GamemodeCommand implements CommandExecutor {
         }
 
         // Message to the target player (if different from sender)
-        if (!targetingSelf && targetPlayer != sender) { // Check if targetPlayer is actually different
-            targetPlayer.sendMessage(feedbackColor + "Your gamemode has been set to " + modeName + " by " + senderName + ".");
+        if (!targetingSelf) { // No need to check targetPlayer != sender, already done by targetingSelf logic
+            targetPlayer.sendMessage(feedbackColor + "Your gamemode has been set to " + modeName + " by " + sender.getName() + ".");
         }
 
         return true; // Command successfully handled

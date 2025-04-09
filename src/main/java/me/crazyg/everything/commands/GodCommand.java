@@ -44,9 +44,9 @@ public class GodCommand implements CommandExecutor{
 
             }
         }else if (sender instanceof ConsoleCommandSender p) {
-            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by console");
+            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by console, Silly");
         } else if (sender instanceof BlockCommandSender p) {
-            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by command block");
+            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by command block, L");
         }
         return true;
     }

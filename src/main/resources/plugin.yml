@@ -1,56 +1,86 @@
 name: everything
-version: 1.1-SNAPSHOT # Or use ${project.version}
+version: 1.1-SNAPSHOT # Or use ${project.version} if using Maven resource filtering
 main: me.crazyg.everything.Everything
-api-version: '1.20'
+api-version: '1.20' # Adjust if necessary for your target Minecraft/Paper version
 authors: [crazyg]
 description: Does everything!
-softdepend: [PlaceholderAPI, Vault]
+softdepend: [PlaceholderAPI, Vault] # Optional dependencies
 
 commands:
   suicide:
     description: Kills the player.
     usage: /<command>
     permission: everything.suicide
+    permission-message: You do not have permission to use this command. # Optional message
   god:
-    description: Toggles god mode.
+    description: Toggles god mode for self or others.
     usage: /<command> [player]
-    permission: everything.god # Add permission for self
-    # permission-message: You do not have permission! # Optional default message
-  # REMOVED: gmc and gms
-  # NEW: gm command
-  gm: # Or name it gamemode if you prefer a longer command
-    description: Changes player gamemode.
-    usage: /<command> <c|s|sp|a> [player]
-    aliases: [gamemode] # Optional aliases
-    permission: everything.gamemode # Base permission (implicitly required for specific modes)
-    permission-message: You don't have permission to use gamemode commands. # Optional
+    permission: everything.god # Base permission needed
+    permission-message: You do not have permission to use god mode. # Optional message
+  report:
+    description: Report a player or view pending reports (staff).
+    usage: |
+      /<command> <player> <reason> - To report a player.
+      /<command> - To view pending reports (staff only).
+    permission: everything.report # Permission for *making* reports (can be left as default true)
+    permission-message: You do not have permission to report players. # Message for report making permission (optional if default true is okay)
+
+  # Specific Gamemode Commands
+  gmc:
+    description: Sets gamemode to Creative.
+    usage: /<command> [player]
+    aliases: [creative] # Optional
+    permission: everything.gamemode.creative # Permission is checked internally by the command code
+    permission-message: You don't have permission for Creative mode. # Generic fallback
+  gms:
+    description: Sets gamemode to Survival.
+    usage: /<command> [player]
+    aliases: [survival] # Optional
+    permission: everything.gamemode.survival
+    permission-message: You don't have permission for Survival mode.
+  gmsp:
+    description: Sets gamemode to Spectator.
+    usage: /<command> [player]
+    aliases: [spectator] # Optional
+    permission: everything.gamemode.spectator
+    permission-message: You don't have permission for Spectator mode.
+  gma:
+    description: Sets gamemode to Adventure.
+    usage: /<command> [player]
+    aliases: [adventure] # Optional
+    permission: everything.gamemode.adventure
+    permission-message: You don't have permission for Adventure mode.
 
 permissions:
   everything.suicide:
-    description: Allows using /suicide
+    description: Allows using the /suicide command.
     default: op
   everything.god:
-    description: Allows using /god on self
+    description: Allows using /god on oneself.
     default: op
   everything.god.others:
-    description: Allows using /god on other players
+    description: Allows using /god on other players. Requires everything.god as well.
     default: op
-  # Gamemode Permissions
-  everything.gamemode:
-    description: Base permission for using /gm. Recommended to grant this if granting any specific mode.
-    default: op
+  everything.report:
+    description: Allows players to use the /report command to report other players.
+    default: true # Or 'true', 'op', etc.
+    everything.report.view:
+      description: Allows staff members to view pending player reports using /report.
+      default: op # Only give to staff roles/operators
+
+  # Gamemode Permissions (Actual checks happen in the SpecificGamemodeCommand class)
   everything.gamemode.creative:
-    description: Allows setting gamemode to Creative.
+    description: Allows setting gamemode to Creative using /gmc.
     default: op
   everything.gamemode.survival:
-    description: Allows setting gamemode to Survival.
+    description: Allows setting gamemode to Survival using /gms.
     default: op
   everything.gamemode.spectator:
-    description: Allows setting gamemode to Spectator.
+    description: Allows setting gamemode to Spectator using /gmsp.
     default: op
   everything.gamemode.adventure:
-    description: Allows setting gamemode to Adventure.
+    description: Allows setting gamemode to Adventure using /gma.
     default: op
   everything.gamemode.others:
-    description: Allows setting the gamemode of other players using /gm.
+    description: Allows setting the gamemode of other players using /gmc, /gms, etc. Requires the specific mode permission too.
     default: op

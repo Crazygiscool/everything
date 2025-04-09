@@ -37,7 +37,12 @@ public final class Everything extends JavaPlugin {
         // --- Commands ---
         getCommand("suicide").setExecutor(new KillCommand());
         getCommand("god").setExecutor(new GodCommand());
-        getCommand("gm").setExecutor(new GamemodeCommand());
+        // --- Gamemode Commands ---
+        GamemodeCommand gamemodeExecutor = new GamemodeCommand();
+        getCommand("gmc").setExecutor(gamemodeExecutor);
+        getCommand("gms").setExecutor(gamemodeExecutor);
+        getCommand("gmsp").setExecutor(gamemodeExecutor);
+        getCommand("gma").setExecutor(gamemodeExecutor);
 
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
