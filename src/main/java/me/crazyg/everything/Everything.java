@@ -1,12 +1,11 @@
 package me.crazyg.everything;
 
 import me.crazyg.everything.commands.*;
-// Import your listener
 import me.crazyg.everything.listeners.ChatListener;
 import me.crazyg.everything.listeners.onJoinleaveListener;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor; // Import ChatColor
-import org.bukkit.plugin.Plugin;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
@@ -37,12 +36,19 @@ public final class Everything extends JavaPlugin {
         // --- Commands ---
         getCommand("suicide").setExecutor(new KillCommand());
         getCommand("god").setExecutor(new GodCommand());
+        getCommand("god").setTabCompleter((TabCompleter) new GodCommand());
+        getCommand("report").setExecutor(new ReportCommand(this));
+        getCommand("report").setTabCompleter((TabCompleter) new ReportCommand(this));
         // --- Gamemode Commands ---
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         getCommand("gmc").setExecutor(gamemodeExecutor);
+        getCommand("gmc").setTabCompleter((TabCompleter) gamemodeExecutor);
         getCommand("gms").setExecutor(gamemodeExecutor);
+        getCommand("gms").setTabCompleter((TabCompleter) gamemodeExecutor);
         getCommand("gmsp").setExecutor(gamemodeExecutor);
+        getCommand("gmsp").setTabCompleter((TabCompleter) gamemodeExecutor);
         getCommand("gma").setExecutor(gamemodeExecutor);
+        getCommand("gma").setTabCompleter((TabCompleter) gamemodeExecutor);
 
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
