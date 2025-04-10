@@ -33,22 +33,24 @@ public final class Everything extends JavaPlugin {
                 "╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░" +
                 ChatColor.RESET); // Reset color after
 
-        // --- Commands ---
-        getCommand("suicide").setExecutor(new KillCommand());
-        getCommand("god").setExecutor(new GodCommand());
-        getCommand("god").setTabCompleter((TabCompleter) new GodCommand());
-        getCommand("report").setExecutor(new ReportCommand(this));
-        getCommand("report").setTabCompleter((TabCompleter) new ReportCommand(this));
-        // --- Gamemode Commands ---
+        // --- Command Manager ---
+        CommandManager commandManager = new CommandManager();
+        getCommand("suicide").setExecutor(commandManager);
+        getCommand("god").setExecutor(commandManager);
+        getCommand("report").setExecutor(commandManager);
+        getCommand("gmc").setExecutor(commandManager);
+        getCommand("gms").setExecutor(commandManager);
+        getCommand("gmsp").setExecutor(commandManager);
+        getCommand("gma").setExecutor(commandManager);
+        // --- Command Registration ---
+        commandManager.registerCommand("suicide", new KillCommand());
+        commandManager.registerCommand("god", new GodCommand());
+        commandManager.registerCommand("report", new ReportCommand(this));
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
-        getCommand("gmc").setExecutor(gamemodeExecutor);
-        getCommand("gmc").setTabCompleter((TabCompleter) gamemodeExecutor);
-        getCommand("gms").setExecutor(gamemodeExecutor);
-        getCommand("gms").setTabCompleter((TabCompleter) gamemodeExecutor);
-        getCommand("gmsp").setExecutor(gamemodeExecutor);
-        getCommand("gmsp").setTabCompleter((TabCompleter) gamemodeExecutor);
-        getCommand("gma").setExecutor(gamemodeExecutor);
-        getCommand("gma").setTabCompleter((TabCompleter) gamemodeExecutor);
+        commandManager.registerCommand("gmc", gamemodeExecutor);
+        commandManager.registerCommand("gms", gamemodeExecutor);
+        commandManager.registerCommand("gmsp", gamemodeExecutor);
+        commandManager.registerCommand("gma", gamemodeExecutor);
 
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.

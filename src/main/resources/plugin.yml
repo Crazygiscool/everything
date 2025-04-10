@@ -24,6 +24,12 @@ commands:
       /<command> - To view pending reports (staff only).
     permission: everything.report # Permission for *making* reports (can be left as default true)
     permission-message: You do not have permission to report players. # Message for report making permission (optional if default true is okay)
+  reload:
+    description: reloads the plugin itself
+    usage:
+      /<command>
+    permission: everything.reload
+    permission-message: You do not have permission to reload the plugin. # Optional message
 
   # Specific Gamemode Commands
   gmc:
@@ -67,6 +73,9 @@ permissions:
     everything.report.view:
       description: Allows staff members to view pending player reports using /report.
       default: op # Only give to staff roles/operators
+  everything.reload:
+    description: reloads the plugin
+    default: op
 
   # Gamemode Permissions (Actual checks happen in the SpecificGamemodeCommand class)
   everything.gamemode.creative:
