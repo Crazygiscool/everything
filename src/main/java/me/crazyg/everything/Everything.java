@@ -59,7 +59,7 @@ public final class Everything extends JavaPlugin {
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
             getLogger().warning("PlaceholderAPI not found. Some placeholders in chat/messages may not work.");
         } else {
-            getLogger().info("PlaceholderAPI found! Placeholders will be parsed.");
+            getLogger().info("PlaceholderAPI found & Hooked!");
         }
     }
 
