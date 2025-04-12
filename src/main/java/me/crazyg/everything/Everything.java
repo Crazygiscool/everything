@@ -52,6 +52,11 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("gmsp", gamemodeExecutor);
         commandManager.registerCommand("gma", gamemodeExecutor);
 
+        // Register SetSpawnCommand
+        SetSpawnCommand setSpawnCommand = new SetSpawnCommand(this);
+        getCommand("setspawn").setExecutor(setSpawnCommand);
+        getCommand("spawn").setExecutor(setSpawnCommand);
+
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
         getServer().getPluginManager().registerEvents(new onJoinleaveListener(this), this);
