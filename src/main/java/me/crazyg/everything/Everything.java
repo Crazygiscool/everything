@@ -3,15 +3,16 @@ package me.crazyg.everything;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.ChatListener;
 import me.crazyg.everything.listeners.onJoinleaveListener;
+import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor; // Import ChatColor
 import org.bukkit.command.TabCompleter;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
 
-    // Keep console sender if you use it elsewhere, otherwise could be removed
-    // ConsoleCommandSender console = Bukkit.getServer().getConsoleSender();
+    private static Economy econ = null;
 
     @Override
     public void onEnable() {
@@ -68,6 +69,17 @@ public final class Everything extends JavaPlugin {
         } else {
             getLogger().info("PlaceholderAPI found & Hooked!");
         }
+
+        // Hook into Vault's economy
+        if (!setupEconomy()) {
+            getLogger().severe("Vault dependency not found! Disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
+        // Register economy commands
+        getCommand("balance").setExecutor(new BalanceCommand(this));
+        getCommand("pay").setExecutor(new PayCommand(this));
     }
 
     @Override
@@ -81,5 +93,21 @@ public final class Everything extends JavaPlugin {
                 "██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n" +
                 "╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n" +
                 "░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝");
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
+
+    public static Economy getEconomy() {
+        return econ;
     }
 }

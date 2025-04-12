@@ -56,6 +56,16 @@ commands:
     aliases: [adventure] # Optional
     permission: everything.gamemode.adventure
     permission-message: You don't have permission for Adventure mode.
+  balance:
+    description: Check your balance.
+    usage: /<command>
+    permission: everything.balance
+    permission-message: You do not have permission to check your balance.
+  pay:
+    description: Pay another player.
+    usage: /<command> <player> <amount>
+    permission: everything.pay
+    permission-message: You do not have permission to send money.
 
 permissions:
   everything.suicide:
@@ -93,3 +103,9 @@ permissions:
   everything.gamemode.others:
     description: Allows setting the gamemode of other players using /gmc, /gms, etc. Requires the specific mode permission too.
     default: op
+  everything.balance:
+    description: Allows checking your balance.
+    default: true
+  everything.pay:
+    description: Allows sending money to other players.
+    default: true
