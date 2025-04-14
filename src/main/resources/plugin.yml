@@ -1,5 +1,5 @@
 name: everything
-version: 1.1-SNAPSHOT # Or use ${project.version} if using Maven resource filtering
+version: ${project.version} # Or use ${project.version} if using Maven resource filtering
 main: me.crazyg.everything.Everything
 api-version: '1.20' # Adjust if necessary for your target Minecraft/Paper version
 authors: [crazyg]

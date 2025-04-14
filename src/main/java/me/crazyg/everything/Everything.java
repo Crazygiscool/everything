@@ -39,6 +39,11 @@ public final class Everything extends JavaPlugin {
         getCommand("suicide").setExecutor(commandManager);
         getCommand("god").setExecutor(commandManager);
         getCommand("report").setExecutor(commandManager);
+        getCommand("reload").setExecutor(commandManager);
+        getCommand("setspawn").setExecutor(commandManager);
+        getCommand("spawn").setExecutor(commandManager);
+        getCommand("balance").setExecutor(commandManager);
+        getCommand("pay").setExecutor(commandManager);
         getCommand("gmc").setExecutor(commandManager);
         getCommand("gms").setExecutor(commandManager);
         getCommand("gmsp").setExecutor(commandManager);
@@ -47,6 +52,9 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("suicide", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
+        commandManager.registerCommand("reload", new ReloadCommand(this));
+        commandManager.registerCommand("balance", new BalanceCommand(this));
+        commandManager.registerCommand("pay", new PayCommand(this));
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
@@ -75,11 +83,9 @@ public final class Everything extends JavaPlugin {
             getLogger().severe("Vault dependency not found! Disabling plugin.");
             getServer().getPluginManager().disablePlugin(this);
             return;
+        }else{
+            getLogger().info("Vault found & Hooked!");
         }
-
-        // Register economy commands
-        getCommand("balance").setExecutor(new BalanceCommand(this));
-        getCommand("pay").setExecutor(new PayCommand(this));
     }
 
     @Override
