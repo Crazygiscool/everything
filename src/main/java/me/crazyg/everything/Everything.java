@@ -11,6 +11,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class Everything extends JavaPlugin {
 
     private static Economy econ = null;
+    private boolean economyEnabled = false;
+    private boolean vaultChatEnabled = false;
 
     @Override
     public void onEnable() {
@@ -32,13 +34,14 @@ public final class Everything extends JavaPlugin {
                 "╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░" +
                 ChatColor.RESET); // Reset color after
 
-        // --- Economy Setup ---
+        // --- Economy & Vault Setup ---
         if (!setupEconomy()) {
-            getLogger().severe("Vault dependency not found! Disabling plugin.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
+            getLogger().warning("Vault or Economy provider not found! Economy features will be disabled.");
+            economyEnabled = false;
+        } else {
+            getLogger().info("Vault economy hooked successfully!");
+            economyEnabled = true;
         }
-        getLogger().info("Vault economy hooked successfully!");
 
         // --- Command Manager ---
         CommandManager commandManager = new CommandManager();
@@ -56,8 +59,7 @@ public final class Everything extends JavaPlugin {
         getCommand("sethome").setExecutor(commandManager);
         getCommand("msg").setExecutor(commandManager);
         getCommand("reply").setExecutor(commandManager);
-        getCommand("pay").setExecutor(commandManager);
-        getCommand("balance").setExecutor(commandManager);
+
         // --- Command Registration ---
         commandManager.registerCommand("suicide", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
@@ -67,8 +69,15 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("sethome", new HomeCommand(this));
         commandManager.registerCommand("msg", new MessageCommand(this));
         commandManager.registerCommand("reply", new MessageCommand(this));
-        commandManager.registerCommand("pay", new PayCommand(this));
-        commandManager.registerCommand("balance", new BalanceCommand(this));
+
+        // Only register economy commands if economy is enabled
+        if (economyEnabled) {
+            getCommand("balance").setExecutor(new BalanceCommand(this));
+            getCommand("pay").setExecutor(new PayCommand(this));
+            commandManager.registerCommand("pay", new PayCommand(this));
+            commandManager.registerCommand("balance", new BalanceCommand(this));
+        }
+
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
@@ -122,6 +131,10 @@ public final class Everything extends JavaPlugin {
         }
         econ = rsp.getProvider();
         return econ != null;
+    }
+
+    public boolean isEconomyEnabled() {
+        return economyEnabled;
     }
 
     // Add getter for economy

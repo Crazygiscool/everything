@@ -4,7 +4,7 @@ main: me.crazyg.everything.Everything
 api-version: '1.20' # Adjust if necessary for your target Minecraft/Paper version
 authors: [crazyg]
 description: Does everything!
-softdepend: [Vault, PlaceholderAPI, LuckPerms] # Optional dependencies
+softdepend: [Vault, PlaceholderAPI, LuckPerms] #dependencies
 
 commands:
   suicide:

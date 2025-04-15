@@ -29,18 +29,22 @@ public class ChatListener implements Listener {
         String message = event.getMessage();
         
         // Get chat format from config, default to a basic format if not found
-        String format = plugin.getConfig().getString("chat.format", "&b%prefix%%player%%suffix% &7> &f%message%");
+        String format = plugin.getConfig().getString("chat.format", "&b%player% &7> &f%message%");
         
         // Get prefix and suffix from Vault if available
         String prefix = "";
         String suffix = "";
         if (vaultEnabled && vaultChat != null) {
-            prefix = vaultChat.getPlayerPrefix(player);
-            suffix = vaultChat.getPlayerSuffix(player);
-            
-            // Ensure prefix and suffix aren't null
-            prefix = prefix != null ? prefix : "";
-            suffix = suffix != null ? suffix : "";
+            try {
+                prefix = vaultChat.getPlayerPrefix(player);
+                suffix = vaultChat.getPlayerSuffix(player);
+                
+                // Ensure prefix and suffix aren't null
+                prefix = prefix != null ? prefix : "";
+                suffix = suffix != null ? suffix : "";
+            } catch (Exception e) {
+                // If there's any error with Vault, just continue without prefix/suffix
+            }
         }
         
         // Replace placeholders
