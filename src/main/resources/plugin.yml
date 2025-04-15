@@ -42,6 +42,7 @@ commands:
       /<command>
       /<command> reload - Reloads the plugin.
       /<command> help - Shows help for the plugin.
+      /<command> checkupdate - Check for updates.
       /<command> <subcommand> - Shows help for a specific subcommand.
     permission: everything.everything # Base permission for the main command
     permission-message: You do not have permission to use the main command. # Optional message
