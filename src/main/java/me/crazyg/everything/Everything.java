@@ -36,7 +36,7 @@ public final class Everything extends JavaPlugin {
         getCommand("suicide").setExecutor(commandManager);
         getCommand("god").setExecutor(commandManager);
         getCommand("report").setExecutor(commandManager);
-        getCommand("reload").setExecutor(commandManager);
+        getCommand("everything").setExecutor(commandManager);
         getCommand("setspawn").setExecutor(commandManager);
         getCommand("spawn").setExecutor(commandManager);
         getCommand("gmc").setExecutor(commandManager);
@@ -47,7 +47,7 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("suicide", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
-        commandManager.registerCommand("reload", new ReloadCommand(this));
+        commandManager.registerCommand("everything", new EverythingCommand(this));
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);

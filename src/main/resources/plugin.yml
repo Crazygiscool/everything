@@ -14,7 +14,9 @@ commands:
     permission-message: You do not have permission to use this command. # Optional message
   god:
     description: Toggles god mode for self or others.
-    usage: /<command> [player]
+    usage: |
+      /<command>
+      /<command> [player]
     permission: everything.god # Base permission needed
     permission-message: You do not have permission to use god mode. # Optional message
   report:
@@ -24,12 +26,15 @@ commands:
       /<command> - To view pending reports (staff only).
     permission: everything.report # Permission for *making* reports (can be left as default true)
     permission-message: You do not have permission to report players. # Message for report making permission (optional if default true is okay)
-  reload:
-    description: reloads the plugin itself
-    usage:
+  everything:
+    description: plugin main command
+    usage: |
       /<command>
-    permission: everything.reload
-    permission-message: You do not have permission to reload the plugin. # Optional message
+      /<command> reload - Reloads the plugin.
+      /<command> help - Shows help for the plugin.
+      /<command> <subcommand> - Shows help for a specific subcommand.
+    permission: everything.everything # Base permission for the main command
+    permission-message: You do not have permission to use the main command. # Optional message
 
   # Specific Gamemode Commands
   gmc:
@@ -68,6 +73,12 @@ commands:
     permission-message: You do not have permission to teleport to spawn.
 
 permissions:
+  everything.everything:
+    description: Allows using the main command and all subcommands.
+    default: op
+    everything.reload:
+      description: Allows reloading the plugin.
+      default: op
   everything.suicide:
     description: Allows using the /suicide command.
     default: op
