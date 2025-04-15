@@ -116,8 +116,8 @@ JAVAAVAVAV
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Add enuewn
-- [x] Add dijdi2j
+- [x] Add auto-updator
+- [x] Add chat/messaging functions
 - [ ] Add didi3dji2
 - [ ] Add 1d3d
 - [ ] Multi-language Support
