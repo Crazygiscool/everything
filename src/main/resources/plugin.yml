@@ -66,6 +66,16 @@ commands:
     usage: /<command> <player> <amount>
     permission: everything.pay
     permission-message: You do not have permission to send money.
+  setspawn:
+    description: Set the spawn point.
+    usage: /<command>
+    permission: everything.spawn.set
+    permission-message: You do not have permission to set the spawn point.
+  spawn:
+    description: Teleport to the spawn point.
+    usage: /<command>
+    permission: everything.spawn
+    permission-message: You do not have permission to teleport to spawn.
 
 permissions:
   everything.suicide:
