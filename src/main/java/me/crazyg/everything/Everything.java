@@ -62,13 +62,19 @@ public final class Everything extends JavaPlugin {
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
         getServer().getPluginManager().registerEvents(new onJoinleaveListener(this), this);
-        getServer().getPluginManager().registerEvents(new ChatListener(), this);
+        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
 
         // --- PlaceholderAPI Check ---
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
             getLogger().warning("PlaceholderAPI not found. Some placeholders in chat/messages may not work.");
         } else {
             getLogger().info("PlaceholderAPI found & Hooked!");
+        }
+        // --- Vault Check ---
+        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
+            getLogger().warning("Vault not found. Prefixes in chat/messages may not work.");
+        } else {
+            getLogger().info("Vault found & Hooked!");
         }
     }
 

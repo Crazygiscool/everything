@@ -16,7 +16,4 @@ messages:
 # You can include PlaceholderAPI placeholders (e.g., %player_world%, %vault_prefix%).
 # PlaceholderAPI must be installed for its placeholders to work.
 chat:
-  # Example format using world, vault prefix (if vault is installed), player name, and message:
-  # format: "&8[&b%player_world%&8] %vault_prefix%&r &6%1$s&f: %2$s"
-  # Simpler default example:
-  format: "&b%player% &7> &f%message%"
+  format: "%prefix%%player%%suffix% &7» &f%message%"
