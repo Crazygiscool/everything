@@ -6,7 +6,7 @@
 
   <groupId>me.crazyg</groupId>
   <artifactId>everything</artifactId>
-  <version>1.1.3-BETA</version>
+  <version>1.1.4-BETA</version>
   <packaging>jar</packaging>
 
   <name>everything</name>
@@ -87,6 +87,11 @@
           <artifactId>VaultAPI</artifactId>
           <version>1.7.1</version>
           <scope>provided</scope>
+      </dependency>
+      <dependency>
+          <groupId>com.google.code.gson</groupId>
+          <artifactId>gson</artifactId>
+          <version>2.10.1</version>
       </dependency>
   </dependencies>
 </project>

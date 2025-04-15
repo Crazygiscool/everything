@@ -1,18 +1,21 @@
 package me.crazyg.everything.commands;
-
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.Updater;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.PluginDescriptionFile;
 
 public class EverythingCommand implements CommandExecutor {
 
     private final Everything plugin;
+    private final Updater updater;
 
     public EverythingCommand(Everything plugin) {
         this.plugin = plugin;
+        this.updater = new Updater(plugin);
     }
 
     @Override
@@ -69,15 +72,39 @@ public class EverythingCommand implements CommandExecutor {
             case "info":
                 sender.sendMessage(Component.text("Everything Plugin - Info")
                     .color(NamedTextColor.GOLD));
+                
+                // Get plugin description
+                PluginDescriptionFile description = plugin.getDescription();
+                
                 sender.sendMessage(Component.text()
                     .append(Component.text("Version: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE)));
+                    .append(Component.text(description.getVersion()).color(NamedTextColor.WHITE)));
                 sender.sendMessage(Component.text()
                     .append(Component.text("Author: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.WHITE)));
+                    .append(Component.text(String.join(", ", description.getAuthors())).color(NamedTextColor.WHITE)));
                 sender.sendMessage(Component.text()
                     .append(Component.text("Description: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(plugin.getPluginMeta().getDescription()).color(NamedTextColor.WHITE)));
+                    .append(Component.text(description.getDescription()).color(NamedTextColor.WHITE)));
+                return true;
+
+            case "checkupdate":
+                if (!sender.hasPermission("everything.admin")) {
+                    sender.sendMessage(Component.text("You don't have permission to check for updates!")
+                        .color(NamedTextColor.RED));
+                    return true;
+                }
+                
+                if (updater.isUpdateAvailable()) {
+                    sender.sendMessage(Component.text()
+                        .append(Component.text("A new version is available! ").color(NamedTextColor.GREEN))
+                        .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
+                        .append(Component.text(plugin.getDescription().getVersion()).color(NamedTextColor.WHITE))
+                        .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
+                        .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE)));
+                } else {
+                    sender.sendMessage(Component.text("You are running the latest version!")
+                        .color(NamedTextColor.GREEN));
+                }
                 return true;
 
             default:

@@ -2,6 +2,7 @@ package me.crazyg.everything;
 
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
+import me.crazyg.everything.utils.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
@@ -15,6 +16,7 @@ public final class Everything extends JavaPlugin {
     private static net.milkbowl.vault.chat.Chat chat = null;
     private boolean economyEnabled = false;
     private boolean vaultChatEnabled = false;
+    private Updater updater;
 
     @Override
     public void onEnable() {
@@ -123,6 +125,10 @@ public final class Everything extends JavaPlugin {
         } else {
             getLogger().info("Vault found & Hooked!");
         }
+
+        // Initialize updater
+        updater = new Updater(this);
+        getServer().getPluginManager().registerEvents(updater, this);
     }
 
     @Override

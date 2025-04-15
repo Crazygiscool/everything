@@ -140,6 +140,9 @@ permissions:
     everything.home.set:
       description: setting home
       default: op
+  everything.update:
+        description: Allows receiving update notifications
+        default: op
 
   # Gamemode Permissions (Actual checks happen in the SpecificGamemodeCommand class)
   everything.gamemode.creative:
