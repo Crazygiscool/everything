@@ -27,13 +27,13 @@ commands:
     permission: everything.report # Permission for *making* reports (can be left as default true)
     permission-message: You do not have permission to report players. # Message for report making permission
   sethome:
-    description: command for setting spawn
-    usage: /<command>
+    description: Set your home location
+    usage: /sethome
     permission: everything.home.set
     permission-message: You do not have permission to set your home. # Optional message
   home:
-    description: command for teleporting to your desired home
-    usage: /<command>
+    description: Teleport to your home location
+    usage: /home
     permission: everything.home
     permission-message: You do not have permission to teleport to your home. # Optional message
   everything:
@@ -81,8 +81,22 @@ commands:
     usage: /<command>
     permission: everything.spawn
     permission-message: You do not have permission to teleport to spawn.
+  msg:
+    description: Send a private message to a player
+    usage: /msg <player> <message>
+    aliases: [tell, w, whisper]
+  reply:
+    description: Reply to the last received message
+    usage: /reply <message>
+    aliases: [r]
 
 permissions:
+  everything.msg:
+    description: Allows sending private messages to other players.
+    default: true # Or 'true', 'op', etc.
+  everything.reply:
+    description: Allows replying to the last received message.
+    default: true # Or 'true', 'op', etc.
   everything.everything:
     description: Allows using the main command and all subcommands.
     default: op
