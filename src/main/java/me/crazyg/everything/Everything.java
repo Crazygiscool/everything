@@ -5,6 +5,7 @@ import me.crazyg.everything.listeners.*;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
@@ -31,6 +32,14 @@ public final class Everything extends JavaPlugin {
                 "╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░" +
                 ChatColor.RESET); // Reset color after
 
+        // --- Economy Setup ---
+        if (!setupEconomy()) {
+            getLogger().severe("Vault dependency not found! Disabling plugin.");
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+        getLogger().info("Vault economy hooked successfully!");
+
         // --- Command Manager ---
         CommandManager commandManager = new CommandManager();
         getCommand("suicide").setExecutor(commandManager);
@@ -45,6 +54,10 @@ public final class Everything extends JavaPlugin {
         getCommand("gma").setExecutor(commandManager);
         getCommand("home").setExecutor(commandManager);
         getCommand("sethome").setExecutor(commandManager);
+        getCommand("msg").setExecutor(commandManager);
+        getCommand("reply").setExecutor(commandManager);
+        getCommand("pay").setExecutor(commandManager);
+        getCommand("balance").setExecutor(commandManager);
         // --- Command Registration ---
         commandManager.registerCommand("suicide", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
@@ -52,6 +65,10 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("everything", new EverythingCommand(this));
         commandManager.registerCommand("home", new HomeCommand(this));
         commandManager.registerCommand("sethome", new HomeCommand(this));
+        commandManager.registerCommand("msg", new MessageCommand(this));
+        commandManager.registerCommand("reply", new MessageCommand(this));
+        commandManager.registerCommand("pay", new PayCommand(this));
+        commandManager.registerCommand("balance", new BalanceCommand(this));
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
@@ -93,5 +110,22 @@ public final class Everything extends JavaPlugin {
                 "██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n" +
                 "╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n" +
                 "░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝");
+    }
+
+    private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = rsp.getProvider();
+        return econ != null;
+    }
+
+    // Add getter for economy
+    public static Economy getEconomy() {
+        return econ;
     }
 }

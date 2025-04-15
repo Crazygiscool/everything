@@ -89,6 +89,13 @@ commands:
     description: Reply to the last received message
     usage: /reply <message>
     aliases: [r]
+  balance:
+    description: Check your balance
+    usage: /balance
+    aliases: [bal, money]
+  pay:
+    description: Pay another player
+    usage: /pay <player> <amount>
 
 permissions:
   everything.msg:
