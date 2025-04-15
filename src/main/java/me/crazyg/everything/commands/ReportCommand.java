@@ -1,41 +1,52 @@
 package me.crazyg.everything.commands;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
-import org.bukkit.command.*;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.entity.Player;
-import me.crazyg.everything.Everything; // Import your main plugin class
 import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+import me.crazyg.everything.Everything;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
+import org.bukkit.Bukkit;
+import org.bukkit.command.*;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
 
-public class ReportCommand implements CommandExecutor{
 
-    private final Everything plugin; // Store a reference to your main plugin
+public class ReportCommand implements CommandExecutor {
+
+    private final Everything plugin;
     private File reportsFile;
     private FileConfiguration reportsConfig;
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
     // --- Constant Messages ---
-    private static final String NEEDS_MORE_ARGS = ChatColor.DARK_RED + "" + ChatColor.BOLD + "You need to specify a player to report and the reason.";
-    private static final String CONSOLE_DENIED = ChatColor.DARK_RED + "" + ChatColor.BOLD + "Command cannot be run by console, silly!";
-    private static final String COMMAND_BLOCK_DENIED = ChatColor.DARK_RED + "" + ChatColor.BOLD + "Command cannot be run by command block, L!";
-    private static final String PLAYER_NOT_FOUND = ChatColor.RED + "Player '";
-    private static final String PLAYER_NOT_FOUND_SUFFIX = "' is not online.";
-    private static final String REPORT_SENT_PREFIX = ChatColor.GREEN + "Report sent for player: " + ChatColor.YELLOW;
-    private static final String BY_PREFIX = ChatColor.GREEN + " Reported by: " + ChatColor.AQUA;
-    private static final String REPORT_REASON_PREFIX = ChatColor.GREEN + " Reason: " + ChatColor.WHITE;
-    private static final String NO_REPORTS = ChatColor.YELLOW + "There are currently no pending reports.";
-    private static final String REPORT_HEADER = ChatColor.GOLD + "----- Pending Reports -----";
-    private static final String REPORT_FORMAT = ChatColor.GRAY + "- " +ChatColor.YELLOW + "Reported Player: " + ChatColor.WHITE + "%reported%" + ChatColor.YELLOW + ", Reporter: " + ChatColor.AQUA + "%reporter%" + ChatColor.YELLOW + ", Reason: " + ChatColor.WHITE + "%reason%";
+    private static final Component NEEDS_MORE_ARGS = Component.text("You need to specify a player to report and the reason.")
+            .color(NamedTextColor.DARK_RED)
+            .decorate(TextDecoration.BOLD);
+
+    private static final Component CONSOLE_DENIED = Component.text("Command cannot be run by console, silly!")
+            .color(NamedTextColor.DARK_RED)
+            .decorate(TextDecoration.BOLD);
+
+    private static final Component COMMAND_BLOCK_DENIED = Component.text("Command cannot be run by command block, L!")
+            .color(NamedTextColor.DARK_RED)
+            .decorate(TextDecoration.BOLD);
+
+    private static final Component NO_REPORTS = Component.text("There are currently no pending reports.")
+            .color(NamedTextColor.YELLOW);
+
+    private static final Component REPORT_HEADER = Component.text("----- Pending Reports -----")
+            .color(NamedTextColor.GOLD);
+
+    private static final Component NO_VIEW_PERMISSION = Component.text("You do not have permission to view reports.")
+            .color(NamedTextColor.RED);
+
     private static final String VIEW_REPORTS_PERMISSION = "everything.report.view";
-    private static final String NO_VIEW_PERMISSION = ChatColor.RED + "You do not have permission to view reports.";
 
     public ReportCommand(Everything plugin) {
         this.plugin = plugin;
@@ -46,7 +57,7 @@ public class ReportCommand implements CommandExecutor{
     private void createReportsFile() {
         reportsFile = new File(plugin.getDataFolder(), "reports.yml");
         if (!reportsFile.exists()) {
-            reportsFile.getParentFile().mkdirs(); // Ensure directory exists
+            reportsFile.getParentFile().mkdirs();
             try {
                 reportsFile.createNewFile();
             } catch (IOException e) {
@@ -92,63 +103,76 @@ public class ReportCommand implements CommandExecutor{
 
         sender.sendMessage(REPORT_HEADER);
         for (Map<?, ?> reportData : reportsList) {
-            String formattedReportLine = REPORT_FORMAT
-                    .replace("%reporter%", String.valueOf(reportData.get("reporter")))
-                    .replace("%reported%", String.valueOf(reportData.get("reported")))
-                    .replace("%reason%", String.valueOf(reportData.get("reason")));
-            sender.sendMessage(formattedReportLine);
+            Component reportLine = Component.text()
+                .append(Component.text("- ").color(NamedTextColor.GRAY))
+                .append(Component.text("Reported Player: ").color(NamedTextColor.YELLOW))
+                .append(Component.text(String.valueOf(reportData.get("reported"))).color(NamedTextColor.WHITE))
+                .append(Component.text(", Reporter: ").color(NamedTextColor.YELLOW))
+                .append(Component.text(String.valueOf(reportData.get("reporter"))).color(NamedTextColor.AQUA))
+                .append(Component.text(", Reason: ").color(NamedTextColor.YELLOW))
+                .append(Component.text(String.valueOf(reportData.get("reason"))).color(NamedTextColor.WHITE))
+                .build();
+            sender.sendMessage(reportLine);
         }
     }
 
     @Override
-    public boolean onCommand(CommandSender sender, Command command, String label, String[] args){
-        if (sender instanceof Player p){
+    public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+        if (sender instanceof Player p) {
             if (args.length == 0) {
-                // No arguments - Staff viewing reports
                 if (p.hasPermission(VIEW_REPORTS_PERMISSION)) {
                     displayReports(sender);
                 } else {
                     p.sendMessage(NO_VIEW_PERMISSION);
                 }
             } else if (args.length < 2) {
-                // One argument only (player name, but no reason)
                 p.sendMessage(NEEDS_MORE_ARGS);
             } else {
-                // Reporting a player
                 String playerName = args[0];
                 Player target = Bukkit.getServer().getPlayerExact(playerName);
 
                 if (target == null) {
-                    p.sendMessage(PLAYER_NOT_FOUND + playerName + PLAYER_NOT_FOUND_SUFFIX);
+                    p.sendMessage(Component.text()
+                        .append(Component.text("Player '").color(NamedTextColor.RED))
+                        .append(Component.text(playerName))
+                        .append(Component.text("' is not online.").color(NamedTextColor.RED))
+                        .build());
                     return true;
                 }
 
-                StringBuilder reportMessageBuilder = new StringBuilder();
+                StringBuilder reason = new StringBuilder();
                 for (int i = 1; i < args.length; i++) {
-                    reportMessageBuilder.append(args[i]).append(" ");
+                    reason.append(args[i]).append(" ");
                 }
-                String reportMessage = reportMessageBuilder.toString().trim();
+                String reportMessage = reason.toString().trim();
 
-                // Store the report in reports.yml
                 addReportToConfig(p.getName(), target.getName(), reportMessage);
 
-                // Send console notification (still keep this)
-                String formattedReport = REPORT_SENT_PREFIX + target.getName() +
-                        BY_PREFIX + p.getName() +
-                        REPORT_REASON_PREFIX + reportMessage;
-                Bukkit.getConsoleSender().sendMessage(formattedReport);
+                // Console notification
+                Component consoleMessage = Component.text()
+                    .append(Component.text("Report sent for player: ").color(NamedTextColor.GREEN))
+                    .append(Component.text(target.getName()).color(NamedTextColor.YELLOW))
+                    .append(Component.text(" Reported by: ").color(NamedTextColor.GREEN))
+                    .append(Component.text(p.getName()).color(NamedTextColor.AQUA))
+                    .append(Component.text(" Reason: ").color(NamedTextColor.GREEN))
+                    .append(Component.text(reportMessage).color(NamedTextColor.WHITE))
+                    .build();
+                Bukkit.getConsoleSender().sendMessage(consoleMessage);
 
-                p.sendMessage(ChatColor.GREEN + "Reported player " + ChatColor.YELLOW + target.getName() + ChatColor.GREEN + ". Thank you for your report.");
+                p.sendMessage(Component.text()
+                    .append(Component.text("Reported player ").color(NamedTextColor.GREEN))
+                    .append(Component.text(target.getName()).color(NamedTextColor.YELLOW))
+                    .append(Component.text(". Thank you for your report.").color(NamedTextColor.GREEN))
+                    .build());
             }
-        } else if (sender instanceof ConsoleCommandSender consoleSender) {
+        } else if (sender instanceof ConsoleCommandSender) {
             if (args.length == 0) {
-                // Console viewing reports
-                displayReports(sender); // Console can view all reports directly
+                displayReports(sender);
             } else {
-                consoleSender.sendMessage(CONSOLE_DENIED); // Console can't *make* reports
+                sender.sendMessage(CONSOLE_DENIED);
             }
-        } else if (sender instanceof BlockCommandSender blockSender) {
-            blockSender.sendMessage(COMMAND_BLOCK_DENIED); // Command blocks can't use /report at all
+        } else if (sender instanceof BlockCommandSender) {
+            sender.sendMessage(COMMAND_BLOCK_DENIED);
         }
         return true;
     }

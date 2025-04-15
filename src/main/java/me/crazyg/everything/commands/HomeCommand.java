@@ -1,7 +1,8 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -18,7 +19,8 @@ public class HomeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
+            sender.sendMessage(Component.text("This command can only be used by players!")
+                    .color(NamedTextColor.RED));
             return true;
         }
 
@@ -29,13 +31,15 @@ public class HomeCommand implements CommandExecutor {
             Location loc = player.getLocation();
             plugin.getConfig().set("homes." + uuid, loc);
             plugin.saveConfig();
-            player.sendMessage(ChatColor.GREEN + "Home location set!");
+            player.sendMessage(Component.text("Home location set!")
+                    .color(NamedTextColor.GREEN));
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("home")) {
             if (!plugin.getConfig().contains("homes." + uuid)) {
-                player.sendMessage(ChatColor.RED + "You haven't set a home yet!");
+                player.sendMessage(Component.text("You haven't set a home yet!")
+                        .color(NamedTextColor.RED));
                 return true;
             }
             String worldName = plugin.getConfig().getString("homes." + uuid + ".world");
@@ -46,7 +50,8 @@ public class HomeCommand implements CommandExecutor {
             float pitch = (float) plugin.getConfig().getDouble("homes." + uuid + ".pitch");
             Location loc = new Location(plugin.getServer().getWorld(worldName), x, y, z, yaw, pitch);
             player.teleport(loc);
-            player.sendMessage(ChatColor.GREEN + "Teleported to home!");
+            player.sendMessage(Component.text("Teleported to home!")
+                    .color(NamedTextColor.GREEN));
             return true;
         }
 

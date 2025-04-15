@@ -1,12 +1,15 @@
 package me.crazyg.everything.listeners;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import me.crazyg.everything.Everything;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class ChatListener implements Listener {
     
@@ -14,23 +17,24 @@ public class ChatListener implements Listener {
     private final boolean papiEnabled;
     private final boolean vaultEnabled;
     private final net.milkbowl.vault.chat.Chat vaultChat;
+    private final MiniMessage miniMessage;
 
     public ChatListener(Everything plugin) {
         this.plugin = plugin;
         this.papiEnabled = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
-        this.vaultEnabled = Bukkit.getPluginManager().isPluginEnabled("Vault");
-        this.vaultChat = vaultEnabled ? plugin.getServer().getServicesManager()
-            .getRegistration(net.milkbowl.vault.chat.Chat.class).getProvider() : null;
+        this.vaultEnabled = plugin.isVaultChatEnabled();
+        this.vaultChat = Everything.getChat();
+        this.miniMessage = MiniMessage.miniMessage();
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncPlayerChatEvent event) {
+    public void onPlayerChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
-        String message = event.getMessage();
-        
+        Component message = event.message();
+
         // Get chat format from config, default to a basic format if not found
-        String format = plugin.getConfig().getString("chat.format", "&b%player% &7> &f%message%");
-        
+        String format = plugin.getConfig().getString("chat.format", "<color:#00b7ff>%player% <gray>» <white>%message%");
+
         // Get prefix and suffix from Vault if available
         String prefix = "";
         String suffix = "";
@@ -38,7 +42,7 @@ public class ChatListener implements Listener {
             try {
                 prefix = vaultChat.getPlayerPrefix(player);
                 suffix = vaultChat.getPlayerSuffix(player);
-                
+
                 // Ensure prefix and suffix aren't null
                 prefix = prefix != null ? prefix : "";
                 suffix = suffix != null ? suffix : "";
@@ -46,23 +50,24 @@ public class ChatListener implements Listener {
                 // If there's any error with Vault, just continue without prefix/suffix
             }
         }
-        
-        // Replace placeholders
-        String formattedMessage = format
-            .replace("%prefix%", prefix)
-            .replace("%suffix%", suffix)
-            .replace("%player%", player.getName())
-            .replace("%message%", message);
-            
+
+        // Create tag resolvers for placeholders
+        TagResolver.Builder resolver = TagResolver.builder()
+            .resolver(Placeholder.parsed("prefix", prefix))
+            .resolver(Placeholder.parsed("suffix", suffix))
+            .resolver(Placeholder.parsed("player", player.getName()))
+            .resolver(Placeholder.component("message", message));
+
         // Apply PlaceholderAPI placeholders if available
         if (papiEnabled) {
-            formattedMessage = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, formattedMessage);
+            format = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, format);
         }
-        
-        // Translate color codes
-        formattedMessage = ChatColor.translateAlternateColorCodes('&', formattedMessage);
-        
+
+        // Parse the format with MiniMessage
+        Component formattedMessage = miniMessage.deserialize(format, resolver.build());
+
         // Set the formatted message
-        event.setFormat(formattedMessage.replace("%", "%%")); // Escape % for format string
+        event.setCancelled(true);
+        Bukkit.getServer().sendMessage(formattedMessage);
     }
 }

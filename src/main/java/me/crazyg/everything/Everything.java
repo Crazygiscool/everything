@@ -2,45 +2,62 @@ package me.crazyg.everything;
 
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
 
     private static Economy econ = null;
+    private static net.milkbowl.vault.chat.Chat chat = null;
     private boolean economyEnabled = false;
     private boolean vaultChatEnabled = false;
 
     @Override
     public void onEnable() {
         // --- Config Loading ---
-        // Ensure default config exists and copies new defaults if config is updated
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
 
         // --- Logging ---
-        getLogger().info("THIS PLUGIN IS WRITTENED BY CRAZYG");
+        getLogger().info("THIS PLUGIN IS WRITTEN BY CRAZYG");
         getLogger().info("THANKS FOR USING THE PLUGIN");
-        // Consider making the ASCII art optional or configurable
-        Bukkit.getConsoleSender().sendMessage(ChatColor.GOLD + "\n" + // Example of adding color
-                "███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n" +
-                "██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n" +
-                "█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n" +
-                "██╔══╝░░░╚████╔╝░██╔══╝░░██╔══██╗░░╚██╔╝░░░░░██║░░░██╔══██║██║██║╚████║██║░░╚██╗\n" +
-                "███████╗░░╚██╔╝░░███████╗██║░░██║░░░██║░░░░░░██║░░░██║░░██║██║██║░╚███║╚██████╔╝\n" +
-                "╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░" +
-                ChatColor.RESET); // Reset color after
+
+        // ASCII art with Adventure API
+        Component asciiArt = Component.text()
+            .append(Component.newline())
+            .append(Component.text("███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n").color(NamedTextColor.GOLD))
+            .append(Component.text("██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n").color(NamedTextColor.GOLD))
+            .append(Component.text("█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n").color(NamedTextColor.GOLD))
+            .append(Component.text("██╔══╝░░░╚████╔╝░██╔══╝░░██╔══██╗░░╚██╔╝░░░░░██║░░░██╔══██║██║██║╚████║██║░░╚██╗\n").color(NamedTextColor.GOLD))
+            .append(Component.text("███████╗░░╚██╔╝░░███████╗██║░░██║░░░██║░░░░░░██║░░░██║░░██║██║██║░╚███║╚██████╔╝\n").color(NamedTextColor.GOLD))
+            .append(Component.text("╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░").color(NamedTextColor.GOLD))
+            .build();
+
+        Bukkit.getConsoleSender().sendMessage(asciiArt);
 
         // --- Economy & Vault Setup ---
-        if (!setupEconomy()) {
-            getLogger().warning("Vault or Economy provider not found! Economy features will be disabled.");
-            economyEnabled = false;
+        if (getServer().getPluginManager().getPlugin("Vault") != null) {
+            // Setup economy
+            if (setupEconomy()) {
+                getLogger().info("Vault economy hooked successfully!");
+                economyEnabled = true;
+            } else {
+                getLogger().warning("Vault found but no economy provider detected!");
+            }
+            
+            // Setup chat
+            if (setupChat()) {
+                getLogger().info("Vault chat hooked successfully!");
+                vaultChatEnabled = true;
+            } else {
+                getLogger().warning("Vault found but no chat provider detected!");
+            }
         } else {
-            getLogger().info("Vault economy hooked successfully!");
-            economyEnabled = true;
+            getLogger().warning("Vault not found! Economy and chat features will be disabled.");
         }
 
         // --- Command Manager ---
@@ -110,15 +127,19 @@ public final class Everything extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Plugin shutdown logic
         getLogger().info("Everything plugin disabled.");
-        getLogger().info("\n" +
-                "░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n" +
-                "██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n" +
-                "██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n" +
-                "██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n" +
-                "╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n" +
-                "░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝");
+        
+        Component goodbyeArt = Component.text()
+            .append(Component.newline())
+            .append(Component.text("░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n").color(NamedTextColor.RED))
+            .append(Component.text("██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n").color(NamedTextColor.RED))
+            .append(Component.text("██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n").color(NamedTextColor.RED))
+            .append(Component.text("██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n").color(NamedTextColor.RED))
+            .append(Component.text("╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n").color(NamedTextColor.RED))
+            .append(Component.text("░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝").color(NamedTextColor.RED))
+            .build();
+            
+        Bukkit.getConsoleSender().sendMessage(goodbyeArt);
     }
 
     private boolean setupEconomy() {
@@ -133,6 +154,16 @@ public final class Everything extends JavaPlugin {
         return econ != null;
     }
 
+    private boolean setupChat() {
+        RegisteredServiceProvider<net.milkbowl.vault.chat.Chat> rsp = 
+            getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+        if (rsp == null) {
+            return false;
+        }
+        chat = rsp.getProvider();
+        return chat != null;
+    }
+
     public boolean isEconomyEnabled() {
         return economyEnabled;
     }
@@ -140,5 +171,13 @@ public final class Everything extends JavaPlugin {
     // Add getter for economy
     public static Economy getEconomy() {
         return econ;
+    }
+
+    public static net.milkbowl.vault.chat.Chat getChat() {
+        return chat;
+    }
+
+    public boolean isVaultChatEnabled() {
+        return vaultChatEnabled;
     }
 }

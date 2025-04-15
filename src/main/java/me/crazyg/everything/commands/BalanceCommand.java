@@ -1,7 +1,8 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
-import org.bukkit.ChatColor;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -17,18 +18,21 @@ public class BalanceCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!plugin.isEconomyEnabled()) {
-            sender.sendMessage(ChatColor.RED + "Economy features are currently disabled.");
+            sender.sendMessage(Component.text("Economy features are currently disabled!", NamedTextColor.RED));
             return true;
         }
 
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "Only players can use this command!");
+            sender.sendMessage(Component.text("Only players can use this command!", NamedTextColor.RED));
             return true;
         }
 
         Player player = (Player) sender;
         double balance = Everything.getEconomy().getBalance(player);
-        player.sendMessage(ChatColor.GREEN + "Your balance: " + ChatColor.GOLD + Everything.getEconomy().format(balance));
+        player.sendMessage(Component.text("Your balance: ", NamedTextColor.GREEN)
+                .append(Component.text(Everything.getEconomy().format(balance), NamedTextColor.GOLD)));
+        player.sendMessage(Component.text("Your balance: ", NamedTextColor.GREEN)
+                .append(Component.text(Everything.getEconomy().format(balance), NamedTextColor.GOLD)));
         return true;
     }
 }

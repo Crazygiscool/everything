@@ -5,9 +5,9 @@
 # PlaceholderAPI must be installed for its placeholders to work.
 messages:
   # Set to "" (empty string) to disable a specific message.
-  join: "&e%player_name% joined the game."
-  leave: "&e%player_name% left the game."
-  first-join: "&aWelcome %player_name% to the server for the first time!"
+  join: "<yellow>%player_name% joined the game."
+  leave: "<yellow>%player_name% left the game."
+  first-join: "<green>Welcome %player_name% to the server for the first time!"
 
 # Define the chat format here.
 # Use standard Minecraft color codes with '&' (e.g., &6 for gold, &f for white).
@@ -16,4 +16,4 @@ messages:
 # You can include PlaceholderAPI placeholders (e.g., %player_world%, %vault_prefix%).
 # PlaceholderAPI must be installed for its placeholders to work.
 chat:
-  format: "%prefix%%player%%suffix% &7» &f%message%"
+  format: "%prefix%%player%%suffix% <gray>» <white>%message%"
