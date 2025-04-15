@@ -115,10 +115,10 @@ permissions:
       default: op
   everything.home:
     description: teleportatin to home
-    default: true
+    default: op
     everything.home.set:
       description: setting home
-      default: true
+      default: op
 
   # Gamemode Permissions (Actual checks happen in the SpecificGamemodeCommand class)
   everything.gamemode.creative:
