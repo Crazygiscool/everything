@@ -56,16 +56,6 @@ commands:
     aliases: [adventure] # Optional
     permission: everything.gamemode.adventure
     permission-message: You don't have permission for Adventure mode.
-  balance:
-    description: Check your balance.
-    usage: /<command>
-    permission: everything.balance
-    permission-message: You do not have permission to check your balance.
-  pay:
-    description: Pay another player.
-    usage: /<command> <player> <amount>
-    permission: everything.pay
-    permission-message: You do not have permission to send money.
   setspawn:
     description: Set the spawn point.
     usage: /<command>
@@ -96,6 +86,12 @@ permissions:
   everything.reload:
     description: reloads the plugin
     default: op
+  everything.spawn:
+    description: teleports you to spawn
+    default: true
+    everything.spawn.set:
+      description: sets the spawn point
+      default: op
 
   # Gamemode Permissions (Actual checks happen in the SpecificGamemodeCommand class)
   everything.gamemode.creative:
@@ -113,9 +109,3 @@ permissions:
   everything.gamemode.others:
     description: Allows setting the gamemode of other players using /gmc, /gms, etc. Requires the specific mode permission too.
     default: op
-  everything.balance:
-    description: Allows checking your balance.
-    default: true
-  everything.pay:
-    description: Allows sending money to other players.
-    default: true

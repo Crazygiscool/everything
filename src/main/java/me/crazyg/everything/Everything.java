@@ -5,7 +5,6 @@ import me.crazyg.everything.listeners.*;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
@@ -40,8 +39,6 @@ public final class Everything extends JavaPlugin {
         getCommand("reload").setExecutor(commandManager);
         getCommand("setspawn").setExecutor(commandManager);
         getCommand("spawn").setExecutor(commandManager);
-        getCommand("balance").setExecutor(commandManager);
-        getCommand("pay").setExecutor(commandManager);
         getCommand("gmc").setExecutor(commandManager);
         getCommand("gms").setExecutor(commandManager);
         getCommand("gmsp").setExecutor(commandManager);
@@ -51,8 +48,6 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
         commandManager.registerCommand("reload", new ReloadCommand(this));
-        commandManager.registerCommand("balance", new BalanceCommand(this));
-        commandManager.registerCommand("pay", new PayCommand(this));
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
@@ -75,15 +70,6 @@ public final class Everything extends JavaPlugin {
         } else {
             getLogger().info("PlaceholderAPI found & Hooked!");
         }
-
-        // Hook into Vault's economy
-        if (!setupEconomy()) {
-            getLogger().severe("Vault dependency not found! Disabling plugin.");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        }else{
-            getLogger().info("Vault found & Hooked!");
-        }
     }
 
     @Override
@@ -97,21 +83,5 @@ public final class Everything extends JavaPlugin {
                 "██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n" +
                 "╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n" +
                 "░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝");
-    }
-
-    private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
-        econ = rsp.getProvider();
-        return econ != null;
-    }
-
-    public static Economy getEconomy() {
-        return econ;
     }
 }
