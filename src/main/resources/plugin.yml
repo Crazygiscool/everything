@@ -25,7 +25,17 @@ commands:
       /<command> <player> <reason> - To report a player.
       /<command> - To view pending reports (staff only).
     permission: everything.report # Permission for *making* reports (can be left as default true)
-    permission-message: You do not have permission to report players. # Message for report making permission (optional if default true is okay)
+    permission-message: You do not have permission to report players. # Message for report making permission
+  sethome:
+    description: command for setting spawn
+    usage: /<command>
+    permission: everything.home.set
+    permission-message: You do not have permission to set your home. # Optional message
+  home:
+    description: command for teleporting to your desired home
+    usage: /<command>
+    permission: everything.home
+    permission-message: You do not have permission to teleport to your home. # Optional message
   everything:
     description: plugin main command
     usage: |
@@ -103,6 +113,12 @@ permissions:
     everything.spawn.set:
       description: sets the spawn point
       default: op
+  everything.home:
+    description: teleportatin to home
+    default: true
+    everything.home.set:
+      description: setting home
+      default: true
 
   # Gamemode Permissions (Actual checks happen in the SpecificGamemodeCommand class)
   everything.gamemode.creative:

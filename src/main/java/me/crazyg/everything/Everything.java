@@ -43,11 +43,15 @@ public final class Everything extends JavaPlugin {
         getCommand("gms").setExecutor(commandManager);
         getCommand("gmsp").setExecutor(commandManager);
         getCommand("gma").setExecutor(commandManager);
+        getCommand("home").setExecutor(commandManager);
+        getCommand("sethome").setExecutor(commandManager);
         // --- Command Registration ---
         commandManager.registerCommand("suicide", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
         commandManager.registerCommand("everything", new EverythingCommand(this));
+        commandManager.registerCommand("home", new HomeCommand(this));
+        commandManager.registerCommand("sethome", new HomeCommand(this));
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
