@@ -109,7 +109,7 @@ permissions:
     default: op
   everything.spawn:
     description: teleports you to spawn
-    default: true
+    default: op
     everything.spawn.set:
       description: sets the spawn point
       default: op
