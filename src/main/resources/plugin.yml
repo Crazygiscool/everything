@@ -7,6 +7,32 @@ description: Does everything!
 softdepend: [Vault, PlaceholderAPI, LuckPerms] #dependencies
 
 commands:
+  stats:
+    description: View player statistics
+    usage: /<command> [player]
+    aliases: [statistics]
+    permission: everything.stats
+    permission-message: You do not have permission to view your stats. # Optional message
+  maintnance:
+    description: Toggle maintenance mode.
+    usage: /<command> [on|off]
+    permission: everything.maintenance
+    permission-message: You do not have permission to toggle maintenance mode. # Optional message
+  tpa:
+    description: Request to teleport to a player.
+    usage: /<command> <player>
+    permission: everything.tpa
+    permission-message: You do not have permission to teleport. # Optional message
+  tpaccept:
+    description: Accept a teleport request.
+    usage: /<command>
+    permission: everything.tpaccept
+    permission-message: You do not have permission to accept teleport requests. # Optional message
+  tpdeny: 
+    description: Deny a teleport request.
+    usage: /<command>
+    permission: everything.tpdeny
+    permission-message: You do not have permission to deny teleport requests. # Optional message
   tp:
     description: Teleport to a player or coordinates.
     usage: |
@@ -106,6 +132,24 @@ commands:
     usage: /pay <player> <amount>
 
 permissions:
+  everything.stats:
+    description: Allows players to view their own stats
+    default: true
+  everything.stats.others:
+    description: Allows players to view other players' stats
+    default: op
+  everything.maintenance:
+    description: Allows toggling maintenance mode.
+    default: op
+  everything.tpa:
+    description: Allows players to request teleportation to others.
+    default: true # Or 'true', 'op', etc.
+  everything.tpaccept:
+    description: Allows players to accept teleportation requests.
+    default: true # Or 'true', 'op', etc.
+  everything.tpdeny:
+    description: Allows players to deny teleportation requests.
+    default: true # Or 'true', 'op', etc.
   everything.teleport:
     description: Allows player to use the teleport command
     default: op
@@ -173,4 +217,17 @@ permissions:
     default: op
   everything.gamemode.others:
     description: Allows setting the gamemode of other players using /gmc, /gms, etc. Requires the specific mode permission too.
+    default: op
+stats:
+    description: View player statistics
+    usage: /stats [player]
+    aliases: [statistics]
+    permission: everything.stats
+
+permissions:
+  everything.stats:
+    description: Allows players to view their own stats
+    default: true
+  everything.stats.others:
+    description: Allows players to view other players' stats
     default: op
