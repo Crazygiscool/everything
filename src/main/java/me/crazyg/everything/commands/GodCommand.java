@@ -1,52 +1,59 @@
 package me.crazyg.everything.commands;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
-
-public class GodCommand implements CommandExecutor{
-
+public class GodCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
-        if(sender instanceof Player p){
-            if (args.length == 0){
-                if(p.isInvulnerable()){
+        if (sender instanceof Player p) {
+            if (args.length == 0) {
+                if (p.isInvulnerable()) {
                     p.setInvulnerable(false);
-                    p.sendMessage(ChatColor.DARK_RED+"GOD MODE disabled");
-                }else{
+                    p.sendMessage(Component.text("GOD MODE disabled")
+                            .color(NamedTextColor.DARK_RED));
+                } else {
                     p.setInvulnerable(true);
-                    p.sendMessage(ChatColor.GOLD+"GOD MODE Enabled");
+                    p.sendMessage(Component.text("GOD MODE Enabled")
+                            .color(NamedTextColor.GOLD));
                 }
-            }else{
-
-                //set the string playername to the first argument
+            } else {
                 String playername = args[0];
-
-                //get the target player name to store in to the target argument
                 Player target = Bukkit.getServer().getPlayerExact(playername);
 
-                if(target == null){
-                    p.sendMessage("This Player is not online");
-                }else{
-                    if(p.isInvulnerable()){
+                if (target == null) {
+                    p.sendMessage(Component.text("This Player is not online")
+                            .color(NamedTextColor.RED));
+                } else {
+                    if (p.isInvulnerable()) {
                         target.setInvulnerable(false);
-                        target.sendMessage(ChatColor.DARK_RED+"GOD MODE disabled by "+p.getDisplayName());
-                        p.sendMessage(ChatColor.BLUE+"MADE HIM NO LONGER GOD");
-                    }else {
+                        target.sendMessage(Component.text()
+                                .append(Component.text("GOD MODE disabled by ").color(NamedTextColor.DARK_RED))
+                                .append(Component.text(p.displayName().toString()).color(NamedTextColor.DARK_RED)));
+                        p.sendMessage(Component.text("MADE HIM NO LONGER GOD")
+                                .color(NamedTextColor.BLUE));
+                    } else {
                         target.setInvulnerable(true);
-                        target.sendMessage(ChatColor.GOLD + "GOD MODE Enabled by "+p.getDisplayName());
-                        p.sendMessage(ChatColor.BLUE+"MADE HIM GOD");
+                        target.sendMessage(Component.text()
+                                .append(Component.text("GOD MODE Enabled by ").color(NamedTextColor.GOLD))
+                                .append(Component.text(p.displayName().toString()).color(NamedTextColor.GOLD)));
+                        p.sendMessage(Component.text("MADE HIM GOD")
+                                .color(NamedTextColor.BLUE));
                     }
                 }
-
             }
-        }else if (sender instanceof ConsoleCommandSender p) {
-            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by console, Silly");
+        } else if (sender instanceof ConsoleCommandSender p) {
+            p.sendMessage(Component.text("Command Cannot be runned by console, Silly")
+                    .color(NamedTextColor.DARK_RED)
+                    .decorate(TextDecoration.BOLD));
         } else if (sender instanceof BlockCommandSender p) {
-            p.sendMessage(ChatColor.DARK_RED+""+ChatColor.BOLD+"Command Cannot be runned by command block, L");
+            p.sendMessage(Component.text("Command Cannot be runned by command block, L")
+                    .color(NamedTextColor.DARK_RED)
+                    .decorate(TextDecoration.BOLD));
         }
         return true;
     }

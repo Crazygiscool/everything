@@ -1,27 +1,25 @@
 package me.crazyg.everything.commands;
 
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.ConsoleCommandSender; // Import for clarity, although not strictly needed for instanceof
-import org.bukkit.command.BlockCommandSender; // Import for clarity
 import org.bukkit.entity.Player;
 
 public class GamemodeCommand implements CommandExecutor {
 
-    // Constants for messages
-    private static final String NO_PERMISSION = ChatColor.RED + "You do not have permission to use this command.";
-    private static final String PLAYER_NOT_FOUND = ChatColor.RED + "Player not found or not online.";
-    // private static final String CONSOLE_NEEDS_PLAYER = ChatColor.RED + "Console must specify a player name for this command."; // No longer needed with the new check
-    private static final String DISALLOWED_SENDER = ChatColor.RED + "This command can only be executed by players.";
-    private static final String GENERIC_USAGE = ChatColor.RED + "Usage: /<command> [player]"; // <command> will be replaced
+    // Constants for messages using Adventure API
+    private static final Component PLAYER_NOT_FOUND = Component.text("Player not found or not online.")
+            .color(NamedTextColor.RED);
+    private static final Component DISALLOWED_SENDER = Component.text("This command can only be executed by players.")
+            .color(NamedTextColor.RED);
+    private static final String GENERIC_USAGE = "Usage: /<command> [player]"; // Keep as String for replacement
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-
         // --- Check if sender is a Player ---
         // If not a player (e.g., Console, CommandBlock), deny execution immediately.
         if (!(sender instanceof Player)) {
@@ -60,7 +58,8 @@ public class GamemodeCommand implements CommandExecutor {
                 break;
             default:
                 // Should not happen if plugin.yml is set up correctly
-                playerSender.sendMessage(ChatColor.RED + "Unknown gamemode command executed.");
+                playerSender.sendMessage(Component.text("Unknown gamemode command executed.")
+                        .color(NamedTextColor.RED));
                 return true;
         }
 
@@ -83,12 +82,14 @@ public class GamemodeCommand implements CommandExecutor {
             targetPlayer = sender;
             // Check permission for self
             if (!sender.hasPermission(modePermission)) {
-                sender.sendMessage(NO_PERMISSION + " (to set your gamemode to " + modeName + ")");
+                sender.sendMessage(Component.text("You do not have permission to set your gamemode to " + modeName)
+                        .color(NamedTextColor.RED));
                 return true;
             }
         } else { // Targeting another player (args.length == 1 expected now)
             if (args.length > 1) {
-                sender.sendMessage(GENERIC_USAGE.replace("<command>", commandName));
+                sender.sendMessage(Component.text(GENERIC_USAGE.replace("<command>", commandName))
+                        .color(NamedTextColor.RED));
                 return true; // Too many arguments
             }
 
@@ -100,12 +101,14 @@ public class GamemodeCommand implements CommandExecutor {
 
             // Check general 'others' permission AND specific mode permission
             if (!sender.hasPermission("everything.gamemode.others")) {
-                sender.sendMessage(NO_PERMISSION + " (to change other players' gamemodes)");
+                sender.sendMessage(Component.text("You do not have permission to change other players' gamemodes")
+                        .color(NamedTextColor.RED));
                 return true;
             }
             // Also check if they have permission for the specific mode they are trying to set *for others*
             if (!sender.hasPermission(modePermission)) {
-                sender.sendMessage(NO_PERMISSION + " (to set other players' gamemode to " + modeName + ")");
+                sender.sendMessage(Component.text("You do not have permission to set other players' gamemode to " + modeName)
+                        .color(NamedTextColor.RED));
                 return true;
             }
         }
@@ -114,20 +117,14 @@ public class GamemodeCommand implements CommandExecutor {
         targetPlayer.setGameMode(targetMode);
 
         // --- Feedback Messages ---
-        String feedbackColor = ChatColor.GREEN.toString();
-        String targetName = targetPlayer.getName();
-        // String senderName = sender.getName(); // Already know sender is a Player
-
-        // Message to the command sender
         if (targetingSelf) {
-            sender.sendMessage(feedbackColor + "Your gamemode has been set to " + modeName + ".");
+            sender.sendMessage(Component.text("Your gamemode has been set to " + modeName + ".")
+                    .color(NamedTextColor.GREEN));
         } else {
-            sender.sendMessage(feedbackColor + "Set " + targetName + "'s gamemode to " + modeName + ".");
-        }
-
-        // Message to the target player (if different from sender)
-        if (!targetingSelf) { // No need to check targetPlayer != sender, already done by targetingSelf logic
-            targetPlayer.sendMessage(feedbackColor + "Your gamemode has been set to " + modeName + " by " + sender.getName() + ".");
+            sender.sendMessage(Component.text("Set " + targetPlayer.getName() + "'s gamemode to " + modeName + ".")
+                    .color(NamedTextColor.GREEN));
+            targetPlayer.sendMessage(Component.text("Your gamemode has been set to " + modeName + " by " + sender.getName() + ".")
+                    .color(NamedTextColor.GREEN));
         }
 
         return true; // Command successfully handled

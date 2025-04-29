@@ -7,6 +7,13 @@ description: Does everything!
 softdepend: [Vault, PlaceholderAPI, LuckPerms] #dependencies
 
 commands:
+  tp:
+    description: Teleport to a player or coordinates.
+    usage: |
+      /<command> <player>
+      /<command> <player> <x> <y> <z>
+    permission: everything.teleport
+    permission-message: You do not have permission to teleport. # Optional message
   suicide:
     description: Kills the player.
     usage: /<command>
@@ -99,6 +106,12 @@ commands:
     usage: /pay <player> <amount>
 
 permissions:
+  everything.teleport:
+    description: Allows player to use the teleport command
+    default: op
+  everything.teleport.other:
+    description: Allows player to teleport other players
+    default: op
   everything.msg:
     description: Allows sending private messages to other players.
     default: true # Or 'true', 'op', etc.

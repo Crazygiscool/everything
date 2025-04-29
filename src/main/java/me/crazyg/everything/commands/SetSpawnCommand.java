@@ -1,13 +1,14 @@
 package me.crazyg.everything.commands;
 
+import me.crazyg.everything.Everything;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import me.crazyg.everything.Everything;
 
 public class SetSpawnCommand implements CommandExecutor {
 
@@ -21,7 +22,8 @@ public class SetSpawnCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (command.getName().equalsIgnoreCase("setspawn")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "Only players can set the spawn location.");
+                sender.sendMessage(Component.text("Only players can set the spawn location.")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
@@ -37,13 +39,15 @@ public class SetSpawnCommand implements CommandExecutor {
             plugin.getConfig().set("spawn.pitch", location.getPitch());
             plugin.saveConfig();
 
-            player.sendMessage(ChatColor.GREEN + "Spawn location set!");
+            player.sendMessage(Component.text("Spawn location set!")
+                    .color(NamedTextColor.GREEN));
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("spawn")) {
             if (!(sender instanceof Player)) {
-                sender.sendMessage(ChatColor.RED + "Only players can teleport to the spawn location.");
+                sender.sendMessage(Component.text("Only players can teleport to the spawn location.")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
@@ -52,7 +56,8 @@ public class SetSpawnCommand implements CommandExecutor {
             // Retrieve the spawn location from the config
             String worldName = plugin.getConfig().getString("spawn.world");
             if (worldName == null) {
-                player.sendMessage(ChatColor.RED + "Spawn location is not set.");
+                player.sendMessage(Component.text("Spawn location is not set.")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
@@ -66,7 +71,8 @@ public class SetSpawnCommand implements CommandExecutor {
             );
 
             player.teleport(spawnLocation);
-            player.sendMessage(ChatColor.GREEN + "Teleported to spawn!");
+            player.sendMessage(Component.text("Teleported to spawn!")
+                    .color(NamedTextColor.GREEN));
             return true;
         }
 

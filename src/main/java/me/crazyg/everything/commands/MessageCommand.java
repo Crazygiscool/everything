@@ -3,26 +3,26 @@ package me.crazyg.everything.commands;
 import java.util.HashMap;
 import java.util.UUID;
 import me.crazyg.everything.Everything;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
-
 public class MessageCommand implements CommandExecutor {
-    private final Everything plugin;
     private static final HashMap<UUID, UUID> lastMessage = new HashMap<>();
 
     public MessageCommand(Everything plugin) {
-        this.plugin = plugin;
+        // Empty constructor or remove it if not needed
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            sender.sendMessage(ChatColor.RED + "This command can only be used by players!");
+            sender.sendMessage(Component.text("This command can only be used by players!")
+                    .color(NamedTextColor.RED));
             return true;
         }
 
@@ -30,13 +30,15 @@ public class MessageCommand implements CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("msg")) {
             if (args.length < 2) {
-                player.sendMessage(ChatColor.RED + "Usage: /msg <player> <message>");
+                player.sendMessage(Component.text("Usage: /msg <player> <message>")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                player.sendMessage(ChatColor.RED + "Player not found!");
+                player.sendMessage(Component.text("Player not found!")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
@@ -45,8 +47,13 @@ public class MessageCommand implements CommandExecutor {
                 message.append(args[i]).append(" ");
             }
 
-            player.sendMessage(ChatColor.GRAY + "To " + target.getName() + ": " + ChatColor.WHITE + message);
-            target.sendMessage(ChatColor.GRAY + "From " + player.getName() + ": " + ChatColor.WHITE + message);
+            player.sendMessage(Component.text()
+                    .append(Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY))
+                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
+            
+            target.sendMessage(Component.text()
+                    .append(Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY))
+                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
 
             lastMessage.put(target.getUniqueId(), player.getUniqueId());
             return true;
@@ -54,19 +61,22 @@ public class MessageCommand implements CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("reply") || command.getName().equalsIgnoreCase("r")) {
             if (args.length < 1) {
-                player.sendMessage(ChatColor.RED + "Usage: /reply <message>");
+                player.sendMessage(Component.text("Usage: /reply <message>")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
             UUID lastUUID = lastMessage.get(player.getUniqueId());
             if (lastUUID == null) {
-                player.sendMessage(ChatColor.RED + "Nobody to reply to!");
+                player.sendMessage(Component.text("Nobody to reply to!")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
             Player target = Bukkit.getPlayer(lastUUID);
             if (target == null) {
-                player.sendMessage(ChatColor.RED + "Player is offline!");
+                player.sendMessage(Component.text("Player is offline!")
+                        .color(NamedTextColor.RED));
                 return true;
             }
 
@@ -75,8 +85,13 @@ public class MessageCommand implements CommandExecutor {
                 message.append(arg).append(" ");
             }
 
-            player.sendMessage(ChatColor.GRAY + "To " + target.getName() + ": " + ChatColor.WHITE + message);
-            target.sendMessage(ChatColor.GRAY + "From " + player.getName() + ": " + ChatColor.WHITE + message);
+            player.sendMessage(Component.text()
+                    .append(Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY))
+                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
+            
+            target.sendMessage(Component.text()
+                    .append(Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY))
+                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
 
             lastMessage.put(target.getUniqueId(), player.getUniqueId());
             return true;

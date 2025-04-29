@@ -6,7 +6,6 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.PluginDescriptionFile;
 
 public class EverythingCommand implements CommandExecutor {
 
@@ -73,18 +72,16 @@ public class EverythingCommand implements CommandExecutor {
                 sender.sendMessage(Component.text("Everything Plugin - Info")
                     .color(NamedTextColor.GOLD));
                 
-                // Get plugin description
-                PluginDescriptionFile description = plugin.getDescription();
-                
+                // Use modern methods to get plugin info
                 sender.sendMessage(Component.text()
                     .append(Component.text("Version: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(description.getVersion()).color(NamedTextColor.WHITE)));
+                    .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE)));
                 sender.sendMessage(Component.text()
                     .append(Component.text("Author: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(String.join(", ", description.getAuthors())).color(NamedTextColor.WHITE)));
+                    .append(Component.text(String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.WHITE)));
                 sender.sendMessage(Component.text()
                     .append(Component.text("Description: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(description.getDescription()).color(NamedTextColor.WHITE)));
+                    .append(Component.text(plugin.getPluginMeta().getDescription()).color(NamedTextColor.WHITE)));
                 return true;
 
             case "checkupdate":
@@ -98,7 +95,7 @@ public class EverythingCommand implements CommandExecutor {
                     sender.sendMessage(Component.text()
                         .append(Component.text("A new version is available! ").color(NamedTextColor.GREEN))
                         .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
-                        .append(Component.text(plugin.getDescription().getVersion()).color(NamedTextColor.WHITE))
+                        .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE))
                         .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
                         .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE)));
                 } else {
