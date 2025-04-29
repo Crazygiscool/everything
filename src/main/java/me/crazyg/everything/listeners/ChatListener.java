@@ -32,8 +32,9 @@ public class ChatListener implements Listener {
         Player player = event.getPlayer();
         Component message = event.message();
 
-        // Get chat format from config, default to a basic format if not found
-        String format = plugin.getConfig().getString("chat.format", "<color:#00b7ff>%player% <gray>» <white>%message%");
+        // Get chat format from config
+        String format = plugin.getConfig().getString("chat.format", 
+            "<color:#00b7ff>%player_name% <gray>» <white>%message%");
 
         // Get prefix and suffix from Vault if available
         String prefix = "";
@@ -42,26 +43,27 @@ public class ChatListener implements Listener {
             try {
                 prefix = vaultChat.getPlayerPrefix(player);
                 suffix = vaultChat.getPlayerSuffix(player);
-
-                // Ensure prefix and suffix aren't null
                 prefix = prefix != null ? prefix : "";
                 suffix = suffix != null ? suffix : "";
             } catch (Exception e) {
-                // If there's any error with Vault, just continue without prefix/suffix
+                plugin.getLogger().warning("Failed to get Vault prefix/suffix: " + e.getMessage());
             }
         }
 
-        // Create tag resolvers for placeholders
+        // Process PlaceholderAPI placeholders first if available
+        if (papiEnabled) {
+            format = format.replace("%player%", "%player_name%"); // Fix common placeholder
+            format = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, format);
+            prefix = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, prefix);
+            suffix = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, suffix);
+        }
+
+        // Create tag resolvers for MiniMessage
         TagResolver.Builder resolver = TagResolver.builder()
             .resolver(Placeholder.parsed("prefix", prefix))
             .resolver(Placeholder.parsed("suffix", suffix))
-            .resolver(Placeholder.parsed("player", player.getName()))
+            .resolver(Placeholder.parsed("player_name", player.getName()))
             .resolver(Placeholder.component("message", message));
-
-        // Apply PlaceholderAPI placeholders if available
-        if (papiEnabled) {
-            format = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, format);
-        }
 
         // Parse the format with MiniMessage
         Component formattedMessage = miniMessage.deserialize(format, resolver.build());

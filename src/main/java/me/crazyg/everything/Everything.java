@@ -1,6 +1,7 @@
 package me.crazyg.everything;
 
 import me.crazyg.everything.commands.*;
+import me.crazyg.everything.kits.KitManager;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
 import net.kyori.adventure.text.Component;
@@ -17,6 +18,7 @@ public final class Everything extends JavaPlugin {
     private boolean economyEnabled = false;
     private boolean vaultChatEnabled = false;
     private Updater updater;
+    private KitManager kitManager;
 
     @Override
     public void onEnable() {
@@ -40,7 +42,9 @@ public final class Everything extends JavaPlugin {
             .build();
 
         Bukkit.getConsoleSender().sendMessage(asciiArt);
-
+        
+        // Initialize kit manager
+        this.kitManager = new KitManager(this);
         // --- Economy & Vault Setup ---
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
             // Setup economy
@@ -78,6 +82,16 @@ public final class Everything extends JavaPlugin {
         getCommand("sethome").setExecutor(commandManager);
         getCommand("msg").setExecutor(commandManager);
         getCommand("reply").setExecutor(commandManager);
+        getCommand("kit").setExecutor(commandManager);
+        getCommand("stats").setExecutor(commandManager);
+        getCommand("tp").setExecutor(commandManager);
+        getCommand("tpa").setExecutor(commandManager);
+        getCommand("tpaccept").setExecutor(commandManager);
+        getCommand("tpdeny").setExecutor(commandManager);
+        getCommand("maintenance").setExecutor(commandManager);
+        getCommand("warp").setExecutor(commandManager);
+        getCommand("home").setExecutor(commandManager);
+        getCommand("sethome").setExecutor(commandManager);
 
         // --- Command Registration ---
         commandManager.registerCommand("suicide", new KillCommand());
@@ -88,25 +102,33 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("sethome", new HomeCommand(this));
         commandManager.registerCommand("msg", new MessageCommand(this));
         commandManager.registerCommand("reply", new MessageCommand(this));
-
-        // Only register economy commands if economy is enabled
-        if (economyEnabled) {
-            getCommand("balance").setExecutor(new BalanceCommand(this));
-            getCommand("pay").setExecutor(new PayCommand(this));
-            commandManager.registerCommand("pay", new PayCommand(this));
-            commandManager.registerCommand("balance", new BalanceCommand(this));
-        }
-
+        commandManager.registerCommand("kit", new KitCommand(this));
+        commandManager.registerCommand("stats", new StatsCommand(this));
+        commandManager.registerCommand("tp", new TeleportCommand());
+        commandManager.registerCommand("tpa", new TeleportCommand());
+        commandManager.registerCommand("tpaccept", new TeleportCommand());
+        commandManager.registerCommand("tpdeny", new TeleportCommand());
+        commandManager.registerCommand("maintenance", new MaintenanceCommand(this));
+        commandManager.registerCommand("warp", new WarpCommand(this));
+        commandManager.registerCommand("home", new HomeCommand(this));
+        commandManager.registerCommand("sethome", new HomeCommand(this));
+        //register Gamemode Command
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
         commandManager.registerCommand("gmsp", gamemodeExecutor);
         commandManager.registerCommand("gma", gamemodeExecutor);
-
         // Register SetSpawnCommand
         SetSpawnCommand setSpawnCommand = new SetSpawnCommand(this);
         getCommand("setspawn").setExecutor(setSpawnCommand);
         getCommand("spawn").setExecutor(setSpawnCommand);
+        // Only register economy commands if economy is enabled
+        if (economyEnabled) {
+            getCommand("balance").setExecutor(commandManager);
+            getCommand("pay").setExecutor(commandManager);
+            commandManager.registerCommand("pay", new PayCommand(this));
+            commandManager.registerCommand("balance", new BalanceCommand(this));
+        }
 
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
@@ -129,6 +151,10 @@ public final class Everything extends JavaPlugin {
         // Initialize updater
         updater = new Updater(this);
         getServer().getPluginManager().registerEvents(updater, this);
+    }
+
+    public KitManager getKitManager() {
+        return kitManager;
     }
 
     @Override

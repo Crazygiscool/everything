@@ -16,4 +16,4 @@ messages:
 # You can include PlaceholderAPI placeholders (e.g., %player_world%, %vault_prefix%).
 # PlaceholderAPI must be installed for its placeholders to work.
 chat:
-  format: "%prefix%%player%%suffix% <gray>» <white>%message%"
+  format: "<color:#00b7ff>%player_name% <gray>» <white>%message%"

@@ -7,6 +7,14 @@ description: Does everything!
 softdepend: [Vault, PlaceholderAPI, LuckPerms] #dependencies
 
 commands:
+  kit:
+    description: View or give kits.
+    usage: |
+      /<command> [kit] - View a kit.
+      /<command> give <kit> <player> - Give a kit to a player.
+    aliases: [kits]
+    permission: everything.kit
+    permission-message: You do not have permission to use kits. # Optional message
   stats:
     description: View player statistics
     usage: /<command> [player]
@@ -69,6 +77,11 @@ commands:
     usage: /home
     permission: everything.home
     permission-message: You do not have permission to teleport to your home. # Optional message
+    sethome:
+      description: Set your home location
+      usage: /sethome
+      permission: everything.home.set
+      permission-message: You do not have permission to set your home. # Optional message
   everything:
     description: plugin main command
     usage: |
