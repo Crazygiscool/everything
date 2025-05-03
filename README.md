@@ -94,8 +94,6 @@ HAVE FUN!
 
 ### Built With
 
-JAVAAVAVAV
-
 * Intellij Idea
 * Maven, Java
 
@@ -110,16 +108,46 @@ JAVAAVAVAV
 
 ### Soft-Dependencies
 
-* Vault
-* Placeholder-API
+* Vault: for economy and ranks
+* Placeholder-API: chat
+* Luckperms: ranks
+* MC Native version: 1.20.4+
+
+### Hard-Dependencies
+
+* Java 17
+* 
 
 <!-- ROADMAP -->
 ## Roadmap
 
 - [x] Add auto-updator
 - [x] Add chat/messaging functions
-- [ ] Add didi3dji2
-- [ ] Add 1d3d
+- [0] Add implementation of most public plugins
+    - [0] EssentialsX
+      - [X] TP
+      - [X] Kit
+        - [x] Kit-Manager
+        - [x] Kit-Command
+      - [x] Gamemode-Commands
+      - [0] Home-System
+        - [x]home-command
+        - [ ]home-selection-gui
+    - [ ] Luckperms
+      - [ ] permission-gui
+      - [ ] rank-system
+      - [ ] perms-command
+      - [ ] permission-manager
+    - [ ] Coreprotect
+      - [ ] block-logging-system
+      - [ ] rollback/reset-command
+    - [ ] anti-xray
+      - [ ] implement-natural-paper-antixray
+      - [ ] false-blocking-entity
+    - [ ] anti-cheat(vulcan)
+    - [ ] terrain-generator(terra)
+    - [ ] world-management-system(multiverse)
+- [ ] Add gui system
 - [ ] Multi-language Support
     - [ ] Chinese
     - [ ] Spanish
