@@ -122,14 +122,14 @@ HAVE FUN!
 
 - [x] Add auto-updator
 - [x] Add chat/messaging functions
-- [0] Add implementation of most public plugins
-    - [0] EssentialsX
+- [ ] Add implementation of most public plugins
+    - [ ] EssentialsX
       - [x] TP
       - [x] Kit
         - [x] Kit-Manager
         - [x] Kit-Command
       - [x] Gamemode-Commands
-      - [0] Home-System
+      - [ ] Home-System
         - [x]home-command
         - [ ]home-selection-gui
     - [ ] Luckperms
