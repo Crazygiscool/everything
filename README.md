@@ -116,7 +116,6 @@ HAVE FUN!
 ### Hard-Dependencies
 
 * Java 17
-* 
 
 <!-- ROADMAP -->
 ## Roadmap
@@ -125,8 +124,8 @@ HAVE FUN!
 - [x] Add chat/messaging functions
 - [0] Add implementation of most public plugins
     - [0] EssentialsX
-      - [X] TP
-      - [X] Kit
+      - [x] TP
+      - [x] Kit
         - [x] Kit-Manager
         - [x] Kit-Command
       - [x] Gamemode-Commands
