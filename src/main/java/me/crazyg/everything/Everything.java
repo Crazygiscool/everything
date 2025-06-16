@@ -78,6 +78,13 @@ public final class Everything extends JavaPlugin {
         getCommand("sethome").setExecutor(commandManager);
         getCommand("msg").setExecutor(commandManager);
         getCommand("reply").setExecutor(commandManager);
+        getCommand("balance").setExecutor(commandManager);
+        getCommand("pay").setExecutor(commandManager);
+        getCommand("maintenance").setExecutor(commandManager);
+        getCommand("tpa").setExecutor(commandManager);
+        getCommand("tpaccept").setExecutor(commandManager);
+        getCommand("tpdeny").setExecutor(commandManager);
+        getCommand("stats").setExecutor(commandManager);
 
         // --- Command Registration ---
         commandManager.registerCommand("suicide", new KillCommand());
@@ -88,6 +95,15 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("sethome", new HomeCommand(this));
         commandManager.registerCommand("msg", new MessageCommand(this));
         commandManager.registerCommand("reply", new MessageCommand(this));
+        commandManager.registerCommand("maintenance", new MaintenanceCommand(this));
+        commandManager.registerCommand("setspawn", new SetSpawnCommand(this));
+        commandManager.registerCommand("spawn", new SetSpawnCommand(this));
+        commandManager.registerCommand("pay", new PayCommand(this));
+        commandManager.registerCommand("balance", new BalanceCommand(this));
+        commandManager.registerCommand("tpa", new TpaCommand(this));
+        commandManager.registerCommand("tpaccept", new TpaCommand(this));
+        commandManager.registerCommand("tpdeny", new TpaCommand(this));
+        commandManager.registerCommand("stats", new StatsCommand(this));
 
         // Only register economy commands if economy is enabled
         if (economyEnabled) {

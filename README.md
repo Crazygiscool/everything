@@ -116,13 +116,36 @@ JAVAAVAVAV
 <!-- ROADMAP -->
 ## Roadmap
 
-- [x] Add auto-updator
-- [x] Add chat/messaging functions
-- [ ] Add didi3dji2
-- [ ] Add 1d3d
-- [ ] Multi-language Support
-    - [ ] Chinese
-    - [ ] Spanish
+- **Add auto-updator**
+- **Add chat/messaging functions**
+- **Add implementation of most public plugins**
+  - **EssentialsX**
+    - TP
+    - Kit
+      - Kit-Manager
+      - Kit-Command
+    - Gamemode-Commands
+    - Home-System
+      - [x] home-command
+      - [ ] home-selection-gui
+  - **Luckperms**
+    - permission-gui
+    - rank-system
+    - perms-command
+    - permission-manager
+  - **Coreprotect**
+    - block-logging-system
+    - rollback/reset-command
+  - **anti-xray**
+    - implement-natural-paper-antixray
+    - false-blocking-entity
+  - **anti-cheat (vulcan)**
+  - **terrain-generator (terra)**
+  - **world-management-system (multiverse)**
+- **Add GUI system**
+- **Multi-language Support**
+  - Chinese
+  - Spanish
 
 See the [open issues](https://github.com/crazygiscool/everything/issues) for a full list of proposed features (and known issues).
 
