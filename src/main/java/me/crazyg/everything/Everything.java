@@ -20,6 +20,9 @@ public final class Everything extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        saveDefaultConfig(); // <-- Make sure this is first!
+        // Now read config values, register listeners, etc.
+
         // --- Config Loading ---
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
