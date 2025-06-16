@@ -11,6 +11,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
 import org.bukkit.Statistic;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -153,8 +154,30 @@ public class StatsCommand implements CommandExecutor {
             this.kills = player.getStatistic(Statistic.PLAYER_KILLS);
             this.deaths = player.getStatistic(Statistic.DEATHS);
             this.playTime = player.getStatistic(Statistic.PLAY_ONE_MINUTE);
-            this.blocksBroken = player.getStatistic(Statistic.MINE_BLOCK);
-            this.blocksPlaced = player.getStatistic(Statistic.USE_ITEM);
+
+            // Sum all blocks broken
+            int totalBroken = 0;
+            for (Material mat : Material.values()) {
+                if (mat.isBlock()) {
+                    try {
+                        totalBroken += player.getStatistic(Statistic.MINE_BLOCK, mat);
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            }
+            this.blocksBroken = totalBroken;
+
+            // Sum all blocks placed
+            int totalPlaced = 0;
+            for (Material mat : Material.values()) {
+                if (mat.isBlock()) {
+                    try {
+                        totalPlaced += player.getStatistic(Statistic.USE_ITEM, mat);
+                    } catch (IllegalArgumentException ignored) {}
+                }
+            }
+            this.blocksPlaced = totalPlaced;
+
+            this.lastLogin = Instant.now().getEpochSecond();
         }
 
         public int getKills() { return kills; }
