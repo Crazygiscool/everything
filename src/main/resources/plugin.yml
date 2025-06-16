@@ -79,6 +79,11 @@ commands:
       /<command> <subcommand> - Shows help for a specific subcommand.
     permission: everything.everything # Base permission for the main command
     permission-message: You do not have permission to use the main command. # Optional message
+  namecolor:
+    description: Change your display name color.
+    usage: /namecolor <color>
+    permission: everything.namecolor
+    permission-message: You do not have permission to change your name color.
 
   # Specific Gamemode Commands
   gmc:

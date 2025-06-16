@@ -85,6 +85,7 @@ public final class Everything extends JavaPlugin {
         getCommand("tpaccept").setExecutor(commandManager);
         getCommand("tpdeny").setExecutor(commandManager);
         getCommand("stats").setExecutor(commandManager);
+        getCommand("namecolor").setExecutor(commandManager);
 
         // --- Command Registration ---
         commandManager.registerCommand("suicide", new KillCommand());
@@ -104,6 +105,8 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("tpaccept", new TpaCommand(this));
         commandManager.registerCommand("tpdeny", new TpaCommand(this));
         commandManager.registerCommand("stats", new StatsCommand(this));
+        commandManager.registerCommand("namecolor", new NameColorCommand(this));
+        commandManager.registerCommand("namecolor", new NameColorCommand(this));
 
         // Only register economy commands if economy is enabled
         if (economyEnabled) {

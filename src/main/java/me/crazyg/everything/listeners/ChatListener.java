@@ -3,6 +3,7 @@ package me.crazyg.everything.listeners;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -51,11 +52,19 @@ public class ChatListener implements Listener {
             }
         }
 
+        // Get name color from config
+        String colorName = plugin.getConfig().getString("namecolors." + player.getUniqueId(), "WHITE");
+        NamedTextColor color = NamedTextColor.NAMES.value(colorName.toLowerCase());
+        if (color == null) {
+            color = NamedTextColor.WHITE;
+        }
+        Component displayName = Component.text(player.getName()).color(color);
+
         // Create tag resolvers for placeholders
         TagResolver.Builder resolver = TagResolver.builder()
             .resolver(Placeholder.parsed("prefix", prefix))
             .resolver(Placeholder.parsed("suffix", suffix))
-            .resolver(Placeholder.parsed("player", player.getName()))
+            .resolver(Placeholder.component("player", displayName))
             .resolver(Placeholder.component("message", message));
 
         // Apply PlaceholderAPI placeholders if available
