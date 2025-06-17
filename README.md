@@ -152,8 +152,8 @@ See the [open issues](https://github.com/crazygiscool/everything/issues) for a f
 
 ## Immediate todo list
 - [ ] Economy system
-- [ ] TP logic error
-- [ ] 
+- [ ] TP logic error(might be long term, or ust need a testing dummy)
+- [x] Home
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
