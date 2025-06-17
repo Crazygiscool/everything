@@ -149,6 +149,12 @@ JAVAAVAVAV
 
 See the [open issues](https://github.com/crazygiscool/everything/issues) for a full list of proposed features (and known issues).
 
+
+## Immediate todo list
+- [ ] Economy system
+- [ ] TP logic error
+- [ ] 
+
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
 <!-- LICENSE -->

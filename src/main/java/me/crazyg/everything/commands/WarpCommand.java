@@ -6,6 +6,7 @@ import java.util.Set;
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -145,13 +146,22 @@ public class WarpCommand implements CommandExecutor {
         }
 
         String worldName = warpsConfig.getString(name.toLowerCase() + ".world");
+        if (worldName == null) {
+            player.sendMessage(Component.text("Warp '" + name + "' is missing a world!").color(NamedTextColor.RED));
+            return true;
+        }
+        if (Bukkit.getWorld(worldName) == null) {
+            player.sendMessage(Component.text("World '" + worldName + "' does not exist!").color(NamedTextColor.RED));
+            return true;
+        }
+
         double x = warpsConfig.getDouble(name.toLowerCase() + ".x");
         double y = warpsConfig.getDouble(name.toLowerCase() + ".y");
         double z = warpsConfig.getDouble(name.toLowerCase() + ".z");
         float yaw = (float) warpsConfig.getDouble(name.toLowerCase() + ".yaw");
         float pitch = (float) warpsConfig.getDouble(name.toLowerCase() + ".pitch");
 
-        Location loc = new Location(plugin.getServer().getWorld(worldName), x, y, z, yaw, pitch);
+        Location loc = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
         player.teleport(loc);
 
         player.sendMessage(Component.text("Teleported to warp '" + name + "'!")

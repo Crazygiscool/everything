@@ -29,10 +29,14 @@ public class HomeCommand implements CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("sethome")) {
             Location loc = player.getLocation();
-            plugin.getConfig().set("homes." + uuid, loc);
+            plugin.getConfig().set("homes." + uuid + ".world", loc.getWorld().getName());
+            plugin.getConfig().set("homes." + uuid + ".x", loc.getX());
+            plugin.getConfig().set("homes." + uuid + ".y", loc.getY());
+            plugin.getConfig().set("homes." + uuid + ".z", loc.getZ());
+            plugin.getConfig().set("homes." + uuid + ".yaw", loc.getYaw());
+            plugin.getConfig().set("homes." + uuid + ".pitch", loc.getPitch());
             plugin.saveConfig();
-            player.sendMessage(Component.text("Home location set!")
-                    .color(NamedTextColor.GREEN));
+            player.sendMessage(Component.text("Home set!").color(NamedTextColor.GREEN));
             return true;
         }
 
@@ -43,6 +47,16 @@ public class HomeCommand implements CommandExecutor {
                 return true;
             }
             String worldName = plugin.getConfig().getString("homes." + uuid + ".world");
+            if (worldName == null) {
+                player.sendMessage(Component.text("Your home is missing a world! Please set your home again.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            if (plugin.getServer().getWorld(worldName) == null) {
+                player.sendMessage(Component.text("The world '" + worldName + "' does not exist!")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
             double x = plugin.getConfig().getDouble("homes." + uuid + ".x");
             double y = plugin.getConfig().getDouble("homes." + uuid + ".y");
             double z = plugin.getConfig().getDouble("homes." + uuid + ".z");
