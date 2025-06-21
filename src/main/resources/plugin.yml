@@ -18,28 +18,6 @@ commands:
     usage: /maintenance [on|off]
     permission: everything.maintenance
     permission-message: You do not have permission to toggle maintenance mode.
-  tpa:
-    description: Request to teleport to a player.
-    usage: /tpa <player>
-    permission: everything.tpa
-    permission-message: You do not have permission to teleport.
-  tpaccept:
-    description: Accept a teleport request.
-    usage: /tpaccept
-    permission: everything.tpaccept
-    permission-message: You do not have permission to accept teleport requests.
-  tpdeny: 
-    description: Deny a teleport request.
-    usage: /tpdeny
-    permission: everything.tpdeny
-    permission-message: You do not have permission to deny teleport requests.
-  tp:
-    description: Teleport to a player or coordinates.
-    usage: |
-      /tp <player>
-      /tp <player> <x> <y> <z>
-    permission: everything.teleport
-    permission-message: You do not have permission to teleport.
   suicide:
     description: Kill yourself instantly.
     usage: /suicide

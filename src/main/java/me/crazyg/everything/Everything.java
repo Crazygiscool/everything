@@ -84,9 +84,7 @@ public final class Everything extends JavaPlugin {
         getCommand("balance").setExecutor(commandManager);
         getCommand("pay").setExecutor(commandManager);
         getCommand("maintenance").setExecutor(commandManager);
-        getCommand("tpa").setExecutor(commandManager);
-        getCommand("tpaccept").setExecutor(commandManager);
-        getCommand("tpdeny").setExecutor(commandManager);
+        // Removed teleport commands as per suggestion
         getCommand("stats").setExecutor(commandManager);
         getCommand("namecolor").setExecutor(commandManager);
         getCommand("warp").setExecutor(commandManager);
@@ -105,20 +103,10 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("spawn", new SetSpawnCommand(this));
         commandManager.registerCommand("pay", new PayCommand(this));
         commandManager.registerCommand("balance", new BalanceCommand(this));
-        commandManager.registerCommand("tpa", new TpaCommand(this));
-        commandManager.registerCommand("tpaccept", new TpaCommand(this));
-        commandManager.registerCommand("tpdeny", new TpaCommand(this));
+        // Removed teleport command registration as per suggestion
         commandManager.registerCommand("stats", new StatsCommand(this));
         commandManager.registerCommand("namecolor", new NameColorCommand(this));
         commandManager.registerCommand("warp", new WarpCommand(this));
-
-        // Only register economy commands if economy is enabled
-        if (economyEnabled) {
-            getCommand("balance").setExecutor(new BalanceCommand(this));
-            getCommand("pay").setExecutor(new PayCommand(this));
-            commandManager.registerCommand("pay", new PayCommand(this));
-            commandManager.registerCommand("balance", new BalanceCommand(this));
-        }
 
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
@@ -126,10 +114,7 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("gmsp", gamemodeExecutor);
         commandManager.registerCommand("gma", gamemodeExecutor);
 
-        // Register SetSpawnCommand
-        SetSpawnCommand setSpawnCommand = new SetSpawnCommand(this);
-        getCommand("setspawn").setExecutor(setSpawnCommand);
-        getCommand("spawn").setExecutor(setSpawnCommand);
+        // Remove duplicate direct setExecutor for setspawn, spawn, balance, pay
 
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.

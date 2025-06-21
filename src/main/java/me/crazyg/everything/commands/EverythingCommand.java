@@ -1,4 +1,5 @@
 package me.crazyg.everything.commands;
+import java.util.*;
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.Updater;
 import net.kyori.adventure.text.Component;
@@ -6,6 +7,8 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.PluginDescriptionFile;
+
 
 public class EverythingCommand implements CommandExecutor {
 
@@ -20,38 +23,37 @@ public class EverythingCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            // Display help/info page if no sub-command is provided
             sender.sendMessage(Component.text("Everything Plugin - Help").color(NamedTextColor.GOLD));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/everything reload").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Reload the plugin configuration.").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/everything info").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Display plugin information.").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/gmc").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Changes your gamemode to creative mode").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/gms").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Changes your gamemode to survival mode").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/gmsp").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Changes your gamemode to spectator mode").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/gma").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Changes your gamemode to adventure mode").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/setspawn").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Set the spawn point for the world.").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/spawn").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Teleport to the spawn point.").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/report").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Report a player to the server staff.").color(NamedTextColor.WHITE)));
-            sender.sendMessage(Component.text()
-                .append(Component.text("/god").color(NamedTextColor.YELLOW))
-                .append(Component.text(" - Toggle god mode on/off.").color(NamedTextColor.WHITE)));
+            sender.sendMessage(Component.text("Available Commands:").color(NamedTextColor.YELLOW));
+
+            // Dynamically list all plugin commands and their usage
+            PluginDescriptionFile desc = plugin.getDescription();
+            Map<String, Map<String, Object>> commands = desc.getCommands();
+
+            if (commands != null) {
+                for (Map.Entry<String, Map<String, Object>> entry : commands.entrySet()) {
+                    String cmd = entry.getKey();
+                    Map<String, Object> meta = entry.getValue();
+                    String usage = meta.getOrDefault("usage", "").toString();
+                    String descText = meta.getOrDefault("description", "").toString();
+
+                    StringBuilder line = new StringBuilder();
+                    line.append(" /").append(cmd);
+                    if (!usage.isEmpty()) {
+                        // Only show the first line of usage for brevity
+                        String usageLine = usage.split("\n")[0].trim();
+                        if (!usageLine.startsWith("/")) {
+                            line.append(" ").append(usageLine);
+                        }
+                    }
+                    if (!descText.isEmpty()) {
+                        line.append(" - ").append(descText);
+                    }
+                    sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.WHITE));
+                }
+            } else {
+                sender.sendMessage(Component.text("No commands found in plugin.yml.").color(NamedTextColor.RED));
+            }
             return true;
         }
 

@@ -82,8 +82,8 @@
 Expect some errors with the plugin
 
 Glitches Found:
-* glitch 1
-* glitch 2
+* tp command logic error
+* tpa command logic error
 * glitch 3
 
 HAVE FUN!
