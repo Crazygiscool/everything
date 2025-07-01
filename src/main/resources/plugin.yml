@@ -1,3 +1,23 @@
+  tp:
+    description: Teleport to another player
+    usage: /tp <player>
+    permission: everything.teleport
+    permission-message: You do not have permission to teleport.
+  tpa:
+    description: Request to teleport to another player
+    usage: /tpa <player>
+    permission: everything.tpa
+    permission-message: You do not have permission to use tpa.
+  tpaccept:
+    description: Accept a teleport request
+    usage: /tpaccept
+    permission: everything.tpaccept
+    permission-message: You do not have permission to accept tpa requests.
+  tpdeny:
+    description: Deny a teleport request
+    usage: /tpdeny
+    permission: everything.tpdeny
+    permission-message: You do not have permission to deny tpa requests.
 name: everything
 version: ${project.version}
 main: me.crazyg.everything.Everything

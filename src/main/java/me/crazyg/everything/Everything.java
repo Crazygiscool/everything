@@ -20,6 +20,16 @@ public final class Everything extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        // --- Teleport Commands ---
+        TPCommand tpCommand = new TPCommand(this);
+        TPACommand tpaCommand = new TPACommand(this);
+        TPAcceptCommand tpAcceptCommand = new TPAcceptCommand(this, tpaCommand);
+        TPDenyCommand tpDenyCommand = new TPDenyCommand(this, tpaCommand);
+
+        getCommand("tp").setExecutor(tpCommand);
+        getCommand("tpa").setExecutor(tpaCommand);
+        getCommand("tpaccept").setExecutor(tpAcceptCommand);
+        getCommand("tpdeny").setExecutor(tpDenyCommand);
         saveDefaultConfig(); // <-- Make sure this is first!
         // Now read config values, register listeners, etc.
 
@@ -67,6 +77,10 @@ public final class Everything extends JavaPlugin {
 
         // --- Command Manager ---
         CommandManager commandManager = new CommandManager();
+        commandManager.registerCommand("tp", tpCommand);
+        commandManager.registerCommand("tpa", tpaCommand);
+        commandManager.registerCommand("tpaccept", tpAcceptCommand);
+        commandManager.registerCommand("tpdeny", tpDenyCommand);
         getCommand("suicide").setExecutor(commandManager);
         getCommand("god").setExecutor(commandManager);
         getCommand("report").setExecutor(commandManager);
