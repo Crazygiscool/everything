@@ -7,10 +7,33 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.PluginDescriptionFile;
 
 
 public class EverythingCommand implements CommandExecutor {
+
+    // Dynamically load command names from plugin.yml at runtime
+    private List<String> getPluginCommands() {
+        List<String> commandNames = new ArrayList<>();
+        try {
+            org.bukkit.configuration.file.YamlConfiguration yml = new org.bukkit.configuration.file.YamlConfiguration();
+            java.io.InputStream in = plugin.getResource("plugin.yml");
+            if (in != null) {
+                java.io.InputStreamReader reader = new java.io.InputStreamReader(in);
+                yml.load(reader);
+                reader.close();
+                in.close();
+                if (yml.contains("commands")) {
+                    org.bukkit.configuration.ConfigurationSection section = yml.getConfigurationSection("commands");
+                    if (section != null) {
+                        commandNames.addAll(section.getKeys(false));
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // fallback: do nothing, return empty list
+        }
+        return commandNames;
+    }
 
     private final Everything plugin;
     private final Updater updater;
@@ -26,21 +49,12 @@ public class EverythingCommand implements CommandExecutor {
             sender.sendMessage(Component.text("Everything Plugin - Help").color(NamedTextColor.GOLD));
             sender.sendMessage(Component.text("Available Commands:").color(NamedTextColor.YELLOW));
 
-            // NOTE: getDescription().getCommands() is deprecated, but no modern alternative exists for listing plugin commands
-            @SuppressWarnings("deprecation")
-            Map<String, Map<String, Object>> commands = plugin.getDescription().getCommands();
-            if (commands != null && !commands.isEmpty()) {
-                for (Map.Entry<String, Map<String, Object>> entry : commands.entrySet()) {
-                    String cmd = entry.getKey();
+            List<String> commandNames = getPluginCommands();
+            if (!commandNames.isEmpty()) {
+                for (String cmd : commandNames) {
                     org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
                     String usage = pluginCmd != null ? pluginCmd.getUsage() : "";
                     String descText = pluginCmd != null ? pluginCmd.getDescription() : "";
-                    if ((usage == null || usage.isEmpty()) && entry.getValue().containsKey("usage")) {
-                        usage = entry.getValue().get("usage").toString();
-                    }
-                    if ((descText == null || descText.isEmpty()) && entry.getValue().containsKey("description")) {
-                        descText = entry.getValue().get("description").toString();
-                    }
                     StringBuilder line = new StringBuilder();
                     line.append(" /").append(cmd);
                     if (usage != null && !usage.isEmpty() && !usage.equalsIgnoreCase("/" + cmd)) {
@@ -109,47 +123,57 @@ public class EverythingCommand implements CommandExecutor {
                 }
                 return true;
 
+
             case "test":
-                PluginDescriptionFile desc = plugin.getDescription();
-                Map<String, Map<String, Object>> commands = desc.getCommands();
                 sender.sendMessage(Component.text("[TEST] Listing and attempting to run all commands:").color(NamedTextColor.AQUA));
-                if (commands != null) {
-                    for (Map.Entry<String, Map<String, Object>> entry : commands.entrySet()) {
-                        String cmd = entry.getKey();
-                        Map<String, Object> meta = entry.getValue();
-                        String usage = meta.getOrDefault("usage", "").toString();
-                        String descText = meta.getOrDefault("description", "").toString();
-                        StringBuilder line = new StringBuilder();
-                        line.append("/" + cmd);
-                        if (!usage.isEmpty()) {
-                            String usageLine = usage.split("\n")[0].trim();
-                            if (!usageLine.startsWith("/")) {
-                                line.append(" ").append(usageLine);
-                            }
-                        }
-                        if (!descText.isEmpty()) {
-                            line.append(" - ").append(descText);
-                        }
-                        sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.GRAY));
-                        // Try to run the command with the sender as the player if possible
-                        try {
-                            String[] testArgs = new String[0];
-                            if (usage.contains("<player>") || usage.contains("[player]")) {
-                                if (sender instanceof org.bukkit.entity.Player) {
-                                    testArgs = new String[] { ((org.bukkit.entity.Player)sender).getName() };
-                                } else {
-                                    sender.sendMessage(Component.text("(Skipped: Needs player context)").color(NamedTextColor.DARK_GRAY));
-                                    continue;
-                                }
-                            }
-                            plugin.getCommand(cmd).execute(sender, cmd, testArgs);
-                            sender.sendMessage(Component.text("(Executed)").color(NamedTextColor.DARK_GREEN));
-                        } catch (Exception ex) {
-                            sender.sendMessage(Component.text("(Error executing: " + ex.getMessage() + ")").color(NamedTextColor.RED));
+                List<String> testCommands = getPluginCommands();
+                for (String cmd : testCommands) {
+                    org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
+                    if (pluginCmd == null) {
+                        sender.sendMessage(Component.text("/" + cmd + " (Not registered)").color(NamedTextColor.RED));
+                        continue;
+                    }
+                    String usage = pluginCmd.getUsage();
+                    String descText = pluginCmd.getDescription();
+                    StringBuilder line = new StringBuilder();
+                    line.append("/").append(cmd);
+                    if (usage != null && !usage.isEmpty() && !usage.equalsIgnoreCase("/" + cmd)) {
+                        String usageLine = usage.split("\n")[0].trim();
+                        if (!usageLine.startsWith("/")) {
+                            line.append(" ").append(usageLine);
                         }
                     }
-                } else {
-                    sender.sendMessage(Component.text("No commands found in plugin.yml.").color(NamedTextColor.RED));
+                    if (descText != null && !descText.isEmpty()) {
+                        line.append(" - ").append(descText);
+                    }
+                    sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.GRAY));
+                    // Try to run the command with the sender as the player if possible
+                    try {
+                        String[] testArgs = new String[0];
+                        // Only add player argument if <player> or [player] is a standalone argument
+                        boolean needsPlayer = false;
+                        if (usage != null && !usage.isEmpty()) {
+                            String[] usageParts = usage.replace("/" + cmd, "").trim().split(" ");
+                            for (String part : usageParts) {
+                                if (part.equalsIgnoreCase("<player>") || part.equalsIgnoreCase("[player]")) {
+                                    needsPlayer = true;
+                                    break;
+                                }
+                            }
+                        }
+                        if (needsPlayer) {
+                            if (sender instanceof org.bukkit.entity.Player) {
+                                testArgs = new String[] { ((org.bukkit.entity.Player)sender).getName() };
+                            } else {
+                                sender.sendMessage(Component.text("(Skipped: Needs player context)").color(NamedTextColor.DARK_GRAY));
+                                continue;
+                            }
+                        }
+                        pluginCmd.execute(sender, cmd, testArgs);
+                        sender.sendMessage(Component.text("(Executed)").color(NamedTextColor.DARK_GREEN));
+                    } catch (Exception ex) {
+                        sender.sendMessage(Component.text("(Error executing: " + ex.getMessage() + ")").color(NamedTextColor.RED));
+                    }
                 }
                 return true;
 
