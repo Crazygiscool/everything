@@ -44,8 +44,8 @@ public class KillCommand implements CommandExecutor {
                             .color(NamedTextColor.DARK_RED)
                             .decorate(TextDecoration.BOLD));
                 } catch (IllegalArgumentException ex) {
-                    // Not a selector, try as player name
-                    Player target = Bukkit.getServer().getPlayerExact(selector);
+                    // Not a selector, try as player name (case-insensitive, partial match)
+                    Player target = Bukkit.getServer().getPlayer(selector);
                     if (target == null) {
                         p.sendMessage(Component.text("This Player is not online")
                                 .color(NamedTextColor.RED));
