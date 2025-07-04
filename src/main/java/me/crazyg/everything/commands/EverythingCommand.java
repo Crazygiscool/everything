@@ -26,33 +26,36 @@ public class EverythingCommand implements CommandExecutor {
             sender.sendMessage(Component.text("Everything Plugin - Help").color(NamedTextColor.GOLD));
             sender.sendMessage(Component.text("Available Commands:").color(NamedTextColor.YELLOW));
 
-            // Dynamically list all plugin commands and their usage
-            PluginDescriptionFile desc = plugin.getDescription();
-            Map<String, Map<String, Object>> commands = desc.getCommands();
-
-            if (commands != null) {
+            // NOTE: getDescription().getCommands() is deprecated, but no modern alternative exists for listing plugin commands
+            @SuppressWarnings("deprecation")
+            Map<String, Map<String, Object>> commands = plugin.getDescription().getCommands();
+            if (commands != null && !commands.isEmpty()) {
                 for (Map.Entry<String, Map<String, Object>> entry : commands.entrySet()) {
                     String cmd = entry.getKey();
-                    Map<String, Object> meta = entry.getValue();
-                    String usage = meta.getOrDefault("usage", "").toString();
-                    String descText = meta.getOrDefault("description", "").toString();
-
+                    org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
+                    String usage = pluginCmd != null ? pluginCmd.getUsage() : "";
+                    String descText = pluginCmd != null ? pluginCmd.getDescription() : "";
+                    if ((usage == null || usage.isEmpty()) && entry.getValue().containsKey("usage")) {
+                        usage = entry.getValue().get("usage").toString();
+                    }
+                    if ((descText == null || descText.isEmpty()) && entry.getValue().containsKey("description")) {
+                        descText = entry.getValue().get("description").toString();
+                    }
                     StringBuilder line = new StringBuilder();
                     line.append(" /").append(cmd);
-                    if (!usage.isEmpty()) {
-                        // Only show the first line of usage for brevity
+                    if (usage != null && !usage.isEmpty() && !usage.equalsIgnoreCase("/" + cmd)) {
                         String usageLine = usage.split("\n")[0].trim();
                         if (!usageLine.startsWith("/")) {
                             line.append(" ").append(usageLine);
                         }
                     }
-                    if (!descText.isEmpty()) {
+                    if (descText != null && !descText.isEmpty()) {
                         line.append(" - ").append(descText);
                     }
                     sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.WHITE));
                 }
             } else {
-                sender.sendMessage(Component.text("No commands found in plugin.yml.").color(NamedTextColor.RED));
+                sender.sendMessage(Component.text("No commands found for this plugin.").color(NamedTextColor.RED));
             }
             return true;
         }

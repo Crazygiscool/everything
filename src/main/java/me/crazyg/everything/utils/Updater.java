@@ -86,18 +86,14 @@ public class Updater implements Listener {
                     }
                 }
             } catch (IOException e) {
-                plugin.getLogger().severe(Component.text("Failed to check for updates: " + e.getMessage())
-                    .color(NamedTextColor.RED)
-                    .toString());
+                plugin.getLogger().severe("Failed to check for updates: " + e.getMessage());
             }
         });
     }
 
     private void downloadUpdate() {
         if (downloadUrl == null || downloadUrl.isEmpty()) {
-            plugin.getLogger().severe(Component.text("No download URL available for the update!")
-                .color(NamedTextColor.RED)
-                .toString());
+            plugin.getLogger().severe("No download URL available for the update!");
             return;
         }
 
@@ -114,15 +110,11 @@ public class Updater implements Listener {
                 try {
                     currentJar = new File(plugin.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 } catch (Exception e) {
-                    plugin.getLogger().severe(Component.text("Could not determine the current plugin JAR file: " + e.getMessage())
-                        .color(NamedTextColor.RED)
-                        .toString());
+                    plugin.getLogger().severe("Could not determine the current plugin JAR file: " + e.getMessage());
                     return;
                 }
                 if (currentJar == null || !currentJar.exists()) {
-                    plugin.getLogger().severe(Component.text("Could not determine the current plugin JAR file!")
-                        .color(NamedTextColor.RED)
-                        .toString());
+                    plugin.getLogger().severe("Could not determine the current plugin JAR file!");
                     return;
                 }
 
