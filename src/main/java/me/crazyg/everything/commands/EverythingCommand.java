@@ -175,6 +175,51 @@ public class EverythingCommand implements CommandExecutor {
                         sender.sendMessage(Component.text("(Error executing: " + ex.getMessage() + ")").color(NamedTextColor.RED));
                     }
                 }
+
+                // --- Fake updater test ---
+                sender.sendMessage(Component.text("[TEST] Faking updater state...").color(NamedTextColor.LIGHT_PURPLE));
+                // Simulate update available
+                String fakeCurrent = plugin.getPluginMeta().getVersion();
+                String fakeLatest = "v99.99.99-FAKE";
+                String fakeUrl = "https://example.com/fake-update.jar";
+                sender.sendMessage(Component.text("[TEST] Simulated update available!").color(NamedTextColor.GREEN)
+                    .append(Component.text(" Current: ").color(NamedTextColor.YELLOW))
+                    .append(Component.text(fakeCurrent).color(NamedTextColor.WHITE))
+                    .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
+                    .append(Component.text(fakeLatest).color(NamedTextColor.WHITE))
+                    .append(Component.text(" (URL: ").color(NamedTextColor.GRAY))
+                    .append(Component.text(fakeUrl).color(NamedTextColor.AQUA))
+                    .append(Component.text(")").color(NamedTextColor.GRAY))
+                );
+                sender.sendMessage(Component.text("[TEST] (No real update performed, this is a debug simulation.)").color(NamedTextColor.DARK_GRAY));
+
+                // --- Print debug info ---
+                sender.sendMessage(Component.text("[DEBUG] Plugin info:").color(NamedTextColor.YELLOW));
+                sender.sendMessage(Component.text("  Name: " + plugin.getPluginMeta().getName()).color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("  Version: " + plugin.getPluginMeta().getVersion()).color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("  Authors: " + String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("  Description: " + plugin.getPluginMeta().getDescription()).color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("[DEBUG] Java version: " + System.getProperty("java.version")).color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("[DEBUG] OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ")").color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("[DEBUG] Bukkit version: " + plugin.getServer().getBukkitVersion()).color(NamedTextColor.GRAY));
+                sender.sendMessage(Component.text("[DEBUG] Data folder: " + plugin.getDataFolder().getAbsolutePath()).color(NamedTextColor.GRAY));
+
+                // --- Simulate config reload ---
+                sender.sendMessage(Component.text("[TEST] Simulating config reload...").color(NamedTextColor.LIGHT_PURPLE));
+                try {
+                    plugin.reloadConfig();
+                    sender.sendMessage(Component.text("[TEST] Config reload simulated successfully.").color(NamedTextColor.GREEN));
+                } catch (Exception e) {
+                    sender.sendMessage(Component.text("[TEST] Config reload failed: " + e.getMessage()).color(NamedTextColor.RED));
+                }
+
+                // --- Simulate permission check ---
+                sender.sendMessage(Component.text("[TEST] Permission check for 'everything.admin': ")
+                    .color(NamedTextColor.LIGHT_PURPLE)
+                    .append(Component.text(sender.hasPermission("everything.admin") ? "GRANTED" : "DENIED").color(sender.hasPermission("everything.admin") ? NamedTextColor.GREEN : NamedTextColor.RED))
+                );
+
+                sender.sendMessage(Component.text("[TEST] End of diagnostics.").color(NamedTextColor.AQUA));
                 return true;
 
             default:
