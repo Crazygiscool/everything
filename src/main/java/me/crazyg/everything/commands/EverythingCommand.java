@@ -106,6 +106,50 @@ public class EverythingCommand implements CommandExecutor {
                 }
                 return true;
 
+            case "test":
+                PluginDescriptionFile desc = plugin.getDescription();
+                Map<String, Map<String, Object>> commands = desc.getCommands();
+                sender.sendMessage(Component.text("[TEST] Listing and attempting to run all commands:").color(NamedTextColor.AQUA));
+                if (commands != null) {
+                    for (Map.Entry<String, Map<String, Object>> entry : commands.entrySet()) {
+                        String cmd = entry.getKey();
+                        Map<String, Object> meta = entry.getValue();
+                        String usage = meta.getOrDefault("usage", "").toString();
+                        String descText = meta.getOrDefault("description", "").toString();
+                        StringBuilder line = new StringBuilder();
+                        line.append("/" + cmd);
+                        if (!usage.isEmpty()) {
+                            String usageLine = usage.split("\n")[0].trim();
+                            if (!usageLine.startsWith("/")) {
+                                line.append(" ").append(usageLine);
+                            }
+                        }
+                        if (!descText.isEmpty()) {
+                            line.append(" - ").append(descText);
+                        }
+                        sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.GRAY));
+                        // Try to run the command with the sender as the player if possible
+                        try {
+                            String[] testArgs = new String[0];
+                            if (usage.contains("<player>") || usage.contains("[player]")) {
+                                if (sender instanceof org.bukkit.entity.Player) {
+                                    testArgs = new String[] { ((org.bukkit.entity.Player)sender).getName() };
+                                } else {
+                                    sender.sendMessage(Component.text("(Skipped: Needs player context)").color(NamedTextColor.DARK_GRAY));
+                                    continue;
+                                }
+                            }
+                            plugin.getCommand(cmd).execute(sender, cmd, testArgs);
+                            sender.sendMessage(Component.text("(Executed)").color(NamedTextColor.DARK_GREEN));
+                        } catch (Exception ex) {
+                            sender.sendMessage(Component.text("(Error executing: " + ex.getMessage() + ")").color(NamedTextColor.RED));
+                        }
+                    }
+                } else {
+                    sender.sendMessage(Component.text("No commands found in plugin.yml.").color(NamedTextColor.RED));
+                }
+                return true;
+
             default:
                 sender.sendMessage(Component.text("Unknown sub-command. Use /everything for help.")
                     .color(NamedTextColor.RED));

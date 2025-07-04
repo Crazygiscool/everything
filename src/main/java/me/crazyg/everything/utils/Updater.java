@@ -66,7 +66,9 @@ public class Updater implements Listener {
                             downloadUrl = assets.get(0).getAsJsonObject().get("browser_download_url").getAsString();
                         }
 
-                        if (!currentVersion.equals(latestVersion)) {
+                        int cmp = compareVersions(currentVersion, latestVersion);
+                        if (cmp < 0) {
+                            // Current version is older than latest
                             updateAvailable = true;
                             plugin.getLogger().info(Component.text()
                                 .append(Component.text("A new update is available! ").color(NamedTextColor.GREEN))
@@ -76,7 +78,11 @@ public class Updater implements Listener {
                                 .append(Component.text(latestVersion).color(NamedTextColor.WHITE))
                                 .build().toString());
                             downloadUpdate();
+                        } else if (cmp > 0) {
+                            // Current version is newer than latest (test server)
+                            plugin.getLogger().info("This server is running a test/development version (" + currentVersion + ") ahead of the latest public release (" + latestVersion + ").");
                         }
+                        // If cmp == 0, do nothing (up to date)
                     }
                 }
             } catch (IOException e) {
@@ -147,29 +153,17 @@ public class Updater implements Listener {
                         if (fileSize > 0) {
                             int progress = (int) ((totalBytesRead * 100) / fileSize);
                             if (progress % 5 == 0) {
-                                plugin.getLogger().info(Component.text("Download progress: " + progress + "%")
-                                    .color(NamedTextColor.YELLOW)
-                                    .toString());
+                                plugin.getLogger().info("Download progress: " + progress + "%");
                             }
                         }
                     }
                 }
 
-                plugin.getLogger().info(Component.text()
-                    .append(Component.text("Update downloaded and replaced plugin jar: ").color(NamedTextColor.GREEN))
-                    .append(Component.text(currentJar.getAbsolutePath()).color(NamedTextColor.WHITE))
-                    .build().toString());
-                plugin.getLogger().info(Component.text()
-                    .append(Component.text("Backup of old jar saved to: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(backupFile.getAbsolutePath()).color(NamedTextColor.WHITE))
-                    .build().toString());
-                plugin.getLogger().info(Component.text("Please restart your server to apply the update.")
-                    .color(NamedTextColor.YELLOW)
-                    .toString());
+                plugin.getLogger().info("Update downloaded and replaced plugin jar: " + currentJar.getAbsolutePath());
+                plugin.getLogger().info("Backup of old jar saved to: " + backupFile.getAbsolutePath());
+                plugin.getLogger().info("Please restart your server to apply the update.");
             } catch (Exception e) {
-                plugin.getLogger().severe(Component.text("Failed to download or replace update: " + e.getMessage())
-                    .color(NamedTextColor.RED)
-                    .toString());
+                plugin.getLogger().severe("Failed to download or replace update: " + e.getMessage());
             }
         });
     }
@@ -198,5 +192,24 @@ public class Updater implements Listener {
 
     public String getDownloadUrl() {
         return downloadUrl;
+    }
+
+    // Compare two version strings (e.g. 1.2.0-BETA, 1.2.0, 2.0.1)
+    private int compareVersions(String v1, String v2) {
+        String[] a1 = v1.split("[.-]");
+        String[] a2 = v2.split("[.-]");
+        int len = Math.max(a1.length, a2.length);
+        for (int i = 0; i < len; i++) {
+            String s1 = i < a1.length ? a1[i] : "0";
+            String s2 = i < a2.length ? a2[i] : "0";
+            int cmp;
+            try {
+                cmp = Integer.compare(Integer.parseInt(s1.replaceAll("\\D", "")), Integer.parseInt(s2.replaceAll("\\D", "")));
+            } catch (NumberFormatException e) {
+                cmp = s1.compareToIgnoreCase(s2);
+            }
+            if (cmp != 0) return cmp;
+        }
+        return 0;
     }
 }
