@@ -46,8 +46,9 @@ public class EverythingCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
+            // Blue theme, not bold, prefix for every message
             Everything.sendFancy(sender, Component.text()
-                .append(Component.text("❓ Help & Commands\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                .append(Component.text("❓ Everything Help & Commands\n").color(NamedTextColor.BLUE))
                 .append(Component.text("Click a command for usage. Hover for description.\n").color(NamedTextColor.GRAY))
             .build());
 
@@ -66,10 +67,9 @@ public class EverythingCommand implements CommandExecutor {
                         }
                     }
                     Component cmdComponent = Component.text()
-                        .append(Component.text("• ").color(NamedTextColor.LIGHT_PURPLE))
+                        .append(Component.text("• ").color(NamedTextColor.BLUE))
                         .append(Component.text(usageLine.toString())
                             .color(NamedTextColor.AQUA)
-                            .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
                             .clickEvent(net.kyori.adventure.text.event.ClickEvent.suggestCommand("/" + cmd))
                             .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
                                 Component.text(descText == null || descText.isEmpty() ? "No description." : descText)
@@ -89,13 +89,11 @@ public class EverythingCommand implements CommandExecutor {
         switch (args[0].toLowerCase()) {
             case "reload":
                 if (!sender.hasPermission("everything.reload")) {
-                    sender.sendMessage(Component.text("You do not have permission to use this command.")
-                        .color(NamedTextColor.RED));
+                    Everything.sendFancy(sender, Component.text("You do not have permission to use this command.").color(NamedTextColor.RED));
                     return true;
                 }
                 plugin.reloadConfig();
-                sender.sendMessage(Component.text("Plugin configuration reloaded successfully!")
-                    .color(NamedTextColor.GREEN));
+                Everything.sendFancy(sender, Component.text("Plugin configuration reloaded successfully!").color(NamedTextColor.GREEN));
                 return true;
 
             case "info": {
@@ -144,32 +142,30 @@ public class EverythingCommand implements CommandExecutor {
 
             case "checkupdate":
                 if (!sender.hasPermission("everything.admin")) {
-                    sender.sendMessage(Component.text("You don't have permission to check for updates!")
-                        .color(NamedTextColor.RED));
+                    Everything.sendFancy(sender, Component.text("You don't have permission to check for updates!").color(NamedTextColor.RED));
                     return true;
                 }
-                
                 if (updater.isUpdateAvailable()) {
-                    sender.sendMessage(Component.text()
+                    Everything.sendFancy(sender, Component.text()
                         .append(Component.text("A new version is available! ").color(NamedTextColor.GREEN))
                         .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
                         .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE))
                         .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
-                        .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE)));
+                        .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE))
+                        .build());
                 } else {
-                    sender.sendMessage(Component.text("You are running the latest version!")
-                        .color(NamedTextColor.GREEN));
+                    Everything.sendFancy(sender, Component.text("You are running the latest version!").color(NamedTextColor.GREEN));
                 }
                 return true;
 
 
             case "test":
-                sender.sendMessage(Component.text("[TEST] Listing and attempting to run all commands:").color(NamedTextColor.AQUA));
+                Everything.sendFancy(sender, Component.text("[TEST] Listing and attempting to run all commands:").color(NamedTextColor.AQUA));
                 List<String> testCommands = getPluginCommands();
                 for (String cmd : testCommands) {
                     org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
                     if (pluginCmd == null) {
-                        sender.sendMessage(Component.text("/" + cmd + " (Not registered)").color(NamedTextColor.RED));
+                        Everything.sendFancy(sender, Component.text("/" + cmd + " (Not registered)").color(NamedTextColor.RED));
                         continue;
                     }
                     String usage = pluginCmd.getUsage();
@@ -185,7 +181,7 @@ public class EverythingCommand implements CommandExecutor {
                     if (descText != null && !descText.isEmpty()) {
                         line.append(" - ").append(descText);
                     }
-                    sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.GRAY));
+                    Everything.sendFancy(sender, Component.text(line.toString()).color(NamedTextColor.GRAY));
                     // Try to run the command with the sender as the player if possible
                     try {
                         String[] testArgs = new String[0];
@@ -204,24 +200,24 @@ public class EverythingCommand implements CommandExecutor {
                             if (sender instanceof org.bukkit.entity.Player) {
                                 testArgs = new String[] { ((org.bukkit.entity.Player)sender).getName() };
                             } else {
-                                sender.sendMessage(Component.text("(Skipped: Needs player context)").color(NamedTextColor.DARK_GRAY));
+                                Everything.sendFancy(sender, Component.text("(Skipped: Needs player context)").color(NamedTextColor.DARK_GRAY));
                                 continue;
                             }
                         }
                         pluginCmd.execute(sender, cmd, testArgs);
-                        sender.sendMessage(Component.text("(Executed)").color(NamedTextColor.DARK_GREEN));
+                        Everything.sendFancy(sender, Component.text("(Executed)").color(NamedTextColor.DARK_GREEN));
                     } catch (Exception ex) {
-                        sender.sendMessage(Component.text("(Error executing: " + ex.getMessage() + ")").color(NamedTextColor.RED));
+                        Everything.sendFancy(sender, Component.text("(Error executing: " + ex.getMessage() + ")").color(NamedTextColor.RED));
                     }
                 }
 
                 // --- Fake updater test ---
-                sender.sendMessage(Component.text("[TEST] Faking updater state...").color(NamedTextColor.LIGHT_PURPLE));
+                Everything.sendFancy(sender, Component.text("[TEST] Faking updater state...").color(NamedTextColor.LIGHT_PURPLE));
                 // Simulate update available
                 String fakeCurrent = plugin.getPluginMeta().getVersion();
                 String fakeLatest = "v99.99.99-FAKE";
                 String fakeUrl = "https://example.com/fake-update.jar";
-                sender.sendMessage(Component.text("[TEST] Simulated update available!").color(NamedTextColor.GREEN)
+                Everything.sendFancy(sender, Component.text("[TEST] Simulated update available!").color(NamedTextColor.GREEN)
                     .append(Component.text(" Current: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(fakeCurrent).color(NamedTextColor.WHITE))
                     .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
@@ -230,40 +226,39 @@ public class EverythingCommand implements CommandExecutor {
                     .append(Component.text(fakeUrl).color(NamedTextColor.AQUA))
                     .append(Component.text(")").color(NamedTextColor.GRAY))
                 );
-                sender.sendMessage(Component.text("[TEST] (No real update performed, this is a debug simulation.)").color(NamedTextColor.DARK_GRAY));
+                Everything.sendFancy(sender, Component.text("[TEST] (No real update performed, this is a debug simulation.)").color(NamedTextColor.DARK_GRAY));
 
                 // --- Print debug info ---
-                sender.sendMessage(Component.text("[DEBUG] Plugin info:").color(NamedTextColor.YELLOW));
-                sender.sendMessage(Component.text("  Name: " + plugin.getPluginMeta().getName()).color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("  Version: " + plugin.getPluginMeta().getVersion()).color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("  Authors: " + String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("  Description: " + plugin.getPluginMeta().getDescription()).color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("[DEBUG] Java version: " + System.getProperty("java.version")).color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("[DEBUG] OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ")").color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("[DEBUG] Bukkit version: " + plugin.getServer().getBukkitVersion()).color(NamedTextColor.GRAY));
-                sender.sendMessage(Component.text("[DEBUG] Data folder: " + plugin.getDataFolder().getAbsolutePath()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("[DEBUG] Plugin info:").color(NamedTextColor.YELLOW));
+                Everything.sendFancy(sender, Component.text("  Name: " + plugin.getPluginMeta().getName()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Version: " + plugin.getPluginMeta().getVersion()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Authors: " + String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Description: " + plugin.getPluginMeta().getDescription()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("[DEBUG] Java version: " + System.getProperty("java.version")).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("[DEBUG] OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ")").color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("[DEBUG] Bukkit version: " + plugin.getServer().getBukkitVersion()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("[DEBUG] Data folder: " + plugin.getDataFolder().getAbsolutePath()).color(NamedTextColor.GRAY));
 
                 // --- Simulate config reload ---
-                sender.sendMessage(Component.text("[TEST] Simulating config reload...").color(NamedTextColor.LIGHT_PURPLE));
+                Everything.sendFancy(sender, Component.text("[TEST] Simulating config reload...").color(NamedTextColor.LIGHT_PURPLE));
                 try {
                     plugin.reloadConfig();
-                    sender.sendMessage(Component.text("[TEST] Config reload simulated successfully.").color(NamedTextColor.GREEN));
+                    Everything.sendFancy(sender, Component.text("[TEST] Config reload simulated successfully.").color(NamedTextColor.GREEN));
                 } catch (Exception e) {
-                    sender.sendMessage(Component.text("[TEST] Config reload failed: " + e.getMessage()).color(NamedTextColor.RED));
+                    Everything.sendFancy(sender, Component.text("[TEST] Config reload failed: " + e.getMessage()).color(NamedTextColor.RED));
                 }
 
                 // --- Simulate permission check ---
-                sender.sendMessage(Component.text("[TEST] Permission check for 'everything.admin': ")
+                Everything.sendFancy(sender, Component.text("[TEST] Permission check for 'everything.admin': ")
                     .color(NamedTextColor.LIGHT_PURPLE)
                     .append(Component.text(sender.hasPermission("everything.admin") ? "GRANTED" : "DENIED").color(sender.hasPermission("everything.admin") ? NamedTextColor.GREEN : NamedTextColor.RED))
                 );
 
-                sender.sendMessage(Component.text("[TEST] End of diagnostics.").color(NamedTextColor.AQUA));
+                Everything.sendFancy(sender, Component.text("[TEST] End of diagnostics.").color(NamedTextColor.AQUA));
                 return true;
 
             default:
-                sender.sendMessage(Component.text("Unknown sub-command. Use /everything for help.")
-                    .color(NamedTextColor.RED));
+                Everything.sendFancy(sender, Component.text("Unknown sub-command. Use /everything for help.").color(NamedTextColor.RED));
                 return true;
         }
     }

@@ -23,6 +23,9 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class Updater implements Listener {
+    // Only notify once per update/download
+    private static boolean notifiedUpdate = false;
+    private static boolean notifiedDownload = false;
     private final Everything plugin;
     private final String currentVersion;
     private String latestVersion;
@@ -70,13 +73,25 @@ public class Updater implements Listener {
                         if (cmp < 0) {
                             // Current version is older than latest
                             updateAvailable = true;
-                            plugin.getLogger().info(Component.text()
-                                .append(Component.text("A new update is available! ").color(NamedTextColor.GREEN))
-                                .append(Component.text("Current version: ").color(NamedTextColor.YELLOW))
-                                .append(Component.text(currentVersion).color(NamedTextColor.WHITE))
-                                .append(Component.text(", Latest version: ").color(NamedTextColor.YELLOW))
-                                .append(Component.text(latestVersion).color(NamedTextColor.WHITE))
-                                .build().toString());
+                            // Log a simple, readable string to the console
+                            plugin.getLogger().info("A new update is available! Current version: " + currentVersion + ", Latest version: " + latestVersion);
+                            // Send a beautiful Adventure message to all online players (once)
+                            Component updateMsg = me.crazyg.everything.Everything.PLUGIN_PREFIX.append(
+                                Component.text()
+                                    .append(Component.text("A new update is available! ").color(NamedTextColor.GREEN))
+                                    .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
+                                    .append(Component.text(currentVersion).color(NamedTextColor.WHITE))
+                                    .append(Component.text(" → ").color(NamedTextColor.GRAY))
+                                    .append(Component.text(latestVersion).color(NamedTextColor.AQUA).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                                    .append(Component.text(". Download: ").color(NamedTextColor.YELLOW))
+                                    .append(Component.text(downloadUrl != null ? downloadUrl : "(no link)").color(NamedTextColor.BLUE).clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(downloadUrl != null ? downloadUrl : "")))
+                                    .build()
+                            );
+                            if (!notifiedUpdate) {
+                                notifiedUpdate = true;
+                                org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(updateMsg));
+                                org.bukkit.Bukkit.getConsoleSender().sendMessage(updateMsg);
+                            }
                             downloadUpdate();
                         } else if (cmp > 0) {
                             // Current version is newer than latest (test server)
@@ -151,9 +166,20 @@ public class Updater implements Listener {
                     }
                 }
 
-                plugin.getLogger().info("Update downloaded and replaced plugin jar: " + currentJar.getAbsolutePath());
-                plugin.getLogger().info("Backup of old jar saved to: " + backupFile.getAbsolutePath());
-                plugin.getLogger().info("Please restart your server to apply the update.");
+                if (!notifiedDownload) {
+                    notifiedDownload = true;
+                    plugin.getLogger().info("Update downloaded and replaced plugin jar: " + currentJar.getAbsolutePath());
+                    plugin.getLogger().info("Backup of old jar saved to: " + backupFile.getAbsolutePath());
+                    plugin.getLogger().info("Please restart your server to apply the update.");
+                    Component doneMsg = me.crazyg.everything.Everything.PLUGIN_PREFIX.append(
+                        Component.text()
+                            .append(Component.text("Update downloaded! ").color(NamedTextColor.GREEN))
+                            .append(Component.text("Please restart your server to apply the update.").color(NamedTextColor.YELLOW))
+                            .build()
+                    );
+                    org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(doneMsg));
+                    org.bukkit.Bukkit.getConsoleSender().sendMessage(doneMsg);
+                }
             } catch (Exception e) {
                 plugin.getLogger().severe("Failed to download or replace update: " + e.getMessage());
             }
