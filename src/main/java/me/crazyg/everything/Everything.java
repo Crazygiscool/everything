@@ -98,7 +98,6 @@ public final class Everything extends JavaPlugin {
         getCommand("balance").setExecutor(commandManager);
         getCommand("pay").setExecutor(commandManager);
         getCommand("maintenance").setExecutor(commandManager);
-        // Removed teleport commands as per suggestion
         getCommand("stats").setExecutor(commandManager);
         getCommand("namecolor").setExecutor(commandManager);
         getCommand("warp").setExecutor(commandManager);
