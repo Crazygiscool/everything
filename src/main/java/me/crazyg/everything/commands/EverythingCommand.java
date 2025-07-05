@@ -46,8 +46,10 @@ public class EverythingCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            sender.sendMessage(Component.text("Everything Plugin - Help").color(NamedTextColor.GOLD));
-            sender.sendMessage(Component.text("Available Commands:").color(NamedTextColor.YELLOW));
+            Everything.sendFancy(sender, Component.text()
+                .append(Component.text("❓ Help & Commands\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                .append(Component.text("Click a command for usage. Hover for description.\n").color(NamedTextColor.GRAY))
+            .build());
 
             List<String> commandNames = getPluginCommands();
             if (!commandNames.isEmpty()) {
@@ -55,21 +57,30 @@ public class EverythingCommand implements CommandExecutor {
                     org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
                     String usage = pluginCmd != null ? pluginCmd.getUsage() : "";
                     String descText = pluginCmd != null ? pluginCmd.getDescription() : "";
-                    StringBuilder line = new StringBuilder();
-                    line.append(" /").append(cmd);
+                    StringBuilder usageLine = new StringBuilder();
+                    usageLine.append("/").append(cmd);
                     if (usage != null && !usage.isEmpty() && !usage.equalsIgnoreCase("/" + cmd)) {
-                        String usageLine = usage.split("\n")[0].trim();
-                        if (!usageLine.startsWith("/")) {
-                            line.append(" ").append(usageLine);
+                        String u = usage.split("\n")[0].trim();
+                        if (!u.startsWith("/")) {
+                            usageLine.append(" ").append(u);
                         }
                     }
-                    if (descText != null && !descText.isEmpty()) {
-                        line.append(" - ").append(descText);
-                    }
-                    sender.sendMessage(Component.text(line.toString()).color(NamedTextColor.WHITE));
+                    Component cmdComponent = Component.text()
+                        .append(Component.text("• ").color(NamedTextColor.LIGHT_PURPLE))
+                        .append(Component.text(usageLine.toString())
+                            .color(NamedTextColor.AQUA)
+                            .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
+                            .clickEvent(net.kyori.adventure.text.event.ClickEvent.suggestCommand("/" + cmd))
+                            .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                                Component.text(descText == null || descText.isEmpty() ? "No description." : descText)
+                                    .color(NamedTextColor.YELLOW)
+                            ))
+                        )
+                    .build();
+                    Everything.sendFancy(sender, cmdComponent);
                 }
             } else {
-                sender.sendMessage(Component.text("No commands found for this plugin.").color(NamedTextColor.RED));
+                Everything.sendFancy(sender, Component.text("No commands found for this plugin.").color(NamedTextColor.RED));
             }
             return true;
         }
@@ -87,21 +98,49 @@ public class EverythingCommand implements CommandExecutor {
                     .color(NamedTextColor.GREEN));
                 return true;
 
-            case "info":
-                sender.sendMessage(Component.text("Everything Plugin - Info")
-                    .color(NamedTextColor.GOLD));
-                
-                // Use modern methods to get plugin info
-                sender.sendMessage(Component.text()
+            case "info": {
+                String version = plugin.getPluginMeta().getVersion();
+                String githubUrl = "https://github.com/Crazygiscool/everything/releases";
+                List<String> authors = plugin.getPluginMeta().getAuthors();
+                String description = plugin.getPluginMeta().getDescription();
+
+                Everything.sendFancy(sender, Component.text()
+                    .append(Component.text("ℹ️ Plugin Info\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                    .append(Component.text(" "))
+                .build());
+                Everything.sendFancy(sender, Component.text()
                     .append(Component.text("Version: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE)));
-                sender.sendMessage(Component.text()
+                    .append(Component.text(version)
+                        .color(NamedTextColor.AQUA)
+                        .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
+                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(githubUrl))
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Click to view releases on GitHub!")))
+                    )
+                .build());
+                Everything.sendFancy(sender, Component.text()
                     .append(Component.text("Author: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.WHITE)));
-                sender.sendMessage(Component.text()
+                    .append(Component.text(String.join(", ", authors))
+                        .color(NamedTextColor.LIGHT_PURPLE)
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Plugin author(s)").color(NamedTextColor.GRAY)))
+                    )
+                .build());
+                Everything.sendFancy(sender, Component.text()
                     .append(Component.text("Description: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(plugin.getPluginMeta().getDescription()).color(NamedTextColor.WHITE)));
+                    .append(Component.text(description)
+                        .color(NamedTextColor.WHITE)
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text(description).color(NamedTextColor.GRAY)))
+                    )
+                .build());
+                Everything.sendFancy(sender, Component.text()
+                    .append(Component.text("GitHub: ").color(NamedTextColor.YELLOW))
+                    .append(Component.text(githubUrl)
+                        .color(NamedTextColor.BLUE)
+                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(githubUrl))
+                        .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Click to open GitHub repo!")))
+                    )
+                .build());
                 return true;
+            }
 
             case "checkupdate":
                 if (!sender.hasPermission("everything.admin")) {
