@@ -194,13 +194,20 @@ public class Updater implements Listener {
         for (int i = 0; i < len; i++) {
             String s1 = i < a1.length ? a1[i] : "0";
             String s2 = i < a2.length ? a2[i] : "0";
-            int cmp;
-            try {
-                cmp = Integer.compare(Integer.parseInt(s1.replaceAll("\\D", "")), Integer.parseInt(s2.replaceAll("\\D", "")));
-            } catch (NumberFormatException e) {
-                cmp = s1.compareToIgnoreCase(s2);
+            boolean s1Num = s1.matches("\\d+");
+            boolean s2Num = s2.matches("\\d+");
+            if (s1Num && s2Num) {
+                int cmp = Integer.compare(Integer.parseInt(s1), Integer.parseInt(s2));
+                if (cmp != 0) return cmp;
+            } else if (s1Num) {
+                // Numeric is always newer than non-numeric (e.g. 1.2.0 > 1.2.0-BETA)
+                return 1;
+            } else if (s2Num) {
+                return -1;
+            } else {
+                int cmp = s1.compareToIgnoreCase(s2);
+                if (cmp != 0) return cmp;
             }
-            if (cmp != 0) return cmp;
         }
         return 0;
     }
