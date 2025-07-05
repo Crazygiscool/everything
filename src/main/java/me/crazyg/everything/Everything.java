@@ -81,7 +81,7 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("tpa", tpaCommand);
         commandManager.registerCommand("tpaccept", tpAcceptCommand);
         commandManager.registerCommand("tpdeny", tpDenyCommand);
-        getCommand("suicide").setExecutor(commandManager);
+        getCommand("kill").setExecutor(commandManager);
         getCommand("god").setExecutor(commandManager);
         getCommand("report").setExecutor(commandManager);
         getCommand("everything").setExecutor(commandManager);
@@ -104,7 +104,7 @@ public final class Everything extends JavaPlugin {
         getCommand("warp").setExecutor(commandManager);
 
         // --- Command Registration ---
-        commandManager.registerCommand("suicide", new KillCommand());
+        commandManager.registerCommand("kill", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
         commandManager.registerCommand("everything", new EverythingCommand(this));

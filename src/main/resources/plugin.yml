@@ -115,8 +115,9 @@ commands:
     usage: /pay <player> <amount>
     permission: everything.pay
   kill:
-    description: Kill a player.
-    usage: /kill <player>
+    description: Kill a player or entity (supports selectors)
+    usage: /kill [player|@selector]
+    aliases: [suicide, everythingkill]
     permission: everything.kill
   warp:
     description: Teleport to or manage warps.
