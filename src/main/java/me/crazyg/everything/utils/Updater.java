@@ -145,6 +145,13 @@ public class Updater implements Listener {
                         fos.write(buffer, 0, len);
                     }
                 }
+                
+                // Delete the original JAR file after successful backup
+                if (currentJar.delete()) {
+                    plugin.getLogger().info("Original plugin JAR deleted after backup: " + currentJar.getName());
+                } else {
+                    plugin.getLogger().warning("Could not delete original plugin JAR: " + currentJar.getName());
+                }
 
                 // Download the new jar and save as the GitHub asset name in the plugins folder
                 File pluginsDir = plugin.getDataFolder().getParentFile();
