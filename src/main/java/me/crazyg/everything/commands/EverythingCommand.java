@@ -80,7 +80,7 @@ public class EverythingCommand implements CommandExecutor {
                     Everything.sendFancy(sender, cmdComponent);
                 }
             } else {
-                Everything.sendFancy(sender, Component.text("No commands found for this plugin.").color(NamedTextColor.RED));
+                Everything.sendFancy(sender, Component.text("No commands found for this plugin, you may need to update.").color(NamedTextColor.RED));
             }
             return true;
         }
