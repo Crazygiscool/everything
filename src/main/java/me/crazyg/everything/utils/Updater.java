@@ -30,6 +30,7 @@ public class Updater implements Listener {
     private final String currentVersion;
     private String latestVersion;
     private String downloadUrl;
+    private String downloadFileName;
     private boolean updateAvailable = false;
     private static final String GITHUB_API_URL = "https://api.github.com/repos/Crazygiscool/everything/releases";
     private static final String UPDATE_FOLDER = "updates";
@@ -66,7 +67,9 @@ public class Updater implements Listener {
 
                         JsonArray assets = latestRelease.getAsJsonArray("assets");
                         if (assets != null && assets.size() > 0) {
-                            downloadUrl = assets.get(0).getAsJsonObject().get("browser_download_url").getAsString();
+                            JsonObject asset = assets.get(0).getAsJsonObject();
+                            downloadUrl = asset.get("browser_download_url").getAsString();
+                            downloadFileName = asset.get("name").getAsString();
                         }
 
                         int cmp = compareVersions(currentVersion, latestVersion);
@@ -143,7 +146,10 @@ public class Updater implements Listener {
                     }
                 }
 
-                // Download the new jar and overwrite the current one
+                // Download the new jar and save as the GitHub asset name in the plugins folder
+                File pluginsDir = plugin.getDataFolder().getParentFile();
+                String assetFileName = downloadFileName != null ? downloadFileName : ("everything-latest.jar");
+                File newJar = new File(pluginsDir, assetFileName);
                 URL url = URI.create(downloadUrl).toURL();
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Accept", "application/octet-stream");
@@ -153,7 +159,7 @@ public class Updater implements Listener {
                 int bytesRead;
                 byte[] buffer = new byte[1024];
 
-                try (InputStream in = connection.getInputStream(); FileOutputStream out = new FileOutputStream(currentJar)) {
+                try (InputStream in = connection.getInputStream(); FileOutputStream out = new FileOutputStream(newJar)) {
                     while ((bytesRead = in.read(buffer)) != -1) {
                         out.write(buffer, 0, bytesRead);
                         totalBytesRead += bytesRead;
@@ -166,15 +172,21 @@ public class Updater implements Listener {
                     }
                 }
 
+                // Optionally, warn if the new JAR name is different from the current one
+                if (!newJar.getName().equals(currentJar.getName())) {
+                    plugin.getLogger().info("Downloaded update as '" + newJar.getName() + "'. You must remove the old jar ('" + currentJar.getName() + "') from the plugins folder after restart to avoid duplicates.");
+                }
+
                 if (!notifiedDownload) {
                     notifiedDownload = true;
-                    plugin.getLogger().info("Update downloaded and replaced plugin jar: " + currentJar.getAbsolutePath());
+                    plugin.getLogger().info("Update downloaded as: " + newJar.getAbsolutePath());
                     plugin.getLogger().info("Backup of old jar saved to: " + backupFile.getAbsolutePath());
-                    plugin.getLogger().info("Please restart your server to apply the update.");
+                    plugin.getLogger().info("Please restart your server and remove the old jar to apply the update.");
                     Component doneMsg = me.crazyg.everything.Everything.PLUGIN_PREFIX.append(
                         Component.text()
-                            .append(Component.text("Update downloaded! ").color(NamedTextColor.GREEN))
-                            .append(Component.text("Please restart your server to apply the update.").color(NamedTextColor.YELLOW))
+                            .append(Component.text("Update downloaded as: ").color(NamedTextColor.GREEN))
+                            .append(Component.text(newJar.getName()).color(NamedTextColor.AQUA))
+                            .append(Component.text(". Please restart your server and remove the old jar to apply the update.").color(NamedTextColor.YELLOW))
                             .build()
                     );
                     org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(doneMsg));
