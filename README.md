@@ -79,12 +79,7 @@
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-Expect some errors with the plugin
-
-Glitches Found:
-* tp command logic error
-* tpa command logic error
-* glitch 3
+The everything plugin aims to assist your minecraft server by bundling popular plugins from the market into a single jar file to fully optimize your server resource usage
 
 HAVE FUN!
 
@@ -94,7 +89,7 @@ HAVE FUN!
 
 ### Built With
 
-JAVAAVAVAV
+JAVA
 
 * Intellij Idea
 * Maven, Java
@@ -152,7 +147,7 @@ See the [open issues](https://github.com/crazygiscool/everything/issues) for a f
 
 ## Immediate todo list
 - [ ] Economy system
-- [ ] TP logic error(might be long term, or ust need a testing dummy)
+- [x] TP logic error
 - [x] Home
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
