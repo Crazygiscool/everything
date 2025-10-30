@@ -15,8 +15,8 @@ public class CommandManager implements CommandExecutor, TabCompleter {
 
     public void registerCommand(String name, CommandExecutor executor) {
         commands.put(name.toLowerCase(), executor);
-        if (executor instanceof TabCompleter) {
-            tabCompleters.put(name.toLowerCase(), (TabCompleter) executor);
+        if (executor instanceof TabCompleter tabCompleter) {
+            tabCompleters.put(name.toLowerCase(), tabCompleter);
         }
     }
 

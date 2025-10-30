@@ -6,7 +6,9 @@ import me.crazyg.everything.utils.*;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
+
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,7 +21,7 @@ public final class Everything extends JavaPlugin {
         .build();
 
     // Utility for sending a fancy message with prefix
-    public static void sendFancy(org.bukkit.command.CommandSender sender, Component message) {
+    public static void sendFancy(CommandSender sender, Component message) {
         sender.sendMessage(PLUGIN_PREFIX.append(message));
     }
 
@@ -31,16 +33,6 @@ public final class Everything extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        // --- Teleport Commands ---
-        TPCommand tpCommand = new TPCommand(this);
-        TPACommand tpaCommand = new TPACommand(this);
-        TPAcceptCommand tpAcceptCommand = new TPAcceptCommand(this, tpaCommand);
-        TPDenyCommand tpDenyCommand = new TPDenyCommand(this, tpaCommand);
-
-        getCommand("tp").setExecutor(tpCommand);
-        getCommand("tpa").setExecutor(tpaCommand);
-        getCommand("tpaccept").setExecutor(tpAcceptCommand);
-        getCommand("tpdeny").setExecutor(tpDenyCommand);
         saveDefaultConfig(); // <-- Make sure this is first!
         // Now read config values, register listeners, etc.
 
@@ -50,7 +42,7 @@ public final class Everything extends JavaPlugin {
 
         // --- Logging ---
         getLogger().info("THIS PLUGIN IS WRITTEN BY CRAZYG");
-        getLogger().info("THANKS FOR USING THE PLUGIN");
+        getLogger().info("THANK YOU FOR USING THE PLUGIN");
 
         // ASCII art with Adventure API
         Component asciiArt = Component.text()
@@ -88,10 +80,10 @@ public final class Everything extends JavaPlugin {
 
         // --- Command Manager ---
         CommandManager commandManager = new CommandManager();
-        commandManager.registerCommand("tp", tpCommand);
-        commandManager.registerCommand("tpa", tpaCommand);
-        commandManager.registerCommand("tpaccept", tpAcceptCommand);
-        commandManager.registerCommand("tpdeny", tpDenyCommand);
+        getCommand("tp").setExecutor(commandManager);
+        getCommand("tpa").setExecutor(commandManager);
+        getCommand("tpaccept").setExecutor(commandManager);
+        getCommand("tpdeny").setExecutor(commandManager);
         getCommand("kill").setExecutor(commandManager);
         getCommand("god").setExecutor(commandManager);
         getCommand("report").setExecutor(commandManager);
@@ -114,6 +106,10 @@ public final class Everything extends JavaPlugin {
         getCommand("warp").setExecutor(commandManager);
 
         // --- Command Registration ---
+        commandManager.registerCommand("tp", new TPCommand(this));
+        commandManager.registerCommand("tpa", new TPACommand(this));
+        commandManager.registerCommand("tpaccept", new TPAcceptCommand(this, TPAcceptCommand));
+        commandManager.registerCommand("tpdeny", new TPDenyCommand(this, TPDenyCommand));
         commandManager.registerCommand("kill", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
