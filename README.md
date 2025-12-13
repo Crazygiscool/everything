@@ -25,12 +25,14 @@
 [![Unlicense License][license-shield]][license-url]
 -->
 
-
 <!-- PROJECT LOGO -->
 <br />
 <div align="center">
 
   <h3 align="center">everything</h3>
+
+  [![wakatime](https://wakatime.com/badge/user/94726172-a5c4-4c20-b247-f01d1fc63010/project/2fbcf006-e3c3-4cda-bdbd-7a65caef8241.svg)](https://wakatime.com/badge/user/94726172-a5c4-4c20-b247-f01d1fc63010/project/2fbcf006-e3c3-4cda-bdbd-7a65caef8241)
+
 
   <p align="center">
     A minecraft plugin aimming to contain everything you'll ever need
@@ -45,7 +47,6 @@
     <a href="https://github.com/Crazygiscool/everything/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
   </p>
 </div>
-
 
 
 <!-- TABLE OF CONTENTS -->
