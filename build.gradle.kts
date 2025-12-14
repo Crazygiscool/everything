@@ -1,6 +1,7 @@
 plugins {
     java
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("io.papermc.paperweight.userdev") version "1.5.11"
 }
 
 group = "me.crazyg"
@@ -19,7 +20,9 @@ repositories {
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    // ✅ Correct syntax for this version of Paperweight
+    paperweight.paperDevBundle("io.papermc.paper:dev-bundle:1.20.4-R0.1-SNAPSHOT")
+
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -39,4 +42,13 @@ tasks.processResources {
 tasks.shadowJar {
     archiveBaseName.set("everything")
     archiveClassifier.set("")
+}
+
+tasks.register("copyPlugin", Copy::class) {
+    from(tasks.shadowJar)
+    into("run/plugins")
+}
+
+tasks.named("runServer") {
+    dependsOn("copyPlugin")
 }
