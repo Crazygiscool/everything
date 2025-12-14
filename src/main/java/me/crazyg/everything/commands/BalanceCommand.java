@@ -18,7 +18,7 @@ public class BalanceCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!plugin.isEconomyEnabled()) {
-            sender.sendMessage(Component.text("Economy features are currently disabled!", NamedTextColor.RED));
+            sender.sendMessage(Component.text("Economy features are currently disabled! Check if you have a economy plugin installed.", NamedTextColor.RED));
             return true;
         }
 

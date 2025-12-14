@@ -97,8 +97,6 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
         plugin.getConfig().set("maintenance-mode", true);
         plugin.saveConfig();
         
-        Bukkit.broadcast(Component.text("Server entering maintenance mode!")
-                .color(NamedTextColor.RED));
         
         // Kick non-allowed players
         for (Player player : Bukkit.getOnlinePlayers()) {
@@ -107,21 +105,20 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
                 player.kick(kickMessage);
             }
         }
+
+        Bukkit.broadcast(Component.text("Server Maintenance mode Enabled!")
+                .color(NamedTextColor.RED));
         
-        sender.sendMessage(Component.text("Maintenance mode enabled!")
-                .color(NamedTextColor.GREEN));
     }
 
     private void disableMaintenance(CommandSender sender) {
         maintenanceMode = false;
         plugin.getConfig().set("maintenance-mode", false);
         plugin.saveConfig();
-        
-        Bukkit.broadcast(Component.text("Server maintenance mode disabled!")
+
+        Bukkit.broadcast(Component.text("Server Maintenance mode disabled!")
                 .color(NamedTextColor.GREEN));
-        
-        sender.sendMessage(Component.text("Maintenance mode disabled!")
-                .color(NamedTextColor.GREEN));
+
     }
 
     private void addAllowedPlayer(CommandSender sender, String playerName) {

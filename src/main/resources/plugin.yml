@@ -18,10 +18,6 @@ commands:
     usage: /maintenance [on|off]
     permission: everything.maintenance
     permission-message: You do not have permission to toggle maintenance mode.
-  suicide:
-    description: Kill yourself instantly.
-    usage: /suicide
-    permission: everything.suicide
   god:
     description: Toggles god mode for self or others.
     usage: |
@@ -180,9 +176,6 @@ permissions:
     default: op
   everything.reload:
     description: Allows reloading the plugin.
-    default: op
-  everything.suicide:
-    description: Allows using the /suicide command.
     default: op
   everything.god:
     description: Allows using /god on oneself.
