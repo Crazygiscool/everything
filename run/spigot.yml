@@ -1,15 +1,39 @@
-# This is the main configuration file for Spigot.
+# This is the Spigot configuration file for Paper.
 # As you can see, there's tons to configure. Some options may impact gameplay, so use
 # with caution, and make sure you know what each option does before configuring.
-# For a reference for any variable inside this file, check out the Spigot wiki at
-# http://www.spigotmc.org/wiki/spigot-configuration/
 #
-# If you need help with the configuration or have any questions related to Spigot,
-# join us at the Discord or drop by our forums and leave a post.
+# If you need help with the configuration or have any questions related to Paper,
+# join us in our Discord or check the docs page.
 #
-# Discord: https://www.spigotmc.org/go/discord
-# Forums: http://www.spigotmc.org/
+# File Reference: https://docs.papermc.io/paper/reference/spigot-configuration/
+# Docs: https://docs.papermc.io/
+# Discord: https://discord.gg/papermc
+# Website: https://papermc.io/
 
+settings:
+  debug: false
+  sample-count: 12
+  player-shuffle: 0
+  user-cache-size: 1000
+  save-user-cache-on-stop-only: false
+  moved-wrongly-threshold: 0.0625
+  moved-too-quickly-multiplier: 10.0
+  timeout-time: 60
+  restart-on-crash: true
+  restart-script: ./start.sh
+  netty-threads: 4
+  attribute:
+    maxAbsorption:
+      max: 2048.0
+    maxHealth:
+      max: 1024.0
+    movementSpeed:
+      max: 1024.0
+    attackDamage:
+      max: 2048.0
+  log-villager-deaths: true
+  log-named-deaths: true
+  bungeecord: false
 messages:
   whitelist: You are not whitelisted on this server!
   unknown-command: Unknown command. Type "/help" for help.
@@ -17,6 +41,8 @@ messages:
   outdated-client: Outdated client! Please use {0}
   outdated-server: Outdated server! I'm still on {0}
   restart: Server is restarting
+players:
+  disable-saving: false
 advancements:
   disable-saving: false
   disabled:
@@ -26,12 +52,21 @@ world-settings:
     below-zero-generation-in-existing-chunks: true
     view-distance: default
     simulation-distance: default
-    thunder-chance: 100000
+    merge-radius:
+      item: 0.5
+      exp: -1.0
+    mob-spawn-range: 8
+    item-despawn-rate: 6000
+    arrow-despawn-rate: 1200
+    trident-despawn-rate: 1200
+    zombie-aggressive-towards-villager: true
     nerf-spawner-mobs: false
     enable-zombie-pigmen-portal-spawns: true
     wither-spawn-sound-radius: 0
     end-portal-sound-radius: 0
     hanging-tick-frequency: 100
+    thunder-chance: 100000
+    unload-frozen-chunks: false
     growth:
       cactus-modifier: 100
       cane-modifier: 100
@@ -55,18 +90,10 @@ world-settings:
       cavevines-modifier: 100
       glowberry-modifier: 100
       pitcherplant-modifier: 100
-    merge-radius:
-      item: 2.5
-      exp: 3.0
-    mob-spawn-range: 8
-    item-despawn-rate: 6000
-    arrow-despawn-rate: 1200
-    trident-despawn-rate: 1200
-    zombie-aggressive-towards-villager: true
     entity-activation-range:
       animals: 32
       monsters: 32
-      raiders: 48
+      raiders: 64
       misc: 16
       water: 16
       villagers: 32
@@ -90,10 +117,10 @@ world-settings:
       tick-inactive-villagers: true
       ignore-spectators: false
     entity-tracking-range:
-      players: 48
-      animals: 48
-      monsters: 48
-      misc: 32
+      players: 128
+      animals: 96
+      monsters: 96
+      misc: 96
       display: 128
       other: 64
     ticks-per:
@@ -136,29 +163,11 @@ world-settings:
       tile: 50
       entity: 50
     verbose: false
-settings:
-  save-user-cache-on-stop-only: false
-  bungeecord: false
-  sample-count: 12
-  timeout-time: 60
-  restart-on-crash: true
-  restart-script: ./start.sh
-  player-shuffle: 0
-  user-cache-size: 1000
-  moved-wrongly-threshold: 0.0625
-  moved-too-quickly-multiplier: 10.0
-  netty-threads: 4
-  attribute:
-    maxHealth:
-      max: 2048.0
-    movementSpeed:
-      max: 2048.0
-    attackDamage:
-      max: 2048.0
-  log-villager-deaths: true
-  log-named-deaths: true
-  debug: false
+config-version: 12
 commands:
+  log: true
+  tab-complete: 0
+  send-namespaced: true
   spam-exclusions:
   - /skill
   silent-commandblock-console: false
@@ -167,12 +176,7 @@ commands:
   - summon
   - testforblock
   - tellraw
-  log: true
-  tab-complete: 0
-  send-namespaced: true
-players:
-  disable-saving: false
-config-version: 12
+  enable-spam-exclusions: false
 stats:
   disable-saving: false
   forced-stats: {}
