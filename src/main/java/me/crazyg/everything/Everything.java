@@ -108,8 +108,8 @@ public final class Everything extends JavaPlugin {
         // --- Command Registration ---
         commandManager.registerCommand("tp", new TPCommand(this));
         commandManager.registerCommand("tpa", new TPACommand(this));
-        commandManager.registerCommand("tpaccept", new TPAcceptCommand(this, TPAcceptCommand));
-        commandManager.registerCommand("tpdeny", new TPDenyCommand(this, TPDenyCommand));
+        commandManager.registerCommand("tpaccept", new TPAcceptCommand(this, commandManager));
+        commandManager.registerCommand("tpdeny", new TPDenyCommand(this, commandManager));
         commandManager.registerCommand("kill", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
