@@ -8,36 +8,63 @@ import org.bukkit.Location;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+
+import java.io.File;
+import java.io.IOException;
 
 public class SetSpawnCommand implements CommandExecutor {
 
     private final Everything plugin;
+    private final File locationsFile;
+    private FileConfiguration locationsConfig;
 
     public SetSpawnCommand(Everything plugin) {
         this.plugin = plugin;
+        this.locationsFile = new File(plugin.getDataFolder(), "locations.yml");
+        loadLocations();
+    }
+
+    private void loadLocations() {
+        if (!locationsFile.exists()) {
+            try {
+                locationsFile.createNewFile();
+            } catch (IOException e) {
+                plugin.getLogger().severe("Could not create locations.yml!");
+            }
+        }
+        locationsConfig = YamlConfiguration.loadConfiguration(locationsFile);
+    }
+
+    private void saveLocations() {
+        try {
+            locationsConfig.save(locationsFile);
+        } catch (IOException e) {
+            plugin.getLogger().severe("Could not save locations.yml!");
+        }
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
         if (command.getName().equalsIgnoreCase("setspawn")) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 sender.sendMessage(Component.text("Only players can set the spawn location.")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
-            Player player = (Player) sender;
-            Location location = player.getLocation();
+            Location loc = player.getLocation();
 
-            // Save the spawn location to the config
-            plugin.getConfig().set("spawn.world", location.getWorld().getName());
-            plugin.getConfig().set("spawn.x", location.getX());
-            plugin.getConfig().set("spawn.y", location.getY());
-            plugin.getConfig().set("spawn.z", location.getZ());
-            plugin.getConfig().set("spawn.yaw", location.getYaw());
-            plugin.getConfig().set("spawn.pitch", location.getPitch());
-            plugin.saveConfig();
+            locationsConfig.set("spawn.world", loc.getWorld().getName());
+            locationsConfig.set("spawn.x", loc.getX());
+            locationsConfig.set("spawn.y", loc.getY());
+            locationsConfig.set("spawn.z", loc.getZ());
+            locationsConfig.set("spawn.yaw", loc.getYaw());
+            locationsConfig.set("spawn.pitch", loc.getPitch());
+            saveLocations();
 
             player.sendMessage(Component.text("Spawn location set!")
                     .color(NamedTextColor.GREEN));
@@ -45,32 +72,29 @@ public class SetSpawnCommand implements CommandExecutor {
         }
 
         if (command.getName().equalsIgnoreCase("spawn")) {
-            if (!(sender instanceof Player)) {
+            if (!(sender instanceof Player player)) {
                 sender.sendMessage(Component.text("Only players can teleport to the spawn location.")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
-            Player player = (Player) sender;
-
-            // Retrieve the spawn location from the config
-            String worldName = plugin.getConfig().getString("spawn.world");
+            String worldName = locationsConfig.getString("spawn.world");
             if (worldName == null) {
                 player.sendMessage(Component.text("Spawn location is not set.")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
-            Location spawnLocation = new Location(
+            Location spawnLoc = new Location(
                     Bukkit.getWorld(worldName),
-                    plugin.getConfig().getDouble("spawn.x"),
-                    plugin.getConfig().getDouble("spawn.y"),
-                    plugin.getConfig().getDouble("spawn.z"),
-                    (float) plugin.getConfig().getDouble("spawn.yaw"),
-                    (float) plugin.getConfig().getDouble("spawn.pitch")
+                    locationsConfig.getDouble("spawn.x"),
+                    locationsConfig.getDouble("spawn.y"),
+                    locationsConfig.getDouble("spawn.z"),
+                    (float) locationsConfig.getDouble("spawn.yaw"),
+                    (float) locationsConfig.getDouble("spawn.pitch")
             );
 
-            player.teleport(spawnLocation);
+            player.teleport(spawnLoc);
             player.sendMessage(Component.text("Teleported to spawn!")
                     .color(NamedTextColor.GREEN));
             return true;
