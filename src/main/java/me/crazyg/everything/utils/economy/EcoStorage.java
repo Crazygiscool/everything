@@ -9,7 +9,7 @@ import java.util.UUID;
 
 /**
  * Simple YAML-backed storage for the EverythingEconomy provider.
- * Stores balances in balances.yml as:
+ * Stores balances in data.yml as:
  *
  * <uuid>: <balance>
  */
@@ -19,7 +19,7 @@ public class EcoStorage {
     private final FileConfiguration config;
 
     public EcoStorage(File dataFolder) {
-        this.file = new File(dataFolder, "balances.yml");
+        this.file = new File(dataFolder, "data.yml");
 
         if (!file.exists()) {
             try {
