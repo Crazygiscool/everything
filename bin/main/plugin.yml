@@ -1,5 +1,5 @@
 name: everything
-version: ${project.version}
+version: 1.3.4
 main: me.crazyg.everything.Everything
 api-version: '1.20'
 authors: [crazyg]

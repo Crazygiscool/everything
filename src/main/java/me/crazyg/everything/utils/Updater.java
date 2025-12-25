@@ -33,7 +33,6 @@ public class Updater implements Listener {
     private String downloadFileName;
     private boolean updateAvailable = false;
     private static final String GITHUB_API_URL = "https://api.github.com/repos/Crazygiscool/everything/releases";
-    private static final String UPDATE_FOLDER = "updates";
 
     public Updater(Everything plugin) {
         this.plugin = plugin;

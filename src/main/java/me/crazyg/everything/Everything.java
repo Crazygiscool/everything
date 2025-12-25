@@ -160,8 +160,14 @@ public final class Everything extends JavaPlugin {
         }
 
         // Initialize updater
-        updater = new Updater(this);
-        getServer().getPluginManager().registerEvents(updater, this);
+        boolean autoUpdate = getConfig().getBoolean("auto-update", true);
+
+        if (autoUpdate) {
+            getServer().getPluginManager().registerEvents(new Updater(this), this);
+            
+        } else {
+            getLogger().info("Auto-update is disabled in config.yml");
+        }
     }
 
     @Override
