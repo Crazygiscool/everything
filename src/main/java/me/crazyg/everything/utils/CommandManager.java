@@ -1,4 +1,4 @@
-package me.crazyg.everything;
+package me.crazyg.everything.utils;
 
 import java.util.HashMap;
 import java.util.List;
