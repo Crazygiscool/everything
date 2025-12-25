@@ -35,7 +35,12 @@ tasks.withType<JavaCompile> {
 tasks.processResources {
     filteringCharset = "UTF-8"
     filesMatching("plugin.yml") {
-        expand(project.properties)
+        expand(
+            mapOf(
+                "version" to project.version.toString(),
+                "name" to project.name
+            )
+        )
     }
 }
 
