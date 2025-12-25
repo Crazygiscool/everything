@@ -117,59 +117,58 @@ public class Updater implements Listener {
 
         CompletableFuture.runAsync(() -> {
             try {
-                // Prepare update folder
-                File updateFolder = new File(plugin.getDataFolder().getParentFile(), UPDATE_FOLDER);
-                if (!updateFolder.exists()) {
-                    updateFolder.mkdir();
-                }
+                // Prepare update folder (Paper will auto-apply updates from here)
+                File updateFolder = new File(plugin.getDataFolder().getParentFile(), "update");
+                updateFolder.mkdirs();
 
-                // Get the current plugin jar file
-                File currentJar = null;
+                // Determine current plugin JAR
+                File currentJar;
                 try {
                     currentJar = new File(plugin.getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
                 } catch (Exception e) {
                     plugin.getLogger().severe("Could not determine the current plugin JAR file: " + e.getMessage());
                     return;
                 }
-                if (currentJar == null || !currentJar.exists()) {
+
+                if (!currentJar.exists()) {
                     plugin.getLogger().severe("Could not determine the current plugin JAR file!");
                     return;
                 }
 
-                // Backup the current jar to the update folder
+                // Backup current JAR
                 File backupFile = new File(updateFolder, currentJar.getName() + ".bak-" + currentVersion);
-                try (FileInputStream fis = new FileInputStream(currentJar); FileOutputStream fos = new FileOutputStream(backupFile)) {
+                try (FileInputStream fis = new FileInputStream(currentJar);
+                    FileOutputStream fos = new FileOutputStream(backupFile)) {
+
                     byte[] buffer = new byte[1024];
                     int len;
                     while ((len = fis.read(buffer)) > 0) {
                         fos.write(buffer, 0, len);
                     }
                 }
-                
-                // Delete the original JAR file after successful backup
-                if (currentJar.delete()) {
-                    plugin.getLogger().info("Original plugin JAR deleted after backup: " + currentJar.getName());
-                } else {
-                    plugin.getLogger().warning("Could not delete original plugin JAR: " + currentJar.getName());
-                }
 
-                // Download the new jar and save as the GitHub asset name in the plugins folder
-                File pluginsDir = plugin.getDataFolder().getParentFile();
-                String assetFileName = downloadFileName != null ? downloadFileName : ("everything-latest.jar");
-                File newJar = new File(pluginsDir, assetFileName);
+                plugin.getLogger().info("Backup of old jar saved to: " + backupFile.getAbsolutePath());
+
+                // Download new JAR into /plugins/update/
+                String assetFileName = downloadFileName != null ? downloadFileName : "everything-latest.jar";
+                File newJar = new File(updateFolder, assetFileName);
+
                 URL url = URI.create(downloadUrl).toURL();
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestProperty("Accept", "application/octet-stream");
 
                 long fileSize = connection.getContentLengthLong();
                 long totalBytesRead = 0;
-                int bytesRead;
                 byte[] buffer = new byte[1024];
+                int bytesRead;
 
-                try (InputStream in = connection.getInputStream(); FileOutputStream out = new FileOutputStream(newJar)) {
+                try (InputStream in = connection.getInputStream();
+                    FileOutputStream out = new FileOutputStream(newJar)) {
+
                     while ((bytesRead = in.read(buffer)) != -1) {
                         out.write(buffer, 0, bytesRead);
                         totalBytesRead += bytesRead;
+
                         if (fileSize > 0) {
                             int progress = (int) ((totalBytesRead * 100) / fileSize);
                             if (progress % 5 == 0) {
@@ -179,28 +178,24 @@ public class Updater implements Listener {
                     }
                 }
 
-                // Optionally, warn if the new JAR name is different from the current one
-                if (!newJar.getName().equals(currentJar.getName())) {
-                    plugin.getLogger().info("Downloaded update as '" + newJar.getName() + "'. You must remove the old jar ('" + currentJar.getName() + "') from the plugins folder after restart to avoid duplicates.");
-                }
+                plugin.getLogger().info("Update downloaded to: " + newJar.getAbsolutePath());
+                plugin.getLogger().info("Restart your server to apply the update.");
 
                 if (!notifiedDownload) {
                     notifiedDownload = true;
-                    plugin.getLogger().info("Update downloaded as: " + newJar.getAbsolutePath());
-                    plugin.getLogger().info("Backup of old jar saved to: " + backupFile.getAbsolutePath());
-                    plugin.getLogger().info("Please restart your server and remove the old jar to apply the update.");
-                    Component doneMsg = me.crazyg.everything.Everything.PLUGIN_PREFIX.append(
+                    Component doneMsg = Everything.PLUGIN_PREFIX.append(
                         Component.text()
-                            .append(Component.text("Update downloaded as: ").color(NamedTextColor.GREEN))
+                            .append(Component.text("Update downloaded: ").color(NamedTextColor.GREEN))
                             .append(Component.text(newJar.getName()).color(NamedTextColor.AQUA))
-                            .append(Component.text(". Please restart your server and remove the old jar to apply the update.").color(NamedTextColor.YELLOW))
+                            .append(Component.text(". Restart your server to apply it.").color(NamedTextColor.YELLOW))
                             .build()
                     );
                     org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(doneMsg));
                     org.bukkit.Bukkit.getConsoleSender().sendMessage(doneMsg);
                 }
+
             } catch (Exception e) {
-                plugin.getLogger().severe("Failed to download or replace update: " + e.getMessage());
+                plugin.getLogger().severe("Failed to download update: " + e.getMessage());
             }
         });
     }
