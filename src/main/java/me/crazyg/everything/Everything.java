@@ -7,6 +7,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
 
+import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -35,6 +36,10 @@ public final class Everything extends JavaPlugin {
     public void onEnable() {
         saveDefaultConfig(); // <-- Make sure this is first!
         // Now read config values, register listeners, etc.
+
+        // --- bstats init ---
+        int pluginId = 28513;
+        Metrics metrics = new Metrics(this, pluginId);
 
         // --- Config Loading ---
         getConfig().options().copyDefaults(true);

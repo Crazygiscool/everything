@@ -20,9 +20,9 @@ repositories {
 }
 
 dependencies {
-    // ✅ Correct Paperweight userdev dependency
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 
+    implementation("org.bstats:bstats-bukkit:3.1.0")
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     implementation("com.google.code.gson:gson:2.10.1")
@@ -39,7 +39,15 @@ tasks.processResources {
     }
 }
 
-tasks.shadowJar {
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveBaseName.set("everything")
     archiveClassifier.set("")
+
+    // Only include bStats in the shaded jar
+    dependencies {
+        include(dependency("org.bstats:bstats-bukkit"))
+    }
+
+    // Relocate bStats to avoid conflicts
+    relocate("org.bstats", "${project.group}.bstats")
 }
