@@ -92,8 +92,8 @@ HAVE FUN!
 
 JAVA
 
-* Intellij Idea
-* Maven, Java
+* Intellij Idea, VSCode
+* Gradle & Maven, Java
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
@@ -104,10 +104,14 @@ JAVA
 
 [Releases page](https://github.com/Crazygiscool/everything/releases)
 
+### Dependencies
+
+* PlaceholderAPI(hopefully replaceit sometime)
+
 ### Soft-Dependencies
 
 * Vault
-* Placeholder-API
+* Luckperms
 
 <!-- ROADMAP -->
 ## Roadmap
