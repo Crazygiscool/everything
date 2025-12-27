@@ -4,7 +4,8 @@ main: me.crazyg.everything.Everything
 api-version: '1.20'
 authors: [crazyg]
 description: Does everything!
-softdepend: [Vault, PlaceholderAPI, LuckPerms]
+depend: [PlaceholderAPI]
+softdepend: [Vault, LuckPerms]
 
 commands:
   stats:
