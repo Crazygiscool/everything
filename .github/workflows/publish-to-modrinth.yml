@@ -1,0 +1,50 @@
+name: Publish to Modrinth
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Download release assets
+        uses: robinraju/release-downloader@v1
+        with:
+          repository: ${{ github.repository }}
+          tag: ${{ github.event.release.tag_name }}
+          fileName: "*.jar"
+          out-file-path: "release-assets"
+
+      - name: Publish to Modrinth
+        uses: cloudnode-pro/modrinth-publish@v2
+        with:
+          token: ${{ secrets.MODRINTH_TOKEN }}
+
+          # REQUIRED — Modrinth project slug or ID
+          project: "everything"
+
+          # REQUIRED — version number on Modrinth
+          version: ${{ github.event.release.tag_name }}
+
+          # OPTIONAL — human-readable name
+          name: "Release ${{ github.event.release.tag_name }}"
+
+          # OPTIONAL — changelog text
+          changelog: ${{ github.event.release.body }}
+
+          # REQUIRED — files to upload
+          files: "release-assets/*.jar"
+
+          # OPTIONAL — arrays must be JSON strings
+          game-versions: >
+            ["1.20.4","1.20.5","1.20.6",
+             "1.21","1.21.1","1.21.2","1.21.3","1.21.4",
+             "1.21.5","1.21.6","1.21.7","1.21.8","1.21.9","1.21.10"]
+
+          loaders: >
+            ["paper","spigot","bukkit","purpur"]

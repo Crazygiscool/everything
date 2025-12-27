@@ -1,5 +1,5 @@
-name: everything
-version: '1.3.4'
+name: ${name}
+version: ${version}
 main: me.crazyg.everything.Everything
 api-version: '1.20'
 authors: [crazyg]
