@@ -4,6 +4,8 @@ import me.crazyg.everything.gui.BaseGUI;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class GUIListener implements Listener {
@@ -15,22 +17,39 @@ public class GUIListener implements Listener {
         // Only handle GUIs that use BaseGUI as the holder
         if (!(e.getInventory().getHolder() instanceof BaseGUI gui)) return;
 
-        // Cancel ALL interactions by default
+        // Cancel EVERYTHING by default
         e.setCancelled(true);
 
-        // Block shift-clicking (moves items between inventories)
+        // If they clicked outside the GUI, ignore
+        if (e.getClickedInventory() == null) return;
+
+        // If they clicked their own inventory, block it
+        if (e.getClickedInventory() == p.getInventory()) return;
+
+        // Block shift-click
         if (e.isShiftClick()) return;
 
-        // Block number-key hotbar swaps
+        // Block number-key swaps
         if (e.getClick().isKeyboardClick()) return;
 
         // Block dragging items
+        if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) return;
+        if (e.getAction() == InventoryAction.COLLECT_TO_CURSOR) return;
         if (e.getAction().toString().contains("DRAG")) return;
 
-        // Block clicks in the player's own inventory
-        if (e.getClickedInventory() != e.getInventory()) return;
+        // Block swapping with cursor
+        if (e.getAction() == InventoryAction.SWAP_WITH_CURSOR) return;
 
-        // Safe to pass the click to the GUI
+        // Block drop actions
+        if (e.getClick() == ClickType.DROP || e.getClick() == ClickType.CONTROL_DROP) return;
+
+        // Block middle-click (creative mode)
+        if (e.getClick() == ClickType.MIDDLE) return;
+
+        // Block hotbar swaps
+        if (e.getClick() == ClickType.NUMBER_KEY) return;
+
+        // Now it's a safe GUI click
         gui.onClick(e);
     }
 }
