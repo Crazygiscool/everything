@@ -15,7 +15,7 @@ public abstract class BaseGUI implements InventoryHolder {
 
     public BaseGUI(Player player, int size, Component title) {
         this.player = player;
-        this.inv = Bukkit.createInventory(this, size, title); // IMPORTANT: holder = this
+        this.inv = Bukkit.createInventory(this, size, title); // IMPORTANT
     }
 
     @Override
