@@ -5,6 +5,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -65,6 +66,14 @@ public class SetSpawnCommand implements CommandExecutor {
             locationsConfig.set("spawn.yaw", loc.getYaw());
             locationsConfig.set("spawn.pitch", loc.getPitch());
             saveLocations();
+            
+            World world = loc.getWorld();
+
+            int x = (int) locationsConfig.getDouble("spawn.x");
+            int y = (int) locationsConfig.getDouble("spawn.y");
+            int z = (int) locationsConfig.getDouble("spawn.z");
+
+            world.setSpawnLocation(x, y, z);
 
             player.sendMessage(Component.text("Spawn location set!")
                     .color(NamedTextColor.GREEN));
