@@ -125,6 +125,7 @@ public final class Everything extends JavaPlugin {
         getCommand("namecolor").setExecutor(commandManager);
         getCommand("warp").setExecutor(commandManager);
         getCommand("eco").setExecutor(commandManager);
+        getCommand("help").setExecutor(commandManager);
 
         // --- Command Registration ---
         TPACommand tpaCommand = new TPACommand(this);
@@ -149,6 +150,7 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("namecolor", new NameColorCommand(this));
         commandManager.registerCommand("warp", new WarpCommand(this));
         commandManager.registerCommand("eco", new EcoCommand(this));
+        commandManager.registerCommand("help", new HelpCommand(this));
 
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);

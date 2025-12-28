@@ -12,7 +12,12 @@ commands:
     description: Economy admin command
     usage: /eco <give|take|set|reset> <player> [amount]
     permission: everything.eco
-
+  help:
+    description: Custom help menu
+    usage: /help
+    aliases: ["?"]
+    permission: everything.help
+    permissionp-message: You do not have permission to view the help menu.
   stats:
     description: View player statistics
     usage: /stats [player]
