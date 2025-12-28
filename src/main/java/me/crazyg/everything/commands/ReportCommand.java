@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
@@ -15,6 +17,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import org.bukkit.Bukkit;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -232,10 +235,10 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
 
             // Create report
             String playerName = args[0];
-            Player target = Bukkit.getPlayerExact(playerName);
+            OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
 
-            if (target == null) {
-                p.sendMessage(Component.text("Player '" + playerName + "' is not online.")
+            if (!target.hasPlayedBefore() && !target.isOnline()) {
+                p.sendMessage(Component.text("Player '" + playerName + "' has never joined before.")
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -290,10 +293,12 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
             List<String> base = List.of("accept", "deny", "list");
 
             // Player names (for creating a report)
-            List<String> players = Bukkit.getOnlinePlayers().stream()
-                    .map(Player::getName)
+            List<String> players = Arrays.stream(Bukkit.getOfflinePlayers())
+                    .map(OfflinePlayer::getName)
+                    .filter(Objects::nonNull)
                     .filter(name -> name.toLowerCase().startsWith(input))
                     .toList();
+
 
             // Subcommands that match
             List<String> matches = base.stream()
