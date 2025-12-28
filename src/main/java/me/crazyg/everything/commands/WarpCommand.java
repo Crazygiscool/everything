@@ -23,13 +23,13 @@ public class WarpCommand implements CommandExecutor {
 
     public WarpCommand(Everything plugin) {
         this.plugin = plugin;
-        this.warpsFile = new File(plugin.getDataFolder(), "locations.yml");
+        this.warpsFile = new File(plugin.getDataFolder(), "warp.yml");
         loadWarps();
     }
 
     private void loadWarps() {
         if (!warpsFile.exists()) {
-            plugin.saveResource("locations.yml", false);
+            plugin.saveResource("warp.yml", false);
         }
         warpsConfig = YamlConfiguration.loadConfiguration(warpsFile);
     }

@@ -23,7 +23,7 @@ public class SetSpawnCommand implements CommandExecutor {
 
     public SetSpawnCommand(Everything plugin) {
         this.plugin = plugin;
-        this.locationsFile = new File(plugin.getDataFolder(), "locations.yml");
+        this.locationsFile = new File(plugin.getDataFolder(), "spawn.yml");
         loadLocations();
     }
 
@@ -32,7 +32,7 @@ public class SetSpawnCommand implements CommandExecutor {
             try {
                 locationsFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create locations.yml!");
+                plugin.getLogger().severe("Could not create spawn.yml!");
             }
         }
         locationsConfig = YamlConfiguration.loadConfiguration(locationsFile);
@@ -42,7 +42,7 @@ public class SetSpawnCommand implements CommandExecutor {
         try {
             locationsConfig.save(locationsFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Could not save locations.yml!");
+            plugin.getLogger().severe("Could not save spawn.yml!");
         }
     }
 

@@ -29,7 +29,7 @@ public class HomeCommand implements CommandExecutor {
 
     public HomeCommand(Everything plugin) {
         this.plugin = plugin;
-        this.homesFile = new File(plugin.getDataFolder(), "locations.yml");
+        this.homesFile = new File(plugin.getDataFolder(), "home.yml");
 
         loadHomes();
 

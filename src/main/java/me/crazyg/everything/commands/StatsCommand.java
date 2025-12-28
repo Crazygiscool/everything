@@ -34,7 +34,7 @@ public class StatsCommand implements CommandExecutor {
     public StatsCommand(Everything plugin) {
         this.plugin = plugin;
 
-        this.dataFile = new File(plugin.getDataFolder(), "data.yml");
+        this.dataFile = new File(plugin.getDataFolder(), "stats.yml");
         this.playerStats = new HashMap<>();
 
         loadData();
@@ -44,14 +44,14 @@ public class StatsCommand implements CommandExecutor {
     }
 
     // ---------------------------------------------------------
-    // Load data.yml
+    // Load stats.yml
     // ---------------------------------------------------------
     private void loadData() {
         if (!dataFile.exists()) {
             try {
                 dataFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create data.yml!");
+                plugin.getLogger().severe("Could not create stats.yml!");
             }
         }
 
@@ -68,7 +68,7 @@ public class StatsCommand implements CommandExecutor {
         try {
             dataConfig.save(dataFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Could not save data.yml!");
+            plugin.getLogger().severe("Could not save stats.yml!");
         }
     }
 
