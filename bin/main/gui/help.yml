@@ -1,0 +1,28 @@
+server-name: "Crazypixel"
+server-link: "https://crazyg.is-a.dev"
+server-author: "Crazygiscool"
+
+categories:
+  general:
+    name: "General Commands"
+    icon: "BOOK"
+    commands:
+      - "/spawn - Teleport to spawn"
+      - "/tpa <player> - Request teleport"
+      - "/msg <player> <msg> - Private message"
+
+  warps:
+    name: "Warp System"
+    icon: "ENDER_PEARL"
+    commands:
+      - "/warp <name> - Teleport to warp"
+      - "/warp set <name> - Create warp"
+      - "/warp delete <name> - Remove warp"
+
+  economy:
+    name: "Economy"
+    icon: "GOLD_INGOT"
+    commands:
+      - "/balance - Check balance"
+      - "/pay <player> <amount> - Send money"
+      - "/eco give <player> <amount> - Admin give"
