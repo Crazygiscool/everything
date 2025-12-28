@@ -3,6 +3,7 @@ package me.crazyg.everything.commands;
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -38,8 +39,9 @@ public class NameColorCommand implements CommandExecutor {
 
         plugin.getConfig().set("namecolors." + player.getUniqueId(), colorName);
         plugin.saveConfig();
-
-        player.sendMessage(Component.text("Your name color has been set to " + colorName + "!").color(color));
+        
+        colorName = colorName.toString();
+        player.sendMessage(Component.text("Your name color has been set to ").append(Component.text(colorName).color(color).decorate(TextDecoration.BOLD)).append(Component.text("!").color(NamedTextColor.WHITE)));
         return true;
     }
 }

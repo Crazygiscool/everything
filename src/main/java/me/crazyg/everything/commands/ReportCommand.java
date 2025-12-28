@@ -57,15 +57,15 @@ public class ReportCommand implements CommandExecutor {
         this.plugin = plugin;
 
         // -----------------------------
-        // Load data.yml
+        // Load report.yml
         // -----------------------------
-        this.dataFile = new File(plugin.getDataFolder(), "data.yml");
+        this.dataFile = new File(plugin.getDataFolder(), "report.yml");
 
         if (!dataFile.exists()) {
             try {
                 dataFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create data.yml!");
+                plugin.getLogger().severe("Could not create report.yml!");
             }
         }
 
@@ -79,13 +79,13 @@ public class ReportCommand implements CommandExecutor {
     }
 
     // -----------------------------
-    // Save data.yml
+    // Save report.yml
     // -----------------------------
     private void saveData() {
         try {
             dataConfig.save(dataFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Could not save data.yml!");
+            plugin.getLogger().severe("Could not save report.yml!");
         }
     }
 
