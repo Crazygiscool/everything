@@ -1,7 +1,10 @@
 plugins {
     java
-    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
+}
+
+paperweight {
+    reobfArtifactConfiguration = null
 }
 
 group = "me.crazyg"
@@ -19,25 +22,12 @@ repositories {
     maven("https://jitpack.io")
 }
 
-//
-// 1. Create the shade configuration BEFORE dependencies
-//
-configurations {
-    create("shade")
-}
-
 dependencies {
-    // Paperweight dev bundle
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     implementation("com.google.code.gson:gson:2.10.1")
-
-    //
-    // 2. Add ONLY bStats to the shade configuration
-    //
-    add("shade", "org.bstats:bstats-bukkit:3.1.0")
 }
 
 tasks.withType<JavaCompile> {
@@ -54,16 +44,4 @@ tasks.processResources {
             )
         )
     }
-}
-
-//
-// 3. Configure Shadow to use ONLY the shade configuration
-//
-tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
-    archiveBaseName.set("everything")
-    archiveClassifier.set("")
-
-    configurations = listOf(project.configurations.getByName("shade"))
-
-    relocate("org.bstats", "${project.group}.bstats")
 }
