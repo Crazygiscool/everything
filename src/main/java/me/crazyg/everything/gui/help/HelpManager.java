@@ -15,9 +15,19 @@ public class HelpManager {
     public HelpManager(Everything plugin) {
         this.plugin = plugin;
 
+        // Ensure plugin folder exists
         File helpFile = new File(plugin.getDataFolder(), "help.yml");
+
+        // Extract from /gui/help.yml inside the JAR
         if (!helpFile.exists()) {
-            plugin.saveResource("help.yml", false);
+            plugin.saveResource("gui/help.yml", false);
+
+            // Move it to the root data folder as help.yml
+            File extracted = new File(plugin.getDataFolder(), "gui/help.yml");
+            extracted.renameTo(helpFile);
+
+            // Delete leftover folder if needed
+            new File(plugin.getDataFolder(), "gui").delete();
         }
 
         this.config = YamlConfiguration.loadConfiguration(helpFile);
