@@ -8,6 +8,11 @@ depend: [PlaceholderAPI]
 softdepend: [Vault, LuckPerms]
 
 commands:
+  eco:
+    description: Economy admin command
+    usage: /eco <give|take|set|reset> <player> [amount]
+    permission: everything.eco
+
   stats:
     description: View player statistics
     usage: /stats [player]

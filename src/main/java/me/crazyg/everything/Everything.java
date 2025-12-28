@@ -124,6 +124,7 @@ public final class Everything extends JavaPlugin {
         getCommand("stats").setExecutor(commandManager);
         getCommand("namecolor").setExecutor(commandManager);
         getCommand("warp").setExecutor(commandManager);
+        getCommand("eco").setExecutor(commandManager);
 
         // --- Command Registration ---
         TPACommand tpaCommand = new TPACommand(this);
@@ -144,10 +145,10 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("spawn", new SetSpawnCommand(this));
         commandManager.registerCommand("pay", new PayCommand(this));
         commandManager.registerCommand("balance", new BalanceCommand(this));
-        // Removed teleport command registration as per suggestion
         commandManager.registerCommand("stats", new StatsCommand(this));
         commandManager.registerCommand("namecolor", new NameColorCommand(this));
         commandManager.registerCommand("warp", new WarpCommand(this));
+        commandManager.registerCommand("eco", new EcoCommand(this));
 
         GamemodeCommand gamemodeExecutor = new GamemodeCommand();
         commandManager.registerCommand("gmc", gamemodeExecutor);
