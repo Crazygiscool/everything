@@ -31,8 +31,6 @@ public class BalanceCommand implements CommandExecutor {
         double balance = Everything.getEconomy().getBalance(player);
         player.sendMessage(Component.text("Your balance: ", NamedTextColor.GREEN)
                 .append(Component.text(Everything.getEconomy().format(balance), NamedTextColor.GOLD)));
-        player.sendMessage(Component.text("Your balance: ", NamedTextColor.GREEN)
-                .append(Component.text(Everything.getEconomy().format(balance), NamedTextColor.GOLD)));
         return true;
     }
 }
