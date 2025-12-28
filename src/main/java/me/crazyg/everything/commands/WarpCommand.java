@@ -25,8 +25,8 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     public WarpCommand(Everything plugin) {
         this.plugin = plugin;
 
-        // Ensure /plugins/Everything/locations/ exists
-        File folder = new File(plugin.getDataFolder(), "locations");
+        // Ensure /plugins/Everything/location/ exists
+        File folder = new File(plugin.getDataFolder(), "location");
         if (!folder.exists()) {
             folder.mkdirs();
         }
@@ -34,7 +34,7 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
         // Extract warp.yml from resources if missing
         File warpResource = new File(folder, "warp.yml");
         if (!warpResource.exists()) {
-            plugin.saveResource("locations/warp.yml", false);
+            plugin.saveResource("location/warp.yml", false);
         }
 
         // Load the actual file

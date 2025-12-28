@@ -25,8 +25,8 @@ public class SetSpawnCommand implements CommandExecutor {
     public SetSpawnCommand(Everything plugin) {
         this.plugin = plugin;
 
-        // Ensure /plugins/Everything/locations/ exists
-        File folder = new File(plugin.getDataFolder(), "locations");
+        // Ensure /plugins/Everything/location/ exists
+        File folder = new File(plugin.getDataFolder(), "location");
         if (!folder.exists()) {
             folder.mkdirs();
         }
@@ -34,7 +34,7 @@ public class SetSpawnCommand implements CommandExecutor {
         // Extract spawn.yml from resources if missing
         File spawnResource = new File(folder, "spawn.yml");
         if (!spawnResource.exists()) {
-            plugin.saveResource("locations/spawn.yml", false);
+            plugin.saveResource("location/spawn.yml", false);
         }
 
         // Load the actual file
