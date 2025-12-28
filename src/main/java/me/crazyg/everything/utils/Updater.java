@@ -32,7 +32,7 @@ public class Updater implements Listener {
     private String downloadUrl;
     private String downloadFileName;
     private boolean updateAvailable = false;
-    private static final String GITHUB_API_URL = "https://api.github.com/repos/Crazygiscool/everything/releases";
+    private static final String GITHUB_API_URL = "https://api.github.com/repos/Crazygiscool/everything/releases/latest";
 
     public Updater(Everything plugin) {
         this.plugin = plugin;
