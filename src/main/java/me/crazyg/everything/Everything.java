@@ -3,6 +3,8 @@ package me.crazyg.everything;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
+import me.crazyg.everything.utils.economy.EcoProvider;
+import me.crazyg.everything.utils.economy.EcoStorage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
@@ -29,7 +31,6 @@ public final class Everything extends JavaPlugin {
     private static net.milkbowl.vault.chat.Chat chat = null;
     private boolean economyEnabled = false;
     private boolean vaultChatEnabled = false;
-    private Updater updater;
 
     @Override
     public void onEnable() {
@@ -63,21 +64,36 @@ public final class Everything extends JavaPlugin {
 
         // --- Economy & Vault Setup ---
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
-            // Setup economy
+
+            // Register EverythingEconomy
+            EcoStorage storage = new EcoStorage(getDataFolder());
+            EcoProvider ecoProvider = new EcoProvider(storage);
+
+            Bukkit.getServicesManager().register(
+                    Economy.class,
+                    ecoProvider,
+                    this,
+                    org.bukkit.plugin.ServicePriority.Highest
+            );
+
+            getLogger().info("EverythingEconomy registered as Vault provider.");
+
+            // Hook economy
             if (setupEconomy()) {
                 getLogger().info("Vault economy hooked successfully!");
                 economyEnabled = true;
             } else {
                 getLogger().warning("Vault found but no economy provider detected!");
             }
-            
-            // Setup chat
+
+            // Hook chat
             if (setupChat()) {
                 getLogger().info("Vault chat hooked successfully!");
                 vaultChatEnabled = true;
             } else {
                 getLogger().warning("Vault found but no chat provider detected!");
             }
+
         } else {
             getLogger().warning("Vault not found! Economy and chat features will be disabled.");
         }
