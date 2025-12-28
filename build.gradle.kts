@@ -8,7 +8,7 @@ paperweight {
 }
 
 group = "me.crazyg"
-version = "1.3.7"
+version = "1.4.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
