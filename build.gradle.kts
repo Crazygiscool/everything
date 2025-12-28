@@ -1,14 +1,9 @@
 plugins {
     java
-    id("io.papermc.paperweight.userdev") version "2.0.0-beta.19"
-}
-
-paperweight {
-    reobfArtifactConfiguration = null
 }
 
 group = "me.crazyg"
-version = "1.4.0"
+version = "1.2.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -23,7 +18,8 @@ repositories {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+    // Paper API only — no Paperweight needed
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
 
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")

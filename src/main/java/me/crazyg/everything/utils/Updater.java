@@ -17,6 +17,8 @@ import java.util.concurrent.CompletableFuture;
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -43,7 +45,7 @@ public class Updater implements Listener {
     private void checkForUpdates() {
         CompletableFuture.runAsync(() -> {
             try {
-                URL url = URI.create(GITHUB_API_URL).toURL();
+                URL url = URI.create(GITHUB_API_URL).toURL(); // must be /releases/latest
                 HttpURLConnection connection = (HttpURLConnection) url.openConnection();
                 connection.setRequestMethod("GET");
                 connection.setRequestProperty("Accept", "application/vnd.github.v3+json");
@@ -59,49 +61,56 @@ public class Updater implements Listener {
                     }
                     reader.close();
 
-                    JsonArray releases = JsonParser.parseString(response.toString()).getAsJsonArray();
-                    if (releases.size() > 0) {
-                        JsonObject latestRelease = releases.get(0).getAsJsonObject();
-                        latestVersion = latestRelease.get("tag_name").getAsString();
+                    // --- FIXED: parse as OBJECT, not ARRAY ---
+                    JsonObject latestRelease = JsonParser.parseString(response.toString()).getAsJsonObject();
 
-                        JsonArray assets = latestRelease.getAsJsonArray("assets");
-                        if (assets != null && assets.size() > 0) {
-                            JsonObject asset = assets.get(0).getAsJsonObject();
-                            downloadUrl = asset.get("browser_download_url").getAsString();
-                            downloadFileName = asset.get("name").getAsString();
+                    latestVersion = latestRelease.get("tag_name").getAsString();
+
+                    JsonArray assets = latestRelease.getAsJsonArray("assets");
+                    if (assets != null && assets.size() > 0) {
+                        JsonObject asset = assets.get(0).getAsJsonObject();
+                        downloadUrl = asset.get("browser_download_url").getAsString();
+                        downloadFileName = asset.get("name").getAsString();
+                    }
+
+                    int cmp = compareVersions(currentVersion, latestVersion);
+                    if (cmp < 0) {
+                        updateAvailable = true;
+
+                        plugin.getLogger().info("A new update is available! Current version: "
+                                + currentVersion + ", Latest version: " + latestVersion);
+
+                        Component updateMsg = Everything.PLUGIN_PREFIX.append(
+                            Component.text()
+                                .append(Component.text("A new update is available! ").color(NamedTextColor.GREEN))
+                                .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
+                                .append(Component.text(currentVersion).color(NamedTextColor.WHITE))
+                                .append(Component.text(" → ").color(NamedTextColor.GRAY))
+                                .append(Component.text(latestVersion).color(NamedTextColor.AQUA)
+                                        .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
+                                .append(Component.text(". Download: ").color(NamedTextColor.YELLOW))
+                                .append(Component.text(downloadUrl != null ? downloadUrl : "(no link)")
+                                        .color(NamedTextColor.BLUE)
+                                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(
+                                                downloadUrl != null ? downloadUrl : "")))
+                                .build()
+                        );
+
+                        if (!notifiedUpdate) {
+                            notifiedUpdate = true;
+                            Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(updateMsg));
+                            Bukkit.getConsoleSender().sendMessage(updateMsg);
                         }
 
-                        int cmp = compareVersions(currentVersion, latestVersion);
-                        if (cmp < 0) {
-                            // Current version is older than latest
-                            updateAvailable = true;
-                            // Log a simple, readable string to the console
-                            plugin.getLogger().info("A new update is available! Current version: " + currentVersion + ", Latest version: " + latestVersion);
-                            // Send a beautiful Adventure message to all online players (once)
-                            Component updateMsg = me.crazyg.everything.Everything.PLUGIN_PREFIX.append(
-                                Component.text()
-                                    .append(Component.text("A new update is available! ").color(NamedTextColor.GREEN))
-                                    .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
-                                    .append(Component.text(currentVersion).color(NamedTextColor.WHITE))
-                                    .append(Component.text(" → ").color(NamedTextColor.GRAY))
-                                    .append(Component.text(latestVersion).color(NamedTextColor.AQUA).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
-                                    .append(Component.text(". Download: ").color(NamedTextColor.YELLOW))
-                                    .append(Component.text(downloadUrl != null ? downloadUrl : "(no link)").color(NamedTextColor.BLUE).clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(downloadUrl != null ? downloadUrl : "")))
-                                    .build()
-                            );
-                            if (!notifiedUpdate) {
-                                notifiedUpdate = true;
-                                org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(updateMsg));
-                                org.bukkit.Bukkit.getConsoleSender().sendMessage(updateMsg);
-                            }
-                            downloadUpdate();
-                        } else if (cmp > 0) {
-                            // Current version is newer than latest (test server)
-                            plugin.getLogger().info("This server is running a test/development version (" + currentVersion + ") ahead of the latest public release (" + latestVersion + ").");
-                        }
-                        // If cmp == 0, do nothing (up to date)
+                        downloadUpdate();
+
+                    } else if (cmp > 0) {
+                        plugin.getLogger().info("This server is running a development version (" 
+                                + currentVersion + ") ahead of the latest public release (" 
+                                + latestVersion + ").");
                     }
                 }
+
             } catch (IOException e) {
                 plugin.getLogger().severe("Failed to check for updates: " + e.getMessage());
             }
