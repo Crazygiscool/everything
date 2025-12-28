@@ -5,16 +5,22 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 
-public abstract class BaseGUI {
+public abstract class BaseGUI implements InventoryHolder {
 
     protected final Player player;
     protected final Inventory inv;
 
     public BaseGUI(Player player, int size, Component title) {
         this.player = player;
-        this.inv = Bukkit.createInventory(null, size, title);
+        this.inv = Bukkit.createInventory(this, size, title); // IMPORTANT: holder = this
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return inv;
     }
 
     public abstract void build();
