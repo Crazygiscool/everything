@@ -9,8 +9,11 @@ import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 
-public class EcoCommand implements CommandExecutor {
+import java.util.List;
+
+public class EcoCommand implements CommandExecutor, TabCompleter {
 
     private final Everything plugin;
     private final Economy econ;
@@ -20,13 +23,18 @@ public class EcoCommand implements CommandExecutor {
         this.econ = Everything.getEconomy();
     }
 
+    // ----------------------------------------------------
+    // COMMAND EXECUTION
+    // ----------------------------------------------------
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!sender.hasPermission("everything.eco")) {
-            Everything.sendFancy(sender,
-                Component.text("You do not have permission to use this command.")
-                    .color(NamedTextColor.RED)
+            sender.sendMessage(
+                Everything.PLUGIN_PREFIX.append(
+                    Component.text("You do not have permission to use this command.")
+                        .color(NamedTextColor.RED)
+                )
             );
             return true;
         }
@@ -40,8 +48,10 @@ public class EcoCommand implements CommandExecutor {
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
 
         if (target == null) {
-            Everything.sendFancy(sender,
-                Component.text("Player not found.").color(NamedTextColor.RED)
+            sender.sendMessage(
+                Everything.PLUGIN_PREFIX.append(
+                    Component.text("Player not found.").color(NamedTextColor.RED)
+                )
             );
             return true;
         }
@@ -49,9 +59,11 @@ public class EcoCommand implements CommandExecutor {
         switch (action) {
             case "reset":
                 econ.withdrawPlayer(target, econ.getBalance(target));
-                Everything.sendFancy(sender,
-                    Component.text("Reset balance for ").color(NamedTextColor.GREEN)
-                        .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                sender.sendMessage(
+                    Everything.PLUGIN_PREFIX.append(
+                        Component.text("Reset balance for ").color(NamedTextColor.GREEN)
+                            .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                    )
                 );
                 return true;
 
@@ -67,15 +79,19 @@ public class EcoCommand implements CommandExecutor {
                 try {
                     amount = Double.parseDouble(args[2]);
                 } catch (NumberFormatException e) {
-                    Everything.sendFancy(sender,
-                        Component.text("Invalid amount.").color(NamedTextColor.RED)
+                    sender.sendMessage(
+                        Everything.PLUGIN_PREFIX.append(
+                            Component.text("Invalid amount.").color(NamedTextColor.RED)
+                        )
                     );
                     return true;
                 }
 
                 if (amount < 0) {
-                    Everything.sendFancy(sender,
-                        Component.text("Amount cannot be negative.").color(NamedTextColor.RED)
+                    sender.sendMessage(
+                        Everything.PLUGIN_PREFIX.append(
+                            Component.text("Amount cannot be negative.").color(NamedTextColor.RED)
+                        )
                     );
                     return true;
                 }
@@ -92,21 +108,25 @@ public class EcoCommand implements CommandExecutor {
         switch (action) {
             case "give":
                 econ.depositPlayer(target, amount);
-                Everything.sendFancy(sender,
-                    Component.text("Gave ").color(NamedTextColor.GREEN)
-                        .append(Component.text(amount).color(NamedTextColor.YELLOW))
-                        .append(Component.text(" to ").color(NamedTextColor.GREEN))
-                        .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                sender.sendMessage(
+                    Everything.PLUGIN_PREFIX.append(
+                        Component.text("Gave ").color(NamedTextColor.GREEN)
+                            .append(Component.text(amount).color(NamedTextColor.YELLOW))
+                            .append(Component.text(" to ").color(NamedTextColor.GREEN))
+                            .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                    )
                 );
                 return true;
 
             case "take":
                 econ.withdrawPlayer(target, amount);
-                Everything.sendFancy(sender,
-                    Component.text("Took ").color(NamedTextColor.RED)
-                        .append(Component.text(amount).color(NamedTextColor.YELLOW))
-                        .append(Component.text(" from ").color(NamedTextColor.RED))
-                        .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                sender.sendMessage(
+                    Everything.PLUGIN_PREFIX.append(
+                        Component.text("Took ").color(NamedTextColor.RED)
+                            .append(Component.text(amount).color(NamedTextColor.YELLOW))
+                            .append(Component.text(" from ").color(NamedTextColor.RED))
+                            .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                    )
                 );
                 return true;
 
@@ -118,11 +138,13 @@ public class EcoCommand implements CommandExecutor {
                     econ.depositPlayer(target, amount - current);
                 }
 
-                Everything.sendFancy(sender,
-                    Component.text("Set ").color(NamedTextColor.GREEN)
-                        .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
-                        .append(Component.text("'s balance to ").color(NamedTextColor.GREEN))
-                        .append(Component.text(amount).color(NamedTextColor.YELLOW))
+                sender.sendMessage(
+                    Everything.PLUGIN_PREFIX.append(
+                        Component.text("Set ").color(NamedTextColor.GREEN)
+                            .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
+                            .append(Component.text("'s balance to ").color(NamedTextColor.GREEN))
+                            .append(Component.text(amount).color(NamedTextColor.YELLOW))
+                    )
                 );
                 return true;
         }
@@ -130,9 +152,46 @@ public class EcoCommand implements CommandExecutor {
     }
 
     private void sendUsage(CommandSender sender) {
-        Everything.sendFancy(sender,
-            Component.text("Usage: /eco <give|take|set|reset> <player> [amount]")
-                .color(NamedTextColor.YELLOW)
+        sender.sendMessage(
+            Everything.PLUGIN_PREFIX.append(
+                Component.text("Usage: /eco <give|take|set|reset> <player> [amount]")
+                    .color(NamedTextColor.YELLOW)
+            )
         );
+    }
+
+    // ----------------------------------------------------
+    // TAB COMPLETION
+    // ----------------------------------------------------
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        if (!sender.hasPermission("everything.eco")) return List.of();
+
+        // /eco <action>
+        if (args.length == 1) {
+            return List.of("give", "take", "set", "reset")
+                    .stream()
+                    .filter(s -> s.startsWith(args[0].toLowerCase()))
+                    .toList();
+        }
+
+        // /eco give <player>
+        if (args.length == 2) {
+            return Bukkit.getOnlinePlayers().stream()
+                    .map(p -> p.getName())
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .toList();
+        }
+
+        // /eco give player <amount>
+        if (args.length == 3 && !args[0].equalsIgnoreCase("reset")) {
+            return List.of("1", "10", "100", "1000")
+                    .stream()
+                    .filter(s -> s.startsWith(args[2]))
+                    .toList();
+        }
+
+        return List.of();
     }
 }

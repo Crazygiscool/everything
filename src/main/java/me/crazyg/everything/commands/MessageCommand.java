@@ -1,34 +1,39 @@
 package me.crazyg.everything.commands;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.UUID;
+
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
-public class MessageCommand implements CommandExecutor {
+public class MessageCommand implements CommandExecutor, TabCompleter {
+
     private static final HashMap<UUID, UUID> lastMessage = new HashMap<>();
 
     public MessageCommand(Everything plugin) {
-        // Empty constructor or remove it if not needed
+        // Empty constructor or remove if unused
     }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-        if (!(sender instanceof Player)) {
+
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("This command can only be used by players!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
-        Player player = (Player) sender;
-
+        // ----------------------------------------------------
+        // /msg <player> <message>
+        // ----------------------------------------------------
         if (command.getName().equalsIgnoreCase("msg")) {
+
             if (args.length < 2) {
                 player.sendMessage(Component.text("Usage: /msg <player> <message>")
                         .color(NamedTextColor.RED));
@@ -42,24 +47,27 @@ public class MessageCommand implements CommandExecutor {
                 return true;
             }
 
-            StringBuilder message = new StringBuilder();
-            for (int i = 1; i < args.length; i++) {
-                message.append(args[i]).append(" ");
-            }
+            String message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
 
-            player.sendMessage(Component.text()
-                    .append(Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY))
-                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
-            
-            target.sendMessage(Component.text()
-                    .append(Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY))
-                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
+            player.sendMessage(
+                Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY)
+                    .append(Component.text(message).color(NamedTextColor.WHITE))
+            );
+
+            target.sendMessage(
+                Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY)
+                    .append(Component.text(message).color(NamedTextColor.WHITE))
+            );
 
             lastMessage.put(target.getUniqueId(), player.getUniqueId());
             return true;
         }
 
+        // ----------------------------------------------------
+        // /reply <message> or /r <message>
+        // ----------------------------------------------------
         if (command.getName().equalsIgnoreCase("reply") || command.getName().equalsIgnoreCase("r")) {
+
             if (args.length < 1) {
                 player.sendMessage(Component.text("Usage: /reply <message>")
                         .color(NamedTextColor.RED));
@@ -80,23 +88,55 @@ public class MessageCommand implements CommandExecutor {
                 return true;
             }
 
-            StringBuilder message = new StringBuilder();
-            for (String arg : args) {
-                message.append(arg).append(" ");
-            }
+            String message = String.join(" ", args);
 
-            player.sendMessage(Component.text()
-                    .append(Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY))
-                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
-            
-            target.sendMessage(Component.text()
-                    .append(Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY))
-                    .append(Component.text(message.toString()).color(NamedTextColor.WHITE)));
+            player.sendMessage(
+                Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY)
+                    .append(Component.text(message).color(NamedTextColor.WHITE))
+            );
+
+            target.sendMessage(
+                Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY)
+                    .append(Component.text(message).color(NamedTextColor.WHITE))
+            );
 
             lastMessage.put(target.getUniqueId(), player.getUniqueId());
             return true;
         }
 
         return false;
+    }
+
+    // ----------------------------------------------------
+    // TAB COMPLETION
+    // ----------------------------------------------------
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        // /msg <player> <message>
+        if (command.getName().equalsIgnoreCase("msg")) {
+
+            // Suggest players for first argument
+            if (args.length == 1) {
+                String input = args[0].toLowerCase();
+
+                return Bukkit.getOnlinePlayers().stream()
+                        .map(Player::getName)
+                        .filter(name -> name.toLowerCase().startsWith(input))
+                        .toList();
+            }
+
+            // No suggestions for message text
+            return List.of();
+        }
+
+        // /reply or /r
+        if (command.getName().equalsIgnoreCase("reply") || command.getName().equalsIgnoreCase("r")) {
+
+            // No suggestions for message text
+            return List.of();
+        }
+
+        return List.of();
     }
 }

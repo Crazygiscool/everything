@@ -16,11 +16,14 @@ import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-public class HomeCommand implements CommandExecutor {
+import java.util.List;
+
+public class HomeCommand implements CommandExecutor, TabCompleter {
 
     private final Everything plugin;
     private final File homesFile;
@@ -38,14 +41,14 @@ public class HomeCommand implements CommandExecutor {
     }
 
     // ------------------------------
-    // LOAD HOMES FROM homes.yml
+    // LOAD HOMES
     // ------------------------------
     private void loadHomes() {
         if (!homesFile.exists()) {
             try {
                 homesFile.createNewFile();
             } catch (IOException e) {
-                plugin.getLogger().severe("Could not create locations.yml!");
+                plugin.getLogger().severe("Could not create home.yml!");
             }
         }
 
@@ -72,7 +75,7 @@ public class HomeCommand implements CommandExecutor {
     }
 
     // ------------------------------
-    // SAVE ALL HOMES TO homes.yml
+    // SAVE HOMES
     // ------------------------------
     private void saveAllHomes() {
         for (Map.Entry<UUID, Location> entry : playerHomes.entrySet()) {
@@ -90,7 +93,7 @@ public class HomeCommand implements CommandExecutor {
         try {
             homesConfig.save(homesFile);
         } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save homes.yml!");
+            plugin.getLogger().severe("Failed to save home.yml!");
         }
     }
 
@@ -100,20 +103,19 @@ public class HomeCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (!(sender instanceof Player)) {
+        if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("This command can only be used by players!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
-        Player player = (Player) sender;
         UUID uuid = player.getUniqueId();
 
         // /sethome
         if (command.getName().equalsIgnoreCase("sethome")) {
             Location loc = player.getLocation();
             playerHomes.put(uuid, loc);
-            saveAllHomes(); // save immediately
+            saveAllHomes();
 
             player.sendMessage(Component.text("Home set!").color(NamedTextColor.GREEN));
             return true;
@@ -127,14 +129,31 @@ public class HomeCommand implements CommandExecutor {
                 return true;
             }
 
-            Location loc = playerHomes.get(uuid);
-            player.teleport(loc);
-
+            player.teleport(playerHomes.get(uuid));
             player.sendMessage(Component.text("Teleported to home!")
                     .color(NamedTextColor.GREEN));
             return true;
         }
 
         return false;
+    }
+
+    // ------------------------------
+    // TAB COMPLETION
+    // ------------------------------
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        // /home → no args → no suggestions
+        if (command.getName().equalsIgnoreCase("home")) {
+            return List.of();
+        }
+
+        // /sethome → no args → no suggestions
+        if (command.getName().equalsIgnoreCase("sethome")) {
+            return List.of();
+        }
+
+        return List.of();
     }
 }

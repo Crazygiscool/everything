@@ -2,21 +2,22 @@ package me.crazyg.everything.commands;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
+public class WarpCommand implements CommandExecutor, TabCompleter {
 
-public class WarpCommand implements CommandExecutor {
     private final Everything plugin;
     private final File warpsFile;
     private FileConfiguration warpsConfig;
@@ -42,8 +43,12 @@ public class WarpCommand implements CommandExecutor {
         }
     }
 
+    // ----------------------------------------------------
+    // COMMAND EXECUTION
+    // ----------------------------------------------------
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
         if (!(sender instanceof Player player)) {
             sender.sendMessage(Component.text("Only players can use this command!")
                     .color(NamedTextColor.RED));
@@ -55,7 +60,7 @@ public class WarpCommand implements CommandExecutor {
         }
 
         switch (args[0].toLowerCase()) {
-            case "set":
+            case "set" -> {
                 if (!player.hasPermission("everything.warp.set")) {
                     player.sendMessage(Component.text("You don't have permission to set warps!")
                             .color(NamedTextColor.RED));
@@ -67,8 +72,9 @@ public class WarpCommand implements CommandExecutor {
                     return true;
                 }
                 return setWarp(player, args[1]);
+            }
 
-            case "delete":
+            case "delete" -> {
                 if (!player.hasPermission("everything.warp.delete")) {
                     player.sendMessage(Component.text("You don't have permission to delete warps!")
                             .color(NamedTextColor.RED));
@@ -80,9 +86,11 @@ public class WarpCommand implements CommandExecutor {
                     return true;
                 }
                 return deleteWarp(player, args[1]);
+            }
 
-            default:
+            default -> {
                 return teleportToWarp(player, args[0]);
+            }
         }
     }
 
@@ -138,20 +146,17 @@ public class WarpCommand implements CommandExecutor {
             return true;
         }
 
-        if (!player.hasPermission("everything.warp.use." + name.toLowerCase()) &&
-            !player.hasPermission("everything.warp.use.*")) {
+        if (!player.hasPermission("everything.warp.use." + name.toLowerCase())
+                && !player.hasPermission("everything.warp.use.*")) {
             player.sendMessage(Component.text("You don't have permission to use this warp!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         String worldName = warpsConfig.getString(name.toLowerCase() + ".world");
-        if (worldName == null) {
-            player.sendMessage(Component.text("Warp '" + name + "' is missing a world!").color(NamedTextColor.RED));
-            return true;
-        }
-        if (Bukkit.getWorld(worldName) == null) {
-            player.sendMessage(Component.text("World '" + worldName + "' does not exist!").color(NamedTextColor.RED));
+        if (worldName == null || Bukkit.getWorld(worldName) == null) {
+            player.sendMessage(Component.text("Warp '" + name + "' has an invalid world!")
+                    .color(NamedTextColor.RED));
             return true;
         }
 
@@ -167,5 +172,54 @@ public class WarpCommand implements CommandExecutor {
         player.sendMessage(Component.text("Teleported to warp '" + name + "'!")
                 .color(NamedTextColor.GREEN));
         return true;
+    }
+
+    // ----------------------------------------------------
+    // TAB COMPLETION
+    // ----------------------------------------------------
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        Set<String> warps = warpsConfig.getKeys(false);
+
+        // /warp <tab>
+        if (args.length == 1) {
+            String input = args[0].toLowerCase();
+
+            // Base subcommands
+            List<String> base = List.of("set", "delete");
+
+            // Filter base commands
+            List<String> baseMatches = base.stream()
+                    .filter(s -> s.startsWith(input))
+                    .toList();
+
+            // Filter warp names
+            List<String> warpMatches = warps.stream()
+                    .filter(w -> w.toLowerCase().startsWith(input))
+                    .toList();
+
+            // Merge both
+            List<String> result = new java.util.ArrayList<>();
+            result.addAll(baseMatches);
+            result.addAll(warpMatches);
+            return result;
+        }
+
+        // /warp delete <warp>
+        if (args.length == 2 && args[0].equalsIgnoreCase("delete")) {
+            String input = args[1].toLowerCase();
+
+            return warps.stream()
+                    .filter(w -> w.toLowerCase().startsWith(input))
+                    .toList();
+        }
+
+        // /warp set <name> → no suggestions
+        if (args.length == 2 && args[0].equalsIgnoreCase("set")) {
+            return List.of();
+        }
+
+        return List.of();
     }
 }

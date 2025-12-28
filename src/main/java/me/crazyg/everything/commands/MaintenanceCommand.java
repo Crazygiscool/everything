@@ -3,20 +3,20 @@ package me.crazyg.everything.commands;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+
 import org.bukkit.Bukkit;
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
+import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 
+public class MaintenanceCommand implements CommandExecutor, Listener, TabCompleter {
 
-public class MaintenanceCommand implements CommandExecutor, Listener {
     private final Everything plugin;
     private boolean maintenanceMode;
     private final List<UUID> allowedPlayers;
@@ -28,17 +28,19 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
         this.allowedPlayers = new ArrayList<>();
         this.kickMessage = Component.text("Server is currently in maintenance mode!")
                 .color(NamedTextColor.RED);
-        
-        // Register the listener
+
         plugin.getServer().getPluginManager().registerEvents(this, plugin);
-        
-        // Load allowed players from config
+
         List<String> allowed = plugin.getConfig().getStringList("maintenance-allowed-players");
         allowed.forEach(uuid -> allowedPlayers.add(UUID.fromString(uuid)));
     }
 
+    // ----------------------------------------------------
+    // COMMAND EXECUTION
+    // ----------------------------------------------------
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
         if (!sender.hasPermission("everything.maintenance")) {
             sender.sendMessage(Component.text("You don't have permission to use this command!")
                     .color(NamedTextColor.RED));
@@ -51,64 +53,94 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
         }
 
         switch (args[0].toLowerCase()) {
-            case "on":
-                enableMaintenance(sender);
-                break;
-            case "off":
-                disableMaintenance(sender);
-                break;
-            case "add":
+            case "on" -> enableMaintenance(sender);
+            case "off" -> disableMaintenance(sender);
+
+            case "add" -> {
                 if (args.length < 2) {
                     sender.sendMessage(Component.text("Usage: /maintenance add <player>")
                             .color(NamedTextColor.RED));
                     return true;
                 }
                 addAllowedPlayer(sender, args[1]);
-                break;
-            case "remove":
+            }
+
+            case "remove" -> {
                 if (args.length < 2) {
                     sender.sendMessage(Component.text("Usage: /maintenance remove <player>")
                             .color(NamedTextColor.RED));
                     return true;
                 }
                 removeAllowedPlayer(sender, args[1]);
-                break;
-            case "list":
-                listAllowedPlayers(sender);
-                break;
-            default:
-                sender.sendMessage(Component.text("Usage: /maintenance [on|off|add|remove|list]")
-                        .color(NamedTextColor.RED));
+            }
+
+            case "list" -> listAllowedPlayers(sender);
+
+            default -> sender.sendMessage(Component.text("Usage: /maintenance [on|off|add|remove|list]")
+                    .color(NamedTextColor.RED));
         }
+
         return true;
     }
 
+    // ----------------------------------------------------
+    // TAB COMPLETION
+    // ----------------------------------------------------
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        if (!sender.hasPermission("everything.maintenance")) return List.of();
+
+        // /maintenance <subcommand>
+        if (args.length == 1) {
+            return List.of("on", "off", "add", "remove", "list")
+                    .stream()
+                    .filter(s -> s.startsWith(args[0].toLowerCase()))
+                    .toList();
+        }
+
+        // /maintenance add <player>
+        if (args.length == 2 && args[0].equalsIgnoreCase("add")) {
+            return Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .filter(name -> name.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .toList();
+        }
+
+        // /maintenance remove <player>
+        if (args.length == 2 && args[0].equalsIgnoreCase("remove")) {
+            return allowedPlayers.stream()
+                    .map(uuid -> Bukkit.getOfflinePlayer(uuid).getName())
+                    .filter(name -> name != null && name.toLowerCase().startsWith(args[1].toLowerCase()))
+                    .toList();
+        }
+
+        return List.of();
+    }
+
+    // ----------------------------------------------------
+    // MAINTENANCE LOGIC
+    // ----------------------------------------------------
     private void toggleMaintenance(CommandSender sender) {
         maintenanceMode = !maintenanceMode;
-        if (maintenanceMode) {
-            enableMaintenance(sender);
-        } else {
-            disableMaintenance(sender);
-        }
+        if (maintenanceMode) enableMaintenance(sender);
+        else disableMaintenance(sender);
     }
 
     private void enableMaintenance(CommandSender sender) {
         maintenanceMode = true;
         plugin.getConfig().set("maintenance-mode", true);
         plugin.saveConfig();
-        
-        
-        // Kick non-allowed players
+
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (!player.hasPermission("everything.maintenance.bypass") && 
-                !allowedPlayers.contains(player.getUniqueId())) {
+            if (!player.hasPermission("everything.maintenance.bypass")
+                    && !allowedPlayers.contains(player.getUniqueId())) {
                 player.kick(kickMessage);
             }
         }
 
         Bukkit.broadcast(Component.text("Server Maintenance mode Enabled!")
                 .color(NamedTextColor.RED));
-        
     }
 
     private void disableMaintenance(CommandSender sender) {
@@ -118,27 +150,25 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
 
         Bukkit.broadcast(Component.text("Server Maintenance mode disabled!")
                 .color(NamedTextColor.GREEN));
-
     }
 
     private void addAllowedPlayer(CommandSender sender, String playerName) {
         Player target = Bukkit.getPlayer(playerName);
         if (target == null) {
-            sender.sendMessage(Component.text("Player not found!")
-                    .color(NamedTextColor.RED));
+            sender.sendMessage(Component.text("Player not found!").color(NamedTextColor.RED));
             return;
         }
 
-        UUID targetUUID = target.getUniqueId();
-        if (allowedPlayers.contains(targetUUID)) {
+        UUID uuid = target.getUniqueId();
+        if (allowedPlayers.contains(uuid)) {
             sender.sendMessage(Component.text("Player is already on the allowed list!")
                     .color(NamedTextColor.RED));
             return;
         }
 
-        allowedPlayers.add(targetUUID);
+        allowedPlayers.add(uuid);
         saveAllowedPlayers();
-        
+
         sender.sendMessage(Component.text("Added " + playerName + " to the allowed players list!")
                 .color(NamedTextColor.GREEN));
     }
@@ -146,24 +176,23 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
     private void removeAllowedPlayer(CommandSender sender, String playerName) {
         Player target = Bukkit.getPlayer(playerName);
         if (target == null) {
-            sender.sendMessage(Component.text("Player not found!")
-                    .color(NamedTextColor.RED));
+            sender.sendMessage(Component.text("Player not found!").color(NamedTextColor.RED));
             return;
         }
 
-        UUID targetUUID = target.getUniqueId();
-        if (!allowedPlayers.contains(targetUUID)) {
+        UUID uuid = target.getUniqueId();
+        if (!allowedPlayers.contains(uuid)) {
             sender.sendMessage(Component.text("Player is not on the allowed list!")
                     .color(NamedTextColor.RED));
             return;
         }
 
-        allowedPlayers.remove(targetUUID);
+        allowedPlayers.remove(uuid);
         saveAllowedPlayers();
-        
+
         sender.sendMessage(Component.text("Removed " + playerName + " from the allowed players list!")
                 .color(NamedTextColor.GREEN));
-        
+
         if (maintenanceMode && target.isOnline()) {
             target.kick(kickMessage);
         }
@@ -178,7 +207,7 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
 
         sender.sendMessage(Component.text("Allowed players:")
                 .color(NamedTextColor.YELLOW));
-        
+
         allowedPlayers.forEach(uuid -> {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
             if (name != null) {
@@ -198,9 +227,9 @@ public class MaintenanceCommand implements CommandExecutor, Listener {
 
     @EventHandler
     public void onPlayerLogin(PlayerLoginEvent event) {
-        if (maintenanceMode && 
-            !event.getPlayer().hasPermission("everything.maintenance.bypass") &&
-            !allowedPlayers.contains(event.getPlayer().getUniqueId())) {
+        if (maintenanceMode
+                && !event.getPlayer().hasPermission("everything.maintenance.bypass")
+                && !allowedPlayers.contains(event.getPlayer().getUniqueId())) {
             event.disallow(PlayerLoginEvent.Result.KICK_OTHER, kickMessage);
         }
     }

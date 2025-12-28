@@ -20,7 +20,7 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-public class ReportCommand implements CommandExecutor {
+public class ReportCommand implements CommandExecutor, TabCompleter{
 
     private final Everything plugin;
 
@@ -274,5 +274,64 @@ public class ReportCommand implements CommandExecutor {
         }
 
         return true;
+    }
+
+    // ----------------------------------------------------
+    // TAB COMPLETION
+    // ----------------------------------------------------
+    @Override
+    public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+
+        // /report
+        if (args.length == 1) {
+            String input = args[0].toLowerCase();
+
+            // Base subcommands
+            List<String> base = List.of("accept", "deny", "list");
+
+            // Player names (for creating a report)
+            List<String> players = Bukkit.getOnlinePlayers().stream()
+                    .map(Player::getName)
+                    .filter(name -> name.toLowerCase().startsWith(input))
+                    .toList();
+
+            // Subcommands that match
+            List<String> matches = base.stream()
+                    .filter(s -> s.startsWith(input))
+                    .toList();
+
+            // Merge both
+            List<String> result = new java.util.ArrayList<>();
+            result.addAll(matches);
+            result.addAll(players);
+            return result;
+        }
+
+        // /report accept <index>
+        if (args.length == 2 && args[0].equalsIgnoreCase("accept")) {
+            return getReportIndexSuggestions(args[1]);
+        }
+
+        // /report deny <index>
+        if (args.length == 2 && args[0].equalsIgnoreCase("deny")) {
+            return getReportIndexSuggestions(args[1]);
+        }
+
+        // /report <player> <reason...>
+        if (args.length >= 2) {
+            return List.of(); // free‑form reason
+        }
+
+        return List.of();
+    }
+
+    // Helper to list report indices
+    private List<String> getReportIndexSuggestions(String input) {
+        List<Map<?, ?>> reports = dataConfig.getMapList("reports");
+
+        return java.util.stream.IntStream.range(0, reports.size())
+                .mapToObj(String::valueOf)
+                .filter(s -> s.startsWith(input))
+                .toList();
     }
 }
