@@ -1,5 +1,7 @@
 package me.crazyg.everything.utils.economy;
 
+import me.crazyg.everything.Everything;
+
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -15,20 +17,27 @@ import java.util.UUID;
  */
 public class EcoStorage {
 
+    private final Everything plugin;
     private final File file;
     private final FileConfiguration config;
 
-    public EcoStorage(File dataFolder) {
-        this.file = new File(dataFolder, "eco.yml");
+    public EcoStorage(Everything plugin) {
+        this.plugin = plugin;
 
-        if (!file.exists()) {
-            try {
-                file.createNewFile();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        // Ensure /plugins/Everything/data/ exists
+        File folder = new File(plugin.getDataFolder(), "data");
+        if (!folder.exists()) {
+            folder.mkdirs();
         }
 
+        // Extract eco.yml from resources if missing
+        File ecoResource = new File(folder, "eco.yml");
+        if (!ecoResource.exists()) {
+            // Path inside your JAR: src/main/resources/data/eco.yml
+            plugin.saveResource("data/eco.yml", false);
+        }
+
+        this.file = ecoResource;
         this.config = YamlConfiguration.loadConfiguration(file);
     }
 

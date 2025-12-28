@@ -34,7 +34,20 @@ public class StatsCommand implements CommandExecutor {
     public StatsCommand(Everything plugin) {
         this.plugin = plugin;
 
-        this.dataFile = new File(plugin.getDataFolder(), "stats.yml");
+        // Ensure /plugins/Everything/data/ exists
+        File folder = new File(plugin.getDataFolder(), "data");
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        // Extract stats.yml from resources if missing
+        File statsResource = new File(folder, "stats.yml");
+        if (!statsResource.exists()) {
+            // Path inside your JAR: src/main/resources/data/stats.yml
+            plugin.saveResource("data/stats.yml", false);
+        }
+
+        this.dataFile = statsResource;
         this.playerStats = new HashMap<>();
 
         loadData();

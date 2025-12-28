@@ -32,7 +32,21 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
 
     public HomeCommand(Everything plugin) {
         this.plugin = plugin;
-        this.homesFile = new File(plugin.getDataFolder(), "home.yml");
+
+        // Ensure /plugins/Everything/locations/ exists
+        File folder = new File(plugin.getDataFolder(), "location");
+        if (!folder.exists()) {
+            folder.mkdirs();
+        }
+
+        // Extract home.yml from resources if missing
+        File homeResource = new File(folder, "home.yml");
+        if (!homeResource.exists()) {
+            plugin.saveResource("location/home.yml", false);
+        }
+
+        // Load the actual file
+        this.homesFile = homeResource;
 
         loadHomes();
 

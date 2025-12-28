@@ -66,7 +66,7 @@ public final class Everything extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
 
             // Register EverythingEconomy
-            EcoStorage storage = new EcoStorage(getDataFolder());
+            EcoStorage storage = new EcoStorage(this);
             EcoProvider ecoProvider = new EcoProvider(storage);
 
             Bukkit.getServicesManager().register(

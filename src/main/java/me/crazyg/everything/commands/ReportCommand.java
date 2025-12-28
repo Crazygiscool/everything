@@ -59,19 +59,20 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
     public ReportCommand(Everything plugin) {
         this.plugin = plugin;
 
-        // -----------------------------
-        // Load report.yml
-        // -----------------------------
-        this.dataFile = new File(plugin.getDataFolder(), "report.yml");
-
-        if (!dataFile.exists()) {
-            try {
-                dataFile.createNewFile();
-            } catch (IOException e) {
-                plugin.getLogger().severe("Could not create report.yml!");
-            }
+        // Ensure /plugins/Everything/data/ exists
+        File folder = new File(plugin.getDataFolder(), "data");
+        if (!folder.exists()) {
+            folder.mkdirs();
         }
 
+        // Extract report.yml from resources if missing
+        File reportResource = new File(folder, "report.yml");
+        if (!reportResource.exists()) {
+            // Path inside your JAR: src/main/resources/data/report.yml
+            plugin.saveResource("data/report.yml", false);
+        }
+
+        this.dataFile = reportResource;
         this.dataConfig = YamlConfiguration.loadConfiguration(dataFile);
 
         // Ensure "reports" list exists
