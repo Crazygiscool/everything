@@ -20,12 +20,20 @@ repositories {
 }
 
 dependencies {
-    // ✅ Correct Paperweight userdev dependency
+    // Paperweight dev bundle
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     implementation("com.google.code.gson:gson:2.10.1")
+
+    // Only bStats goes into the shaded jar
+    add("shade", "org.bstats:bstats-bukkit:3.1.0")
+}
+
+// Create a dedicated shading configuration
+configurations {
+    create("shade")
 }
 
 tasks.withType<JavaCompile> {
@@ -44,7 +52,13 @@ tasks.processResources {
     }
 }
 
-tasks.shadowJar {
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     archiveBaseName.set("everything")
     archiveClassifier.set("")
+
+    // Shadow ONLY the "shade" configuration
+    configurations = listOf(project.configurations.getByName("shade"))
+
+    // Relocate bStats
+    relocate("org.bstats", "${project.group}.bstats")
 }
