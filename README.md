@@ -105,6 +105,11 @@ JAVA
 
 [Releases page](https://github.com/Crazygiscool/everything/releases)
 
+### Supported Versions
+
+* 1.20.X
+* 1.21.X
+
 ### Dependencies
 
 * PlaceholderAPI(hopefully replaceit sometime)
@@ -114,49 +119,17 @@ JAVA
 * Vault
 * Luckperms
 
-<!-- ROADMAP -->
-## Roadmap
-
-- **Add auto-updator**
-- **Add chat/messaging functions**
-- **Add implementation of most public plugins**
-  - **EssentialsX**
-    - TP
-    - Kit
-      - Kit-Manager
-      - Kit-Command
-    - Gamemode-Commands
-    - Home-System
-      - [x] home-command
-      - [ ] home-selection-gui
-  - **Luckperms**
-    - permission-gui
-    - rank-system
-    - perms-command
-    - permission-manager
-  - **Coreprotect**
-    - block-logging-system
-    - rollback/reset-command
-  - **anti-xray**
-    - implement-natural-paper-antixray
-    - false-blocking-entity
-  - **anti-cheat (vulcan)**
-  - **terrain-generator (terra)**
-  - **world-management-system (multiverse)**
-- **Add GUI system**
-- **Multi-language Support**
-  - Chinese
-  - Spanish
+### Features and Issues
 
 See the [open issues](https://github.com/crazygiscool/everything/issues) for a full list of proposed features (and known issues).
 
-
-## Immediate todo list
-- [ ] Economy system
-- [x] TP logic error
-- [x] Home
+Everything [Github Project](https://github.com/users/Crazygiscool/projects/3) for a visualization of how the plugin is working along
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
+
+### Contribution
+
+Check the contributions tab for contributing.
 
 <!-- LICENSE -->
 ## License
