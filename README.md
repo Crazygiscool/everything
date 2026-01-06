@@ -117,7 +117,7 @@ Everything [Github Project](https://github.com/users/Crazygiscool/projects/3) fo
 
 <p align="right">(<a href="#readme-top">back to top</a>)</p>
 
-### Contribution
+## Contribution
 
 Check the contributions tab for contributing.
 
