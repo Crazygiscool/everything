@@ -38,7 +38,7 @@
   <p align="center">
     A minecraft plugin aimming to contain everything you'll ever need
     <br />
-    <a href="https://github.com/Crazygiscool/everything"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/Crazygiscool/everything/wiki"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <p>MC.IP: foreign-purchases.gl.joinmc.link</p>
