@@ -44,7 +44,7 @@
     <p>MC.IP: foreign-purchases.gl.joinmc.link</p>
     <a href="https://github.com/Crazygiscool/everything/issues/new?labels=bug&template=bug-report---.md">Report Bug</a>
     &middot;
-    <a href="https://github.com/Crazygiscool/everything/issues/new?labels=enhancement&template=feature-request---.md">Request Feature</a>
+    <a href="https://github.com/Crazygiscool/everything/issues/new?template=feature_request.md">Request Feature</a>
   </p>
 </div>
 
