@@ -12,6 +12,7 @@ commands:
     description: Economy admin command
     usage: /eco <give|take|set|reset> <player> [amount]
     permission: everything.eco
+    permissionp-message: You do not have permission to view the eco.
   help:
     description: Custom help menu
     usage: /help
@@ -152,6 +153,9 @@ commands:
     permission-message: You do not have permission to deny tpa requests.
 
 permissions:
+  everything.eco:
+    description: Allow player to view their economy
+    default: op
   everything.stats:
     description: Allows players to view their own stats
     default: true

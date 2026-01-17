@@ -31,17 +31,21 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
 
         if (!sender.hasPermission("everything.eco")) {
             sender.sendMessage(
-                Everything.PLUGIN_PREFIX.append(
-                    Component.text("You do not have permission to use this command.")
-                        .color(NamedTextColor.RED)
-                )
+                Component.text("You do not have permission to use this command.")
+                    .color(NamedTextColor.RED)
             );
             return true;
         }
 
-        if (args.length < 2) {
-            sendUsage(sender);
-            return true;
+        if (args.length < 2) {  // for listing own or other's eco
+            if (args.length < 1){
+                sender.sendMessage(
+                    Component.text("You have ", NamedTextColor.GREEN).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(sender.getName()))), NamedTextColor.DARK_GREEN))
+                );
+            }
+            sender.sendMessage(
+                Component.text(args[0], NamedTextColor.GREEN).append(Component.text(" has ", NamedTextColor.GREEN)).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(args[0]))), NamedTextColor.DARK_GREEN))
+            );
         }
 
         String action = args[0].toLowerCase();
@@ -49,9 +53,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
 
         if (target == null) {
             sender.sendMessage(
-                Everything.PLUGIN_PREFIX.append(
-                    Component.text("Player not found.").color(NamedTextColor.RED)
-                )
+                Component.text("Player not found.").color(NamedTextColor.RED)
             );
             return true;
         }
@@ -60,10 +62,8 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
             case "reset":
                 econ.withdrawPlayer(target, econ.getBalance(target));
                 sender.sendMessage(
-                    Everything.PLUGIN_PREFIX.append(
-                        Component.text("Reset balance for ").color(NamedTextColor.GREEN)
-                            .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
-                    )
+                    Component.text("Reset balance for ").color(NamedTextColor.GREEN)
+                        .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
                 );
                 return true;
 
@@ -80,18 +80,14 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
                     amount = Double.parseDouble(args[2]);
                 } catch (NumberFormatException e) {
                     sender.sendMessage(
-                        Everything.PLUGIN_PREFIX.append(
-                            Component.text("Invalid amount.").color(NamedTextColor.RED)
-                        )
+                        Component.text("Invalid amount.").color(NamedTextColor.RED)
                     );
                     return true;
                 }
 
                 if (amount < 0) {
                     sender.sendMessage(
-                        Everything.PLUGIN_PREFIX.append(
-                            Component.text("Amount cannot be negative.").color(NamedTextColor.RED)
-                        )
+                        Component.text("Amount cannot be negative.").color(NamedTextColor.RED)
                     );
                     return true;
                 }
@@ -109,24 +105,20 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
             case "give":
                 econ.depositPlayer(target, amount);
                 sender.sendMessage(
-                    Everything.PLUGIN_PREFIX.append(
                         Component.text("Gave ").color(NamedTextColor.GREEN)
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
                             .append(Component.text(" to ").color(NamedTextColor.GREEN))
                             .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
-                    )
                 );
                 return true;
 
             case "take":
                 econ.withdrawPlayer(target, amount);
                 sender.sendMessage(
-                    Everything.PLUGIN_PREFIX.append(
                         Component.text("Took ").color(NamedTextColor.RED)
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
                             .append(Component.text(" from ").color(NamedTextColor.RED))
                             .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
-                    )
                 );
                 return true;
 
@@ -139,12 +131,10 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
                 }
 
                 sender.sendMessage(
-                    Everything.PLUGIN_PREFIX.append(
                         Component.text("Set ").color(NamedTextColor.GREEN)
                             .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
                             .append(Component.text("'s balance to ").color(NamedTextColor.GREEN))
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
-                    )
                 );
                 return true;
         }
@@ -153,10 +143,8 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
 
     private void sendUsage(CommandSender sender) {
         sender.sendMessage(
-            Everything.PLUGIN_PREFIX.append(
                 Component.text("Usage: /eco <give|take|set|reset> <player> [amount]")
                     .color(NamedTextColor.YELLOW)
-            )
         );
     }
 
