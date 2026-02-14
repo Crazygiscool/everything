@@ -2,17 +2,19 @@ name: ${name}
 version: ${version}
 main: me.crazyg.everything.Everything
 api-version: '1.20'
-authors: [crazyg]
+author: crazygiscool
 description: Does everything!
+website: crazyg.is-a.dev
 depend: [PlaceholderAPI]
 softdepend: [Vault, LuckPerms]
 
 commands:
   eco:
     description: Economy admin command
-    usage: /eco <give|take|set|reset> <player> [amount]
-    permission: everything.eco
-    permissionp-message: You do not have permission to view the eco.
+    usage: /eco <give|take|set|reset|player> <player> [amount]
+    aliases: ["economy"]
+    permission: [everything.eco, everything.eco.others, everything.eco.set]
+    permission-message: You do not have permission to use the eco command.
   help:
     description: Custom help menu
     usage: /help
@@ -155,6 +157,15 @@ commands:
 permissions:
   everything.eco:
     description: Allow player to view their economy
+    default: true
+  everything.eco.others:
+    description: Allow player to view others economy
+    default: op
+  everything.eco.set:
+    description: Allow player to set their own economy
+    default: op
+  everything.eco.set.others:
+    description: Allow player to set others economy
     default: op
   everything.stats:
     description: Allows players to view their own stats

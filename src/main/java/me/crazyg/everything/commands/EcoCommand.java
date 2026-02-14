@@ -29,22 +29,14 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        if (!sender.hasPermission("everything.eco")) {
-            sender.sendMessage(
-                Component.text("You do not have permission to use this command.")
-                    .color(NamedTextColor.RED)
-            );
-            return true;
-        }
-
         if (args.length < 2) {  // for listing own or other's eco
             if (args.length < 1){
                 sender.sendMessage(
-                    Component.text("You have ", NamedTextColor.GREEN).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(sender.getName()))), NamedTextColor.DARK_GREEN))
+                    Component.text("Your balance: ", NamedTextColor.GREEN).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(sender.getName()))), NamedTextColor.DARK_GREEN))
                 );
             }
             sender.sendMessage(
-                Component.text(args[0], NamedTextColor.GREEN).append(Component.text(" has ", NamedTextColor.GREEN)).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(args[0]))), NamedTextColor.DARK_GREEN))
+                Component.text(args[0], NamedTextColor.GREEN).append(Component.text("'s' balance: ", NamedTextColor.GREEN)).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(args[0]))), NamedTextColor.DARK_GREEN))
             );
         }
 
