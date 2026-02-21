@@ -3,7 +3,7 @@ plugins {
 }
 
 group = "me.crazyg"
-version = "1.5.15"
+version = "1.5.16"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -24,6 +24,7 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("net.kyori:adventure-text-minimessage:4.26.1")
 }
 
 tasks.withType<JavaCompile> {

@@ -10,6 +10,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
+import org.bukkit.entity.Player;
 
 import java.util.List;
 
@@ -28,6 +29,11 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
     // ----------------------------------------------------
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+
+        if (!(sender instanceof Player)) {
+            sender.sendMessage(Component.text("Only players can use this command!", NamedTextColor.RED));
+            return true;
+        }
 
         if (args.length < 2) {  // for listing own or other's eco
             if (args.length < 1){
