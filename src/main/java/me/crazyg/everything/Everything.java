@@ -171,21 +171,6 @@ public final class Everything extends JavaPlugin {
             getLogger().warning("PlaceholderAPI not found. Some placeholders in chat/messages may not work.");
         } else {
             getLogger().info("PlaceholderAPI found & Hooked!");
-            if (PlaceholderAPI.isRegistered("Vault")) {
-                getLogger().info("Vault Ecloud Expansion Installed");
-            } else {
-                getLogger().warning("Vault expansion is missing! Please run /papi ecloud download Vault");
-            }
-            if (PlaceholderAPI.isRegistered("Player")) {
-                getLogger().info("Player Ecloud Expansion Installed");
-            } else {
-                getLogger().warning("Player expansion is missing! Please run /papi ecloud download Player");
-            }
-            if (PlaceholderAPI.isRegistered("Server")) {
-                getLogger().info("Server Ecloud Expansion Installed");
-            } else {
-                getLogger().warning("Server expansion is missing! Please run /papi ecloud download Server");
-            }
         }
         // --- Vault Check ---
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
