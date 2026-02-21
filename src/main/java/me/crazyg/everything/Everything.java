@@ -16,6 +16,13 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public final class Everything extends JavaPlugin {
+
+    private static Everything instance;
+
+    public static Everything getInstance() {
+        return instance;
+    }
+
     // Fancy prefix for all plugin messages
     public static final Component PLUGIN_PREFIX = Component.text()
         .append(Component.text("❖ ").color(NamedTextColor.GOLD))
@@ -35,6 +42,7 @@ public final class Everything extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        instance = this;
         saveDefaultConfig(); // <-- Make sure this is first!
         // Now read config values, register listeners, etc.
 
