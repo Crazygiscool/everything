@@ -41,7 +41,6 @@
     <a href="https://github.com/Crazygiscool/everything/wiki"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <p>MC.IP: foreign-purchases.gl.joinmc.link</p>
     <a href="https://github.com/Crazygiscool/everything/issues/new?template=bug_report.md">Report Bug</a>
     &middot;
     <a href="https://github.com/Crazygiscool/everything/issues/new?template=feature_request.md">Request Feature</a>
