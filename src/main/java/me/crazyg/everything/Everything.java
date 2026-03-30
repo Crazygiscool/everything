@@ -47,7 +47,7 @@ public final class Everything extends JavaPlugin {
         // Now read config values, register listeners, etc.
 
         // --- bstats init ---
-        int pluginId = 28513;
+        int pluginId = 28514;
         Metrics metrics = new Metrics(this, pluginId);
 
         // --- Config Loading ---
@@ -192,7 +192,7 @@ public final class Everything extends JavaPlugin {
 
         if (autoUpdate) {
             getServer().getPluginManager().registerEvents(new Updater(this), this);
-            
+
         } else {
             getLogger().info("Auto-update is disabled in config.yml");
         }
@@ -201,7 +201,7 @@ public final class Everything extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("Everything plugin disabled.");
-        
+
         Component goodbyeArt = Component.text()
             .append(Component.newline())
             .append(Component.text("░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n").color(NamedTextColor.RED))
@@ -211,7 +211,7 @@ public final class Everything extends JavaPlugin {
             .append(Component.text("╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n").color(NamedTextColor.RED))
             .append(Component.text("░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝").color(NamedTextColor.RED))
             .build();
-            
+
         Bukkit.getConsoleSender().sendMessage(goodbyeArt);
     }
 
@@ -228,7 +228,7 @@ public final class Everything extends JavaPlugin {
     }
 
     private boolean setupChat() {
-        RegisteredServiceProvider<net.milkbowl.vault.chat.Chat> rsp = 
+        RegisteredServiceProvider<net.milkbowl.vault.chat.Chat> rsp =
             getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (rsp == null) {
             return false;
