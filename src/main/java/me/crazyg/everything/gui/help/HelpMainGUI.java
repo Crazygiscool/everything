@@ -11,12 +11,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HelpMainGUI extends BaseGUI {
 
     private final HelpManager manager;
     private final List<String> categoryKeys = new ArrayList<>();
+    private final Map<Integer, String> slotToCategory = new HashMap<>();
+    private Pagination pagination;
     private int currentPage = 1;
     private static final int ITEMS_PER_PAGE = 7;
     private static final TextColor[] COLORS = {
@@ -50,7 +54,9 @@ public class HelpMainGUI extends BaseGUI {
 
     @Override
     public void build() {
-        Pagination pagination = paginate(categoryKeys, ITEMS_PER_PAGE, currentPage);
+        slotToCategory.clear();
+        
+        pagination = paginate(categoryKeys, ITEMS_PER_PAGE, currentPage);
         List<String> pageItems = new ArrayList<>();
         for (Object item : pagination.getPageItems()) {
             if (item instanceof String) {
@@ -76,6 +82,8 @@ public class HelpMainGUI extends BaseGUI {
                     .addLore("&8Category: &f" + key)
                     .glowing(animationFrame % 20 < 10)
                     .build());
+            
+            slotToCategory.put(slot, key);
             
             slot += 2;
             if ((slot - 10) % 9 == 6) {
@@ -134,43 +142,38 @@ public class HelpMainGUI extends BaseGUI {
     public void onClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
 
-        String name = e.getCurrentItem().getItemMeta().displayName() != null 
-                ? e.getCurrentItem().getItemMeta().displayName().toString() 
-                : "";
-
-        if (name.contains("Close")) {
+        int slot = e.getRawSlot();
+        
+        if (slot == 36) {
+            player.sendMessage(Component.text("Opening full command list...").color(NamedTextColor.GREEN));
+            playSuccessSound();
+            return;
+        }
+        
+        if (slot == 44) {
             player.closeInventory();
             playSuccessSound();
             return;
         }
-
-        if (name.contains("Previous")) {
+        
+        if (slot == 18 && pagination.hasPrevious()) {
             currentPage--;
             playClickSound();
             update();
             return;
         }
-
-        if (name.contains("Next")) {
+        
+        if (slot == 26 && pagination.hasNext()) {
             currentPage++;
             playClickSound();
             update();
             return;
         }
-
-        if (name.contains("All Commands")) {
-            player.sendMessage(Component.text("Opening full command list...").color(NamedTextColor.GREEN));
+        
+        String categoryKey = slotToCategory.get(slot);
+        if (categoryKey != null) {
+            new HelpCategoryGUI(player, manager, categoryKey).open();
             playSuccessSound();
-            return;
-        }
-
-        for (String key : categoryKeys) {
-            ConfigurationSection cat = manager.getCategory(key);
-            if (cat != null && name.contains(cat.getString("name"))) {
-                new HelpCategoryGUI(player, manager, key).open();
-                playSuccessSound();
-                return;
-            }
         }
     }
 

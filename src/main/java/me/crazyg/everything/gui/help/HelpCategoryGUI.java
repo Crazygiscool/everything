@@ -8,16 +8,21 @@ import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class HelpCategoryGUI extends BaseGUI {
 
     private final HelpManager manager;
     private final String categoryKey;
     private final List<String> commands = new ArrayList<>();
+    private final Map<Integer, String> slotToCommand = new HashMap<>();
+    private Pagination pagination;
     private int currentPage = 1;
     private static final int ITEMS_PER_PAGE = 36;
 
@@ -50,7 +55,9 @@ public class HelpCategoryGUI extends BaseGUI {
 
     @Override
     public void build() {
-        Pagination pagination = paginate(commands, ITEMS_PER_PAGE, currentPage);
+        slotToCommand.clear();
+        
+        pagination = paginate(commands, ITEMS_PER_PAGE, currentPage);
         List<String> pageItems = new ArrayList<>();
         for (Object item : pagination.getPageItems()) {
             if (item instanceof String) {
@@ -73,6 +80,8 @@ public class HelpCategoryGUI extends BaseGUI {
                     .addLore("&7&m------------------------------")
                     .glowing(isGlowing)
                     .build());
+            
+            slotToCommand.put(slot, cmd);
         }
 
         ConfigurationSection cat = manager.getCategory(categoryKey);
@@ -131,37 +140,43 @@ public class HelpCategoryGUI extends BaseGUI {
     public void onClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
 
-        String name = e.getCurrentItem().getItemMeta().displayName() != null 
-                ? e.getCurrentItem().getItemMeta().displayName().toString() 
-                : "";
-
-        if (name.contains("Close")) {
+        int slot = e.getRawSlot();
+        ClickType click = e.getClick();
+        
+        if (slot == 44) {
             player.closeInventory();
             playSuccessSound();
             return;
         }
-
-        if (name.contains("Back")) {
+        
+        if (slot == 53) {
             new HelpMainGUI(player, manager).open();
             playClickSound();
             return;
         }
-
-        if (name.contains("Previous")) {
+        
+        if (slot == 18 && pagination.hasPrevious()) {
             currentPage--;
             playClickSound();
             update();
             return;
         }
-
-        if (name.contains("Next")) {
+        
+        if (slot == 26 && pagination.hasNext()) {
             currentPage++;
             playClickSound();
             update();
             return;
         }
-
-        if (name.contains("Tips")) {
+        
+        if (slot == 36) {
+            player.sendMessage(Component.text("Left-click to suggest a command").color(NamedTextColor.GREEN));
+            player.sendMessage(Component.text("Right-click to run the command").color(NamedTextColor.YELLOW));
+            playClickSound();
+            return;
+        }
+        
+        if (slot == 40) {
             player.sendMessage(Component.text("═══════════════════════════════").color(NamedTextColor.GRAY));
             player.sendMessage(Component.text("Command Tips:").color(NamedTextColor.GOLD));
             player.sendMessage(Component.text("• Use / before all commands").color(NamedTextColor.WHITE));
@@ -171,45 +186,38 @@ public class HelpCategoryGUI extends BaseGUI {
             playSuccessSound();
             return;
         }
-
-        if (name.contains("Help")) {
-            player.sendMessage(Component.text("Left-click to suggest a command").color(NamedTextColor.GREEN));
-            player.sendMessage(Component.text("Right-click to run the command").color(NamedTextColor.YELLOW));
-            playClickSound();
-            return;
-        }
-
-        for (String cmd : commands) {
-            if (name.contains(cmd)) {
-                switch (e.getClick()) {
-                    case LEFT -> {
-                        player.closeInventory();
-                        player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                        player.sendMessage(Component.text("Suggested: ").color(NamedTextColor.GREEN)
-                                .append(Component.text(cmd).color(NamedTextColor.YELLOW)));
-                        player.sendMessage(Component.text("Type it in chat to use").color(NamedTextColor.WHITE));
-                        player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                        playSuccessSound();
-                    }
-                    case RIGHT -> {
-                        player.closeInventory();
-                        player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                        player.sendMessage(Component.text("Executing: ").color(NamedTextColor.YELLOW)
-                                .append(Component.text(cmd).color(NamedTextColor.AQUA)));
-                        player.performCommand(cmd.replace("/", ""));
-                        player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                        playSuccessSound();
-                    }
-                    case SHIFT_LEFT, SHIFT_RIGHT -> {
-                        player.closeInventory();
-                        player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                        player.sendMessage(Component.text("Copied to clipboard: ").color(NamedTextColor.GREEN)
-                                .append(Component.text(cmd).color(NamedTextColor.AQUA)));
-                        player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                        playSuccessSound();
-                    }
+        
+        String cmd = slotToCommand.get(slot);
+        if (cmd != null) {
+            switch (click) {
+                case LEFT -> {
+                    player.closeInventory();
+                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
+                    player.sendMessage(Component.text("Suggested: ").color(NamedTextColor.GREEN)
+                            .append(Component.text(cmd).color(NamedTextColor.YELLOW)));
+                    player.sendMessage(Component.text("Type it in chat to use").color(NamedTextColor.WHITE));
+                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
+                    playSuccessSound();
                 }
-                return;
+                case RIGHT -> {
+                    player.closeInventory();
+                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
+                    player.sendMessage(Component.text("Executing: ").color(NamedTextColor.YELLOW)
+                            .append(Component.text(cmd).color(NamedTextColor.AQUA)));
+                    player.performCommand(cmd.replace("/", ""));
+                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
+                    playSuccessSound();
+                }
+                case SHIFT_LEFT, SHIFT_RIGHT -> {
+                    player.closeInventory();
+                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
+                    player.sendMessage(Component.text("Copied to clipboard: ").color(NamedTextColor.GREEN)
+                            .append(Component.text(cmd).color(NamedTextColor.AQUA)));
+                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
+                    playSuccessSound();
+                }
+                default -> {
+                }
             }
         }
     }

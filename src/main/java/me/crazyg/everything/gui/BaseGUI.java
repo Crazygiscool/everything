@@ -110,18 +110,18 @@ public abstract class BaseGUI implements InventoryHolder {
     }
 
     protected boolean isBlocked(InventoryClickEvent e) {
-        return e.getClickedInventory() == null
-                || e.getClickedInventory() == player.getInventory()
-                || e.isShiftClick()
-                || e.getClick().isKeyboardClick()
-                || e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY
-                || e.getAction() == InventoryAction.COLLECT_TO_CURSOR
-                || e.getAction().toString().contains("DRAG")
-                || e.getAction() == InventoryAction.SWAP_WITH_CURSOR
-                || e.getClick() == ClickType.DROP
-                || e.getClick() == ClickType.CONTROL_DROP
-                || e.getClick() == ClickType.MIDDLE
-                || e.getClick() == ClickType.NUMBER_KEY;
+        if (e.getClickedInventory() == null) return true;
+        if (e.getClickedInventory() == player.getInventory()) return true;
+        if (e.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY) return true;
+        if (e.getAction() == InventoryAction.COLLECT_TO_CURSOR) return true;
+        if (e.getAction().toString().contains("DRAG")) return true;
+        if (e.getAction() == InventoryAction.SWAP_WITH_CURSOR) return true;
+        if (e.getClick() == ClickType.DROP) return true;
+        if (e.getClick() == ClickType.CONTROL_DROP) return true;
+        if (e.getClick() == ClickType.MIDDLE) return true;
+        if (e.getClick() == ClickType.NUMBER_KEY) return true;
+        if (e.isShiftClick() && e.getClick().isKeyboardClick()) return true;
+        return false;
     }
 
     protected void set(int slot, ItemStack item) {

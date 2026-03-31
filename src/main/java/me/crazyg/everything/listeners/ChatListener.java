@@ -68,8 +68,11 @@ public class ChatListener implements Listener {
             .resolver(Placeholder.component("message", message));
 
         // Apply PlaceholderAPI placeholders if available
-        if (papiEnabled) {
-            format = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, format);
+        if (papiEnabled && format != null) {
+            String papiResult = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, format);
+            if (papiResult != null) {
+                format = papiResult;
+            }
         }
 
         // Parse the format with MiniMessage
@@ -77,6 +80,6 @@ public class ChatListener implements Listener {
 
         // Set the formatted message
         event.setCancelled(true);
-        Bukkit.getServer().sendMessage(formattedMessage);
+        Bukkit.getServer().broadcast(formattedMessage);
     }
 }

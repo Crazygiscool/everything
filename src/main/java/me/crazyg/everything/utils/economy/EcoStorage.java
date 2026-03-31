@@ -78,7 +78,7 @@ public class EcoStorage {
         try {
             config.save(file);
         } catch (IOException e) {
-            e.printStackTrace();
+            plugin.getLogger().severe("Failed to save eco.yml: " + e.getMessage());
         }
     }
 }
