@@ -56,12 +56,14 @@ tasks.processResources {
 }
 
 tasks.register<Jar>("shadedJar") {
-    archiveFileName.set("${project.name}.jar")
+    val buildNumber = project.findProperty("buildNumber")?.toString() ?: "1"
+    archiveFileName.set("${project.name}-${project.version}-b${buildNumber}.jar")
     dependsOn(tasks.classes, shadedDeps)
     
     doLast {
         val outputFile = archiveFile.get().asFile
-        val tempFile = File(outputFile.parent, outputFile.name + ".tmp")
+        val tempFile = File.createTempFile("shaded-", ".jar", outputFile.parentFile)
+        tempFile.deleteOnExit()
         
         ZipOutputStream(FileOutputStream(tempFile)).use { zipOut: ZipOutputStream ->
             // Add all compiled classes
@@ -100,11 +102,12 @@ tasks.register<Jar>("shadedJar") {
             }
         }
         
-        tempFile.renameTo(outputFile)
+        tempFile.copyTo(outputFile, overwrite = true)
         println("Shaded JAR created: ${outputFile.absolutePath}")
     }
 }
 
 tasks.named<Jar>("jar") {
-    archiveFileName.set("${project.name}-${version}.jar")
+    val buildNumber = project.findProperty("buildNumber")?.toString() ?: "1"
+    archiveFileName.set("${project.name}-${project.version}-b${buildNumber}.jar")
 }
