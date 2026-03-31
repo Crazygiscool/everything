@@ -173,6 +173,7 @@ public final class Everything extends JavaPlugin {
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
         getServer().getPluginManager().registerEvents(new onJoinleaveListener(this), this);
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+        getServer().getPluginManager().registerEvents(new GUIListener(), this);
 
         // --- PlaceholderAPI Check ---
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
