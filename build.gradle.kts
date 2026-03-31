@@ -32,11 +32,8 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     
+    // Only shade Gson - Adventure is provided by Paper server
     shadedDeps("com.google.code.gson:gson:2.10.1")
-    shadedDeps("net.kyori:adventure-text-minimessage:4.26.1")
-    shadedDeps("net.kyori:adventure-text-serializer-legacy:4.26.1")
-    shadedDeps("net.kyori:adventure-api:4.26.1")
-    shadedDeps("net.kyori:adventure-nbt:4.26.1")
 }
 
 tasks.withType<JavaCompile> {
