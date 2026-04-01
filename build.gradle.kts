@@ -32,13 +32,11 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     
-    // Adventure API - must be provided by server (Paper) or adventure-plugin (Spigot)
-    compileOnly("net.kyori:adventure-api:4.14.0")
-    compileOnly("net.kyori:adventure-text-minimessage:4.14.0")
-    compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
-    
-    // Gson for shading
+    // Shade Gson + Adventure (relocated) for Spigot/Arclight compatibility
     shadedDeps("com.google.code.gson:gson:2.10.1")
+    shadedDeps("net.kyori:adventure-api:4.14.0")
+    shadedDeps("net.kyori:adventure-text-minimessage:4.14.0")
+    shadedDeps("net.kyori:adventure-text-serializer-legacy:4.14.0")
 }
 
 tasks.withType<JavaCompile> {
@@ -68,10 +66,12 @@ tasks.register<Jar>("shadedJar") {
         tempFile.deleteOnExit()
         
         ZipOutputStream(FileOutputStream(tempFile)).use { zipOut: ZipOutputStream ->
-            // Add all compiled classes
+            // Add all compiled classes (relocate adventure)
             File("${layout.buildDirectory.get()}/classes/java/main").walkTopDown().forEach { file ->
                 if (file.isFile && file.extension == "class") {
-                    val entryName = file.relativeTo(File("${layout.buildDirectory.get()}/classes/java/main")).path.replace("\\", "/")
+                    var entryName = file.relativeTo(File("${layout.buildDirectory.get()}/classes/java/main")).path.replace("\\", "/")
+                    // Relocate adventure classes
+                    entryName = entryName.replace("net/kyori/adventure", "me/crazyg/libs/adventure")
                     zipOut.putNextEntry(JarEntry(entryName))
                     file.inputStream().use { it.copyTo(zipOut) }
                     zipOut.closeEntry()
@@ -88,13 +88,16 @@ tasks.register<Jar>("shadedJar") {
                 }
             }
             
-            // Add shaded dependencies (Gson only)
+            // Add shaded dependencies (relocated)
             shadedDeps.files.forEach { jarFile ->
                 JarInputStream(FileInputStream(jarFile)).use { jarIn ->
                     var entry: JarEntry? = jarIn.nextJarEntry
                     while (entry != null) {
                         if (!entry.name.startsWith("META-INF/") && entry.name.endsWith(".class")) {
-                            zipOut.putNextEntry(JarEntry(entry.name))
+                            var entryName = entry.name
+                            // Relocate adventure package
+                            entryName = entryName.replace("net/kyori/adventure", "me/crazyg/libs/adventure")
+                            zipOut.putNextEntry(JarEntry(entryName))
                             jarIn.copyTo(zipOut)
                             zipOut.closeEntry()
                         }
