@@ -32,12 +32,13 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
     
-    // Shade Gson + Adventure for compatibility with both Paper and Spigot/Arclight
+    // Adventure API - must be provided by server (Paper) or adventure-plugin (Spigot)
+    compileOnly("net.kyori:adventure-api:4.14.0")
+    compileOnly("net.kyori:adventure-text-minimessage:4.14.0")
+    compileOnly("net.kyori:adventure-text-serializer-legacy:4.14.0")
+    
+    // Gson for shading
     shadedDeps("com.google.code.gson:gson:2.10.1")
-    shadedDeps("net.kyori:adventure-text-minimessage:4.26.1")
-    shadedDeps("net.kyori:adventure-text-serializer-legacy:4.26.1")
-    shadedDeps("net.kyori:adventure-api:4.26.1")
-    shadedDeps("net.kyori:adventure-nbt:4.26.1")
 }
 
 tasks.withType<JavaCompile> {
@@ -87,7 +88,7 @@ tasks.register<Jar>("shadedJar") {
                 }
             }
             
-            // Add shaded dependencies
+            // Add shaded dependencies (Gson only)
             shadedDeps.files.forEach { jarFile ->
                 JarInputStream(FileInputStream(jarFile)).use { jarIn ->
                     var entry: JarEntry? = jarIn.nextJarEntry
