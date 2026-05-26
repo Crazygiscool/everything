@@ -26,7 +26,7 @@ public final class Everything extends JavaPlugin {
     // Fancy prefix for all plugin messages
     public static final Component PLUGIN_PREFIX = Component.text()
         .append(Component.text("❖ ").color(NamedTextColor.GOLD))
-        .append(Component.text("Everything").color(NamedTextColor.LIGHT_PURPLE).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD).decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC))
+        .append(Component.text("Everything").color(NamedTextColor.LIGHT_BLUE).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD).decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC))
         .append(Component.text(" » ").color(NamedTextColor.GOLD))
         .build();
 
