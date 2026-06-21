@@ -1,28 +1,23 @@
 server-name: "Crazypixel"
 server-link: "https://crazyg.is-a.dev"
 server-author: "Crazygiscool"
+server-description: "A fun Minecraft server with lots of features!"
 
 categories:
   general:
     name: "General Commands"
     icon: "BOOK"
-    commands:
-      - "/spawn - Teleport to spawn"
-      - "/tpa <player> - Request teleport"
-      - "/msg <player> <msg> - Private message"
+    type: "commands"
+    description: "All commands available to you"
 
   warps:
-    name: "Warp System"
+    name: "Warps"
     icon: "ENDER_PEARL"
-    commands:
-      - "/warp <name> - Teleport to warp"
-      - "/warp set <name> - Create warp"
-      - "/warp delete <name> - Remove warp"
+    type: "warps"
+    description: "Teleport around the server"
 
   economy:
     name: "Economy"
     icon: "GOLD_INGOT"
-    commands:
-      - "/balance - Check balance"
-      - "/pay <player> <amount> - Send money"
-      - "/eco give <player> <amount> - Admin give"
+    type: "economy"
+    description: "Player balances"

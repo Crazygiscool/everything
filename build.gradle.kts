@@ -4,6 +4,7 @@ import java.io.FileOutputStream
 import java.util.jar.JarEntry
 import java.util.jar.JarInputStream
 import java.util.jar.JarOutputStream
+import java.util.Properties
 import java.util.zip.ZipOutputStream
 
 plugins {
@@ -11,7 +12,7 @@ plugins {
 }
 
 group = "me.crazyg"
-version = "1.5.18"
+version = "1.5.19"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -31,7 +32,7 @@ dependencies {
     compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.5")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
-    
+
     // Shade Gson + Adventure (relocated) for Spigot/Arclight compatibility
     shadedDeps("com.google.code.gson:gson:2.10.1")
     shadedDeps("net.kyori:adventure-api:4.14.0")
@@ -55,16 +56,31 @@ tasks.processResources {
     }
 }
 
+fun resolveBuildNumber(): String {
+    val localFile = rootProject.file("buildNumber.properties")
+    if (localFile.exists()) {
+        val props = Properties()
+        FileInputStream(localFile).use { props.load(it) }
+        return props.getProperty("buildNumber", "1")
+    }
+    return project.findProperty("buildNumber")?.toString() ?: "1"
+}
+
+fun incrementBuildNumber(current: String) {
+    val next = (current.toIntOrNull() ?: 1) + 1
+    rootProject.file("buildNumber.properties").writeText("buildNumber=$next\n")
+}
+
 tasks.register<Jar>("shadedJar") {
-    val buildNumber = project.findProperty("buildNumber")?.toString() ?: "1"
+    val buildNumber = resolveBuildNumber()
     archiveFileName.set("${project.name}-${project.version}-b${buildNumber}.jar")
     dependsOn(tasks.classes, shadedDeps)
-    
     doLast {
+        incrementBuildNumber(buildNumber)
         val outputFile = archiveFile.get().asFile
         val tempFile = File.createTempFile("shaded-", ".jar", outputFile.parentFile)
         tempFile.deleteOnExit()
-        
+
         ZipOutputStream(FileOutputStream(tempFile)).use { zipOut: ZipOutputStream ->
             // Add all compiled classes (relocate adventure)
             File("${layout.buildDirectory.get()}/classes/java/main").walkTopDown().forEach { file ->
@@ -77,7 +93,7 @@ tasks.register<Jar>("shadedJar") {
                     zipOut.closeEntry()
                 }
             }
-            
+
             // Add resources
             File("${layout.buildDirectory.get()}/resources/main").walkTopDown().forEach { file ->
                 if (file.isFile) {
@@ -87,7 +103,7 @@ tasks.register<Jar>("shadedJar") {
                     zipOut.closeEntry()
                 }
             }
-            
+
             // Add shaded dependencies (relocated)
             shadedDeps.files.forEach { jarFile ->
                 JarInputStream(FileInputStream(jarFile)).use { jarIn ->
@@ -106,13 +122,13 @@ tasks.register<Jar>("shadedJar") {
                 }
             }
         }
-        
+
         tempFile.copyTo(outputFile, overwrite = true)
         println("Shaded JAR created: ${outputFile.absolutePath}")
     }
 }
 
 tasks.named<Jar>("jar") {
-    val buildNumber = project.findProperty("buildNumber")?.toString() ?: "1"
+    val buildNumber = resolveBuildNumber()
     archiveFileName.set("${project.name}-${project.version}-b${buildNumber}.jar")
 }

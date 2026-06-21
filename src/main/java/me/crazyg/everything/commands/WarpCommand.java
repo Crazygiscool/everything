@@ -43,6 +43,10 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
         loadWarps();
     }
 
+    public Set<String> getWarpNames() {
+        return warpsConfig.getKeys(false);
+    }
+
     private void loadWarps() {
         if (!warpsFile.exists()) {
             plugin.saveResource("warp.yml", false);

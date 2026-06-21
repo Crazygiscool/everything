@@ -35,15 +35,17 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (args.length < 2) {  // for listing own or other's eco
-            if (args.length < 1){
+        if (args.length < 2) {
+            if (args.length == 0) {
                 sender.sendMessage(
                     Component.text("Your balance: ", NamedTextColor.GREEN).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(sender.getName()))), NamedTextColor.DARK_GREEN))
                 );
+                return true;
             }
             sender.sendMessage(
-                Component.text(args[0], NamedTextColor.GREEN).append(Component.text("'s' balance: ", NamedTextColor.GREEN)).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(args[0]))), NamedTextColor.DARK_GREEN))
+                Component.text(args[0], NamedTextColor.GREEN).append(Component.text("'s balance: ", NamedTextColor.GREEN)).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(args[0]))), NamedTextColor.DARK_GREEN))
             );
+            return true;
         }
 
         String action = args[0].toLowerCase();

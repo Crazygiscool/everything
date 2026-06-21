@@ -15,26 +15,30 @@ public class HelpManager {
     public HelpManager(Everything plugin) {
         this.plugin = plugin;
 
-        // Ensure plugin folder exists
+        // Always overwrite help.yml from JAR resources
+        plugin.saveResource("gui/help.yml", true);
+
+        // Move from gui/help.yml to help.yml
         File helpFile = new File(plugin.getDataFolder(), "help.yml");
-
-        // Extract from /gui/help.yml inside the JAR
-        if (!helpFile.exists()) {
-            plugin.saveResource("gui/help.yml", false);
-
-            // Move it to the root data folder as help.yml
-            File extracted = new File(plugin.getDataFolder(), "gui/help.yml");
+        File extracted = new File(plugin.getDataFolder(), "gui/help.yml");
+        if (extracted.exists()) {
+            if (helpFile.exists()) helpFile.delete();
             extracted.renameTo(helpFile);
-
-            // Delete leftover folder if needed
-            new File(plugin.getDataFolder(), "gui").delete();
         }
+
+        // Clean up leftover gui folder
+        File guiDir = new File(plugin.getDataFolder(), "gui");
+        if (guiDir.isDirectory()) guiDir.delete();
 
         this.config = YamlConfiguration.loadConfiguration(helpFile);
     }
 
     public FileConfiguration getConfig() {
         return config;
+    }
+
+    public Everything getPlugin() {
+        return plugin;
     }
 
     public ConfigurationSection getCategories() {
@@ -55,5 +59,9 @@ public class HelpManager {
 
     public String getServerAuthor() {
         return config.getString("server-author", "");
+    }
+
+    public String getServerDescription() {
+        return config.getString("server-description", "");
     }
 }

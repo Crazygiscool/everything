@@ -7,6 +7,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -47,6 +48,10 @@ public class EcoStorage {
 
     public boolean hasAccount(UUID uuid) {
         return config.contains(uuid.toString());
+    }
+
+    public Set<String> getAllAccountUUIDs() {
+        return config.getKeys(false);
     }
 
     public boolean createAccount(UUID uuid) {

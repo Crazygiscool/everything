@@ -1,29 +1,34 @@
 package me.crazyg.everything.gui.help;
 
+import me.crazyg.everything.Everything;
+import me.crazyg.everything.commands.WarpCommand;
 import me.crazyg.everything.gui.BaseGUI;
 import me.crazyg.everything.utils.ItemBuilder;
+import me.crazyg.everything.utils.economy.EcoStorage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class HelpCategoryGUI extends BaseGUI {
 
     private final HelpManager manager;
     private final String categoryKey;
-    private final List<String> commands = new ArrayList<>();
-    private final Map<Integer, String> slotToCommand = new HashMap<>();
+    private final String type;
+    private List<ItemStack> displayItems = new ArrayList<>();
+    private final Map<Integer, Runnable> clickActions = new HashMap<>();
     private Pagination pagination;
     private int currentPage = 1;
+    private int startSlot = 0;
     private static final int ITEMS_PER_PAGE = 36;
 
     public HelpCategoryGUI(Player player, HelpManager manager, String categoryKey) {
@@ -31,104 +36,178 @@ public class HelpCategoryGUI extends BaseGUI {
                 .color(NamedTextColor.GOLD));
         this.manager = manager;
         this.categoryKey = categoryKey;
-        
-        loadCommands();
-        
+
+        ConfigurationSection cat = manager.getCategory(categoryKey);
+        this.type = cat != null ? cat.getString("type", "") : "";
+
+        loadContent();
+
         setClickCooldown(150);
         setFiller(ItemBuilder.glassPane(TextColor.color(30, 30, 30), " "));
-        
+
         enableAnimation(15);
-        
+
         setOnClose(p -> new HelpMainGUI(p, manager).open());
     }
 
+    private void loadContent() {
+        displayItems.clear();
+        clickActions.clear();
+
+        switch (type) {
+            case "commands" -> loadCommands();
+            case "warps" -> loadWarps();
+            case "economy" -> loadEconomy();
+            default -> loadDetails();
+        }
+    }
+
     private void loadCommands() {
-        commands.clear();
-        ConfigurationSection cat = manager.getCategory(categoryKey);
-        if (cat != null) {
-            List<String> cmds = cat.getStringList("commands");
-            if (cmds != null) {
-                commands.addAll(cmds);
+        Everything plugin = manager.getPlugin();
+
+        for (Map.Entry<String, Map<String, Object>> entry :
+                plugin.getDescription().getCommands().entrySet()) {
+            String cmdName = entry.getKey();
+            Map<String, Object> props = entry.getValue();
+
+            String perm = (props != null) ? (String) props.get("permission") : null;
+            if (perm != null && !player.hasPermission(perm)) continue;
+
+            String desc = (props != null) ? (String) props.getOrDefault("description", "") : "";
+
+            ItemBuilder builder = ItemBuilder.builder(Material.PAPER)
+                    .name("&e/" + cmdName);
+            if (!desc.isEmpty()) {
+                builder.addLore("&7" + desc);
             }
+            displayItems.add(builder.build());
+        }
+    }
+
+    @SuppressWarnings("deprecation")
+    private void loadWarps() {
+        WarpCommand warpCmd = manager.getPlugin().getWarpCommand();
+        if (warpCmd == null) return;
+
+        for (String warpName : warpCmd.getWarpNames()) {
+            displayItems.add(ItemBuilder.builder(Material.ENDER_PEARL)
+                    .name("&d" + warpName)
+                    .addLore("&7Click to teleport")
+                    .build());
+        }
+    }
+
+    private void loadEconomy() {
+        EcoStorage storage = manager.getPlugin().getEcoStorage();
+        if (storage == null) return;
+
+        List<Map.Entry<UUID, Double>> accounts = new ArrayList<>();
+        for (String uuidStr : storage.getAllAccountUUIDs()) {
+            UUID uuid = UUID.fromString(uuidStr);
+            double bal = storage.getBalance(uuid);
+            accounts.add(new AbstractMap.SimpleEntry<>(uuid, bal));
+        }
+
+        accounts.sort((a, b) -> Double.compare(b.getValue(), a.getValue()));
+
+        for (Map.Entry<UUID, Double> account : accounts) {
+            UUID uuid = account.getKey();
+            double bal = account.getValue();
+            OfflinePlayer offPlayer = Bukkit.getOfflinePlayer(uuid);
+            String name = offPlayer.getName() != null ? offPlayer.getName() : uuid.toString().substring(0, 8);
+
+            ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+            SkullMeta meta = (SkullMeta) head.getItemMeta();
+            meta.displayName(ItemBuilder.builder().name("&6" + name).build()
+                    .getItemMeta().displayName());
+            meta.setOwningPlayer(offPlayer);
+            meta.lore(List.of(
+                    ItemBuilder.builder().name("&eBalance: &f" + String.format("%.2f", bal)).build()
+                            .getItemMeta().displayName()
+            ));
+            head.setItemMeta(meta);
+            displayItems.add(head);
+        }
+    }
+
+    private void loadDetails() {
+        ConfigurationSection cat = manager.getCategory(categoryKey);
+        if (cat == null) return;
+
+        List<String> details = cat.getStringList("details");
+        if (details == null) return;
+
+        for (String detail : details) {
+            displayItems.add(ItemBuilder.builder(Material.PAPER)
+                    .name(detail)
+                    .build());
         }
     }
 
     @Override
     public void build() {
-        slotToCommand.clear();
-        
-        pagination = paginate(commands, ITEMS_PER_PAGE, currentPage);
-        List<String> pageItems = new ArrayList<>();
+        pagination = paginate(displayItems, ITEMS_PER_PAGE, currentPage);
+
+        List<ItemStack> pageItems = new ArrayList<>();
         for (Object item : pagination.getPageItems()) {
-            if (item instanceof String) {
-                pageItems.add((String) item);
+            if (item instanceof ItemStack) {
+                pageItems.add((ItemStack) item);
             }
         }
 
-        for (int i = 0; i < pageItems.size(); i++) {
-            String cmd = pageItems.get(i);
-            int slot = i;
-            
+        int itemCount = pageItems.size();
+        startSlot = itemCount >= 36 ? 0 : (36 - itemCount) / 2;
+
+        for (int i = 0; i < itemCount; i++) {
             boolean isGlowing = animationFrame % 30 < 15;
-            
-            set(slot, ItemBuilder.builder(Material.PAPER)
-                    .name("&l" + cmd, isGlowing ? TextColor.color(255, 255, 100) : TextColor.color(255, 215, 0))
-                    .addLore("&7&m------------------------------")
-                    .addLore("&aLeft Click: &fSuggest command")
-                    .addLore("&eRight Click: &fExecute command")
-                    .addLore("&bShift Click: &fCopy to clipboard")
-                    .addLore("&7&m------------------------------")
-                    .glowing(isGlowing)
-                    .build());
-            
-            slotToCommand.put(slot, cmd);
+            ItemStack item = pageItems.get(i).clone();
+            if (isGlowing && type.equals("warps")) {
+                var meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.addItemFlags(org.bukkit.inventory.ItemFlag.HIDE_ENCHANTS);
+                    meta.addEnchant(org.bukkit.enchantments.Enchantment.DURABILITY, 1, true);
+                    item.setItemMeta(meta);
+                }
+            }
+            set(startSlot + i, item);
         }
 
         ConfigurationSection cat = manager.getCategory(categoryKey);
         String categoryName = cat != null ? cat.getString("name", categoryKey) : categoryKey;
+        String categoryDesc = cat != null ? cat.getString("description", "") : "";
 
-        set(4, ItemBuilder.builder(Material.BOOK)
-                .name("&l&6" + categoryName, TextColor.color(255, 215, 0))
-                .addLore("&7Commands in this category")
-                .addLore("&8Total: &f" + commands.size())
-                .build());
+        ItemBuilder catInfoItem = ItemBuilder.builder(Material.BOOK)
+                .name("&l&6" + categoryName);
+        if (!categoryDesc.isEmpty()) {
+            catInfoItem.addLore(categoryDesc);
+        }
+        catInfoItem.addLore("&8" + displayItems.size() + (type.equals("economy") ? " accounts" : type.equals("warps") ? " warps" : " topics"));
+        set(4, catInfoItem.build());
 
         if (pagination.hasPrevious()) {
-            set(18, ItemBuilder.previousPageButton());
+            set(36, ItemBuilder.previousPageButton());
         } else {
-            set(18, ItemBuilder.builder(Material.GRAY_STAINED_GLASS_PANE)
+            set(36, ItemBuilder.builder(Material.GRAY_STAINED_GLASS_PANE)
                     .name("No Previous")
                     .build());
         }
 
-        set(22, ItemBuilder.builder(Material.MAP)
-                .name("&lPage &f" + currentPage + "&l/&f" + pagination.getTotalPages(), TextColor.color(100, 200, 255))
-                .addLore("&7Commands: &f" + pageItems.size() + "&7/&f" + commands.size())
-                .build());
-
         if (pagination.hasNext()) {
-            set(26, ItemBuilder.nextPageButton());
+            set(44, ItemBuilder.nextPageButton());
         } else {
-            set(26, ItemBuilder.builder(Material.GRAY_STAINED_GLASS_PANE)
+            set(44, ItemBuilder.builder(Material.GRAY_STAINED_GLASS_PANE)
                     .name("No Next")
                     .build());
         }
 
-        set(36, ItemBuilder.builder(Material.KNOWLEDGE_BOOK)
-                .name("&l&bCommand Help", TextColor.color(100, 200, 255))
-                .addLore("&7Learn how to use commands")
+        set(45, ItemBuilder.backButton());
+
+        set(49, ItemBuilder.builder(Material.MAP)
+                .name("&b&lPage &f" + currentPage + "&b&l/&f" + pagination.getTotalPages())
+                .addLore("&7" + pageItems.size() + "&7/&f" + displayItems.size())
                 .build());
 
-        set(40, ItemBuilder.builder(Material.COMPARATOR)
-                .name("&l&eTips & Tricks", TextColor.color(255, 200, 50))
-                .addLore("&7• Use &f/&7 before commands")
-                .addLore("&7• Some commands need arguments")
-                .addLore("&7• Ask staff for help!")
-                .build());
-
-        set(44, ItemBuilder.closeButton());
-
-        set(53, ItemBuilder.backButton());
+        set(53, ItemBuilder.closeButton());
     }
 
     @Override
@@ -141,82 +220,47 @@ public class HelpCategoryGUI extends BaseGUI {
         if (e.getCurrentItem() == null) return;
 
         int slot = e.getRawSlot();
-        ClickType click = e.getClick();
-        
-        if (slot == 44) {
+
+        if (slot == 53) {
             player.closeInventory();
             playSuccessSound();
             return;
         }
-        
-        if (slot == 53) {
+
+        if (slot == 45) {
             new HelpMainGUI(player, manager).open();
             playClickSound();
             return;
         }
-        
-        if (slot == 18 && pagination.hasPrevious()) {
+
+        if (slot == 36 && pagination.hasPrevious()) {
             currentPage--;
             playClickSound();
             update();
             return;
         }
-        
-        if (slot == 26 && pagination.hasNext()) {
+
+        if (slot == 44 && pagination.hasNext()) {
             currentPage++;
             playClickSound();
             update();
             return;
         }
-        
-        if (slot == 36) {
-            player.sendMessage(Component.text("Left-click to suggest a command").color(NamedTextColor.GREEN));
-            player.sendMessage(Component.text("Right-click to run the command").color(NamedTextColor.YELLOW));
-            playClickSound();
-            return;
-        }
-        
-        if (slot == 40) {
-            player.sendMessage(Component.text("═══════════════════════════════").color(NamedTextColor.GRAY));
-            player.sendMessage(Component.text("Command Tips:").color(NamedTextColor.GOLD));
-            player.sendMessage(Component.text("• Use / before all commands").color(NamedTextColor.WHITE));
-            player.sendMessage(Component.text("• Tab completion helps!").color(NamedTextColor.WHITE));
-            player.sendMessage(Component.text("• Ask staff for help").color(NamedTextColor.WHITE));
-            player.sendMessage(Component.text("═══════════════════════════════").color(NamedTextColor.GRAY));
-            playSuccessSound();
-            return;
-        }
-        
-        String cmd = slotToCommand.get(slot);
-        if (cmd != null) {
-            switch (click) {
-                case LEFT -> {
-                    player.closeInventory();
-                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                    player.sendMessage(Component.text("Suggested: ").color(NamedTextColor.GREEN)
-                            .append(Component.text(cmd).color(NamedTextColor.YELLOW)));
-                    player.sendMessage(Component.text("Type it in chat to use").color(NamedTextColor.WHITE));
-                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                    playSuccessSound();
-                }
-                case RIGHT -> {
-                    player.closeInventory();
-                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                    player.sendMessage(Component.text("Executing: ").color(NamedTextColor.YELLOW)
-                            .append(Component.text(cmd).color(NamedTextColor.AQUA)));
-                    player.performCommand(cmd.replace("/", ""));
-                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                    playSuccessSound();
-                }
-                case SHIFT_LEFT, SHIFT_RIGHT -> {
-                    player.closeInventory();
-                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                    player.sendMessage(Component.text("Copied to clipboard: ").color(NamedTextColor.GREEN)
-                            .append(Component.text(cmd).color(NamedTextColor.AQUA)));
-                    player.sendMessage(Component.text("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━").color(NamedTextColor.GRAY));
-                    playSuccessSound();
-                }
-                default -> {
+
+        if (type.equals("warps")) {
+            int localIndex = slot - startSlot;
+            List<?> pageItems = pagination.getPageItems();
+            if (localIndex >= 0 && localIndex < pageItems.size()) {
+                int globalIndex = (currentPage - 1) * ITEMS_PER_PAGE + localIndex;
+                int i = 0;
+                for (String name : manager.getPlugin().getWarpCommand().getWarpNames()) {
+                    if (i == globalIndex) {
+                        player.closeInventory();
+                        player.performCommand("warp " + name);
+                        playSuccessSound();
+                        return;
+                    }
+                    i++;
                 }
             }
         }
@@ -224,7 +268,7 @@ public class HelpCategoryGUI extends BaseGUI {
 
     @Override
     public void open() {
-        loadCommands();
+        loadContent();
         currentPage = 1;
         super.open();
     }

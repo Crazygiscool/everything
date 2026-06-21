@@ -40,6 +40,9 @@ public final class Everything extends JavaPlugin {
     private boolean economyEnabled = false;
     private boolean vaultChatEnabled = false;
 
+    private WarpCommand warpCommand;
+    private EcoStorage ecoStorage;
+
     @Override
     public void onEnable() {
         instance = this;
@@ -76,6 +79,7 @@ public final class Everything extends JavaPlugin {
 
             // Register EverythingEconomy
             EcoStorage storage = new EcoStorage(this);
+            this.ecoStorage = storage;
             EcoProvider ecoProvider = new EcoProvider(storage);
 
             Bukkit.getServicesManager().register(
@@ -157,7 +161,8 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("balance", new BalanceCommand(this));
         commandManager.registerCommand("stats", new StatsCommand(this));
         commandManager.registerCommand("namecolor", new NameColorCommand(this));
-        commandManager.registerCommand("warp", new WarpCommand(this));
+        this.warpCommand = new WarpCommand(this);
+        commandManager.registerCommand("warp", warpCommand);
         commandManager.registerCommand("eco", new EcoCommand(this));
         commandManager.registerCommand("help", new HelpCommand(this));
 
@@ -253,5 +258,13 @@ public final class Everything extends JavaPlugin {
 
     public boolean isVaultChatEnabled() {
         return vaultChatEnabled;
+    }
+
+    public WarpCommand getWarpCommand() {
+        return warpCommand;
+    }
+
+    public EcoStorage getEcoStorage() {
+        return ecoStorage;
     }
 }
