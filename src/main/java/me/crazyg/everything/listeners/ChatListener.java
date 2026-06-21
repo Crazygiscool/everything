@@ -6,6 +6,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -52,6 +53,10 @@ public class ChatListener implements Listener {
             }
         }
 
+        // Convert &-color codes in prefix/suffix to proper components
+        Component prefixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
+        Component suffixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(suffix);
+
         // Get name color from config
         String colorName = plugin.getConfig().getString("namecolors." + player.getUniqueId(), "WHITE");
         NamedTextColor color = NamedTextColor.NAMES.value(colorName.toLowerCase());
@@ -62,8 +67,8 @@ public class ChatListener implements Listener {
 
         // Create tag resolvers for placeholders
         TagResolver.Builder resolver = TagResolver.builder()
-            .resolver(Placeholder.parsed("prefix", prefix))
-            .resolver(Placeholder.parsed("suffix", suffix))
+            .resolver(Placeholder.component("prefix", prefixComponent))
+            .resolver(Placeholder.component("suffix", suffixComponent))
             .resolver(Placeholder.component("player", displayName))
             .resolver(Placeholder.component("message", message));
 
