@@ -1,7 +1,7 @@
 name: ${name}
 version: ${version}
 main: me.crazyg.everything.Everything
-api-version: '1.20'
+api-version: "1.20"
 author: crazygiscool
 description: Does everything!
 website: crazyg.is-a.dev
@@ -13,7 +13,7 @@ commands:
     description: Economy admin command
     usage: /eco <give|take|set|reset|player> <player> [amount]
     aliases: ["economy"]
-    permission: [everything.eco, everything.eco.others, everything.eco.set]
+    permission: everything.eco, everything.eco.others, everything.eco.set
     permission-message: You do not have permission to use the eco command.
   help:
     description: Custom help menu
