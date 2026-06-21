@@ -10,6 +10,8 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
 
+import java.io.File;
+
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -208,6 +210,8 @@ public final class Everything extends JavaPlugin {
     public void onDisable() {
         getLogger().info("Everything plugin disabled.");
 
+        applyUpdate();
+
         Component goodbyeArt = Component.text()
             .append(Component.newline())
             .append(Component.text("░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n").color(NamedTextColor.RED))
@@ -219,6 +223,38 @@ public final class Everything extends JavaPlugin {
             .build();
 
         Bukkit.getConsoleSender().sendMessage(goodbyeArt);
+    }
+
+    private void applyUpdate() {
+        try {
+            File updateFolder = new File(getDataFolder().getParentFile(), "update");
+            if (!updateFolder.isDirectory()) return;
+
+            File[] updates = updateFolder.listFiles((dir, name) -> name.endsWith(".jar") && !name.contains(".bak"));
+            if (updates == null || updates.length == 0) return;
+
+            File pluginsFolder = getDataFolder().getParentFile();
+            File currentJar = new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+
+            for (File update : updates) {
+                File target = new File(pluginsFolder, update.getName());
+                if (currentJar.exists()) {
+                    currentJar.delete();
+                }
+                update.renameTo(target);
+                getLogger().info("Applied update: " + update.getName() + ". Restart or reload to activate.");
+            }
+
+            // Clean up backup files
+            File[] backups = updateFolder.listFiles((dir, name) -> name.contains(".bak-"));
+            if (backups != null) {
+                for (File bak : backups) {
+                    bak.delete();
+                }
+            }
+        } catch (Exception e) {
+            getLogger().severe("Failed to apply update: " + e.getMessage());
+        }
     }
 
     private boolean setupEconomy() {
