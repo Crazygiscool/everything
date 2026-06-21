@@ -47,10 +47,9 @@ public class EverythingCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
             // Blue theme, not bold, prefix for every message
-            Everything.sendFancy(sender, Component.text()
+            Everything.sendFancy(sender, Component.text("")
                 .append(Component.text("❓ Everything Help & Commands\n").color(NamedTextColor.BLUE))
-                .append(Component.text("Click a command for usage. Hover for description.\n").color(NamedTextColor.GRAY))
-            .build());
+                .append(Component.text("Click a command for usage. Hover for description.\n").color(NamedTextColor.GRAY)));
 
             List<String> commandNames = getPluginCommands();
             if (!commandNames.isEmpty()) {
@@ -66,7 +65,7 @@ public class EverythingCommand implements CommandExecutor {
                             usageLine.append(" ").append(u);
                         }
                     }
-                    Component cmdComponent = Component.text()
+                    Component cmdComponent = Component.text("")
                         .append(Component.text("• ").color(NamedTextColor.BLUE))
                         .append(Component.text(usageLine.toString())
                             .color(NamedTextColor.AQUA)
@@ -75,8 +74,7 @@ public class EverythingCommand implements CommandExecutor {
                                 Component.text(descText == null || descText.isEmpty() ? "No description." : descText)
                                     .color(NamedTextColor.YELLOW)
                             ))
-                        )
-                    .build();
+                        );
                     Everything.sendFancy(sender, cmdComponent);
                 }
             } else {
@@ -102,41 +100,36 @@ public class EverythingCommand implements CommandExecutor {
                 List<String> authors = plugin.getPluginMeta().getAuthors();
                 String description = plugin.getPluginMeta().getDescription();
 
-                Everything.sendFancy(sender, Component.text()
+                Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("ℹ️ Plugin Info\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
-                    .append(Component.text(" "))
-                .build());
-                Everything.sendFancy(sender, Component.text()
+                    .append(Component.text(" ")));
+                Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("Version: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(version)
                         .color(NamedTextColor.AQUA)
                         .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
                         .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(githubUrl))
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Click to view releases on GitHub!")))
-                    )
-                .build());
-                Everything.sendFancy(sender, Component.text()
+                    ));
+                Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("Author: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(String.join(", ", authors))
                         .color(NamedTextColor.LIGHT_PURPLE)
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Plugin author(s)").color(NamedTextColor.GRAY)))
-                    )
-                .build());
-                Everything.sendFancy(sender, Component.text()
+                    ));
+                Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("Description: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(description)
                         .color(NamedTextColor.WHITE)
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text(description).color(NamedTextColor.GRAY)))
-                    )
-                .build());
-                Everything.sendFancy(sender, Component.text()
+                    ));
+                Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("GitHub: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(githubUrl)
                         .color(NamedTextColor.BLUE)
                         .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(githubUrl))
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Click to open GitHub repo!")))
-                    )
-                .build());
+                    ));
                 return true;
             }
 
@@ -146,13 +139,12 @@ public class EverythingCommand implements CommandExecutor {
                     return true;
                 }
                 if (updater.isUpdateAvailable()) {
-                    Everything.sendFancy(sender, Component.text()
+                    Everything.sendFancy(sender, Component.text("")
                         .append(Component.text("A new version is available! ").color(NamedTextColor.GREEN))
                         .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
                         .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE))
                         .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
-                        .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE))
-                        .build());
+                        .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE)));
                 } else {
                     Everything.sendFancy(sender, Component.text("You are running the latest version!").color(NamedTextColor.GREEN));
                 }

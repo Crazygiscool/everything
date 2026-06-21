@@ -25,11 +25,10 @@ public final class Everything extends JavaPlugin {
     }
 
     // Fancy prefix for all plugin messages
-    public static final Component PLUGIN_PREFIX = Component.text()
+    public static final Component PLUGIN_PREFIX = Component.text("")
         .append(Component.text("❖ ").color(NamedTextColor.AQUA))
         .append(Component.text("Everything").color(NamedTextColor.BLUE).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD).decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC))
-        .append(Component.text(" » ").color(NamedTextColor.AQUA))
-        .build();
+        .append(Component.text(" » ").color(NamedTextColor.AQUA));
 
     // Utility for sending a fancy message with prefix
     public static void sendFancy(CommandSender sender, Component message) {
@@ -63,15 +62,14 @@ public final class Everything extends JavaPlugin {
         getLogger().info("THANK YOU FOR USING THE PLUGIN");
 
         // ASCII art with Adventure API
-        Component asciiArt = Component.text()
+        Component asciiArt = Component.text("")
             .append(Component.newline())
             .append(Component.text("███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
             .append(Component.text("██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
             .append(Component.text("█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
             .append(Component.text("██╔══╝░░░╚████╔╝░██╔══╝░░██╔══██╗░░╚██╔╝░░░░░██║░░░██╔══██║██║██║╚████║██║░░╚██╗\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
             .append(Component.text("███████╗░░╚██╔╝░░███████╗██║░░██║░░░██║░░░░░░██║░░░██║░░██║██║██║░╚███║╚██████╔╝\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
-            .append(Component.text("╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░  ").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
-            .build();
+            .append(Component.text("╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░  ").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD));
 
         Bukkit.getConsoleSender().sendMessage(asciiArt);
 
@@ -211,15 +209,14 @@ public final class Everything extends JavaPlugin {
 
         applyUpdate();
 
-        Component goodbyeArt = Component.text()
+        Component goodbyeArt = Component.text("")
             .append(Component.newline())
             .append(Component.text("░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n").color(NamedTextColor.RED))
             .append(Component.text("██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n").color(NamedTextColor.RED))
             .append(Component.text("██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n").color(NamedTextColor.RED))
             .append(Component.text("██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n").color(NamedTextColor.RED))
             .append(Component.text("╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n").color(NamedTextColor.RED))
-            .append(Component.text("░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝").color(NamedTextColor.RED))
-            .build();
+            .append(Component.text("░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝").color(NamedTextColor.RED));
 
         Bukkit.getConsoleSender().sendMessage(goodbyeArt);
     }

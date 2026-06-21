@@ -126,15 +126,14 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
         int index = 0;
 
         for (Map<?, ?> reportData : reportsList) {
-            Component reportLine = Component.text()
+            Component reportLine = Component.text("")
                     .append(Component.text("- ").color(NamedTextColor.GRAY))
                     .append(Component.text("Reported Player: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(String.valueOf(reportData.get("reported"))).color(NamedTextColor.WHITE))
                     .append(Component.text(", Reporter: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(String.valueOf(reportData.get("reporter"))).color(NamedTextColor.AQUA))
                     .append(Component.text(", Reason: ").color(NamedTextColor.YELLOW))
-                    .append(Component.text(String.valueOf(reportData.get("reason"))).color(NamedTextColor.WHITE))
-                    .build();
+                    .append(Component.text(String.valueOf(reportData.get("reason"))).color(NamedTextColor.WHITE));
 
             if (sender instanceof Player p && p.hasPermission(VIEW_REPORTS_PERMISSION)) {
                 Component acceptBtn = Component.text(" [Accept]")
@@ -149,7 +148,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                         .clickEvent(ClickEvent.runCommand("/report deny " + index))
                         .hoverEvent(HoverEvent.showText(Component.text("Deny this report")));
 
-                reportLine = Component.text().append(reportLine).append(acceptBtn).append(denyBtn).build();
+                reportLine = Component.text("").append(reportLine).append(acceptBtn).append(denyBtn);
             }
 
             sender.sendMessage(reportLine);

@@ -7,7 +7,7 @@ plugins {
 }
 
 group = "me.crazyg"
-version = "1.5.21"
+version = "1.5.22"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))

@@ -81,7 +81,7 @@ public class Updater implements Listener {
                                 + currentVersion + ", Latest version: " + latestVersion);
 
                         Component updateMsg = Everything.PLUGIN_PREFIX.append(
-                            Component.text()
+                            Component.text("")
                                 .append(Component.text("A new update is available! ").color(NamedTextColor.GREEN))
                                 .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
                                 .append(Component.text(currentVersion).color(NamedTextColor.WHITE))
@@ -93,7 +93,6 @@ public class Updater implements Listener {
                                         .color(NamedTextColor.BLUE)
                                         .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(
                                                 downloadUrl != null ? downloadUrl : "")))
-                                .build()
                         );
 
                         if (!notifiedUpdate) {
@@ -192,11 +191,10 @@ public class Updater implements Listener {
                 if (!notifiedDownload) {
                     notifiedDownload = true;
                     Component doneMsg = Everything.PLUGIN_PREFIX.append(
-                        Component.text()
+                        Component.text("")
                             .append(Component.text("Update downloaded: ").color(NamedTextColor.GREEN))
                             .append(Component.text(newJar.getName()).color(NamedTextColor.AQUA))
                             .append(Component.text(". Restart your server to apply it.").color(NamedTextColor.YELLOW))
-                            .build()
                     );
                     org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> p.sendMessage(doneMsg));
                     org.bukkit.Bukkit.getConsoleSender().sendMessage(doneMsg);
@@ -212,13 +210,12 @@ public class Updater implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (updateAvailable && player.hasPermission("everything.update")) {
-            player.sendMessage(Component.text()
+            player.sendMessage(Component.text("")
                 .append(Component.text("A new version of Everything is available! ").color(NamedTextColor.GREEN))
                 .append(Component.text("Current version: ").color(NamedTextColor.YELLOW))
                 .append(Component.text(currentVersion).color(NamedTextColor.WHITE))
                 .append(Component.text(", Latest version: ").color(NamedTextColor.YELLOW))
-                .append(Component.text(latestVersion).color(NamedTextColor.WHITE))
-                .build());
+                .append(Component.text(latestVersion).color(NamedTextColor.WHITE)));
         }
     }
 

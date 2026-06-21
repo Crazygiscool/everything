@@ -71,19 +71,17 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         Everything.getEconomy().withdrawPlayer(player, amount);
         Everything.getEconomy().depositPlayer(target, amount);
 
-        player.sendMessage(Component.text()
+        player.sendMessage(Component.text("")
                 .append(Component.text("You paid ").color(NamedTextColor.GREEN))
                 .append(Component.text(Everything.getEconomy().format(amount)).color(NamedTextColor.GOLD))
                 .append(Component.text(" to ").color(NamedTextColor.GREEN))
-                .append(Component.text(target.getName()).color(NamedTextColor.GREEN))
-                .build());
+                .append(Component.text(target.getName()).color(NamedTextColor.GREEN)));
 
-        target.sendMessage(Component.text()
+        target.sendMessage(Component.text("")
                 .append(Component.text("You received ").color(NamedTextColor.GREEN))
                 .append(Component.text(Everything.getEconomy().format(amount)).color(NamedTextColor.GOLD))
                 .append(Component.text(" from ").color(NamedTextColor.GREEN))
-                .append(Component.text(player.getName()).color(NamedTextColor.GREEN))
-                .build());
+                .append(Component.text(player.getName()).color(NamedTextColor.GREEN)));
 
         return true;
     }
