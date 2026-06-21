@@ -234,13 +234,18 @@ public final class Everything extends JavaPlugin {
             if (updates == null || updates.length == 0) return;
 
             File pluginsFolder = getDataFolder().getParentFile();
-            File currentJar = new File(getClass().getProtectionDomain().getCodeSource().getLocation().toURI());
+
+            // Delete all old Everything JARs from plugins folder
+            File[] oldJars = pluginsFolder.listFiles((dir, name) ->
+                    name.toLowerCase().startsWith("everything") && name.endsWith(".jar"));
+            if (oldJars != null) {
+                for (File old : oldJars) {
+                    old.delete();
+                }
+            }
 
             for (File update : updates) {
                 File target = new File(pluginsFolder, update.getName());
-                if (currentJar.exists()) {
-                    currentJar.delete();
-                }
                 update.renameTo(target);
                 getLogger().info("Applied update: " + update.getName() + ". Restart or reload to activate.");
             }
