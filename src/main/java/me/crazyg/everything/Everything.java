@@ -1,6 +1,5 @@
 package me.crazyg.everything;
 
-import me.clip.placeholderapi.PlaceholderAPI;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
