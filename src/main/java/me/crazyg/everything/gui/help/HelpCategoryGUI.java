@@ -70,8 +70,19 @@ public class HelpCategoryGUI extends BaseGUI {
             String cmdName = entry.getKey();
             Map<String, Object> props = entry.getValue();
 
-            String perm = (props != null) ? (String) props.get("permission") : null;
-            if (perm != null && !player.hasPermission(perm)) continue;
+            Object permObj = (props != null) ? props.get("permission") : null;
+            if (permObj instanceof String perm) {
+                if (!player.hasPermission(perm)) continue;
+            } else if (permObj instanceof Collection<?> perms) {
+                boolean hasAny = false;
+                for (Object p : perms) {
+                    if (p instanceof String s && player.hasPermission(s)) {
+                        hasAny = true;
+                        break;
+                    }
+                }
+                if (!hasAny) continue;
+            }
 
             String desc = (props != null) ? (String) props.getOrDefault("description", "") : "";
 
@@ -118,11 +129,11 @@ public class HelpCategoryGUI extends BaseGUI {
 
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
-            meta.displayName(ItemBuilder.builder().name("&6" + name).build()
+            meta.displayName(ItemBuilder.builder(Material.PAPER).name("&6" + name).build()
                     .getItemMeta().displayName());
             meta.setOwningPlayer(offPlayer);
             meta.lore(List.of(
-                    ItemBuilder.builder().name("&eBalance: &f" + String.format("%.2f", bal)).build()
+                    ItemBuilder.builder(Material.PAPER).name("&eBalance: &f" + String.format("%.2f", bal)).build()
                             .getItemMeta().displayName()
             ));
             head.setItemMeta(meta);
