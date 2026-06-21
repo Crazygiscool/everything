@@ -72,7 +72,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder name(String name, TextColor color) {
-        this.displayName = Component.text(name).color(color);
+        this.displayName = parseComponent(name).colorIfAbsent(color);
         return this;
     }
 
