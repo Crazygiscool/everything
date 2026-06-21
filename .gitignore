@@ -124,3 +124,4 @@ config
 .project
 .settings/org.eclipse.buildship.core.prefs
 .settings/org.eclipse.jdt.core.prefs
+AGENTS.md
