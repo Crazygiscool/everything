@@ -53,6 +53,17 @@ public final class Everything extends JavaPlugin {
         int pluginId = 28514;
         Metrics metrics = new Metrics(this, pluginId);
 
+        metrics.addCustomChart(new Metrics.SimplePie("plugin_version", () -> getPluginMeta().getVersion()));
+        metrics.addCustomChart(new Metrics.SimplePie("cpu_cores", () -> String.valueOf(Runtime.getRuntime().availableProcessors())));
+        metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
+            String v = Bukkit.getBukkitVersion();
+            int dash = v.indexOf('-');
+            return dash > 0 ? v.substring(0, dash) : v;
+        }));
+        metrics.addCustomChart(new Metrics.SimplePie("server_region", () ->
+            java.util.TimeZone.getDefault().getDisplayName()));
+        metrics.addCustomChart(new Metrics.SimplePie("os_arch", () -> System.getProperty("os.arch")));
+
         // --- Config Loading ---
         getConfig().options().copyDefaults(true);
         saveDefaultConfig();
