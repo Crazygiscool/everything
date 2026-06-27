@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.UUID;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -24,7 +25,7 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("This command can only be used by players!")
+            AdventureCompat.sendMessage(sender, Component.text("This command can only be used by players!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -35,26 +36,26 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("msg")) {
 
             if (args.length < 2) {
-                player.sendMessage(Component.text("Usage: /msg <player> <message>")
-                        .color(NamedTextColor.RED));
+AdventureCompat.sendMessage(player, Component.text("Usage: /msg <player> <message>")
+                    .color(NamedTextColor.RED));
                 return true;
             }
 
             Player target = Bukkit.getPlayer(args[0]);
             if (target == null) {
-                player.sendMessage(Component.text("Player not found!")
+                AdventureCompat.sendMessage(player, Component.text("Player not found!")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
             String message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
 
-            player.sendMessage(
+            AdventureCompat.sendMessage(player,
                 Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY)
                     .append(Component.text(message).color(NamedTextColor.WHITE))
             );
 
-            target.sendMessage(
+            AdventureCompat.sendMessage(target,
                 Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY)
                     .append(Component.text(message).color(NamedTextColor.WHITE))
             );
@@ -69,33 +70,33 @@ public class MessageCommand implements CommandExecutor, TabCompleter {
         if (command.getName().equalsIgnoreCase("reply") || command.getName().equalsIgnoreCase("r")) {
 
             if (args.length < 1) {
-                player.sendMessage(Component.text("Usage: /reply <message>")
+                AdventureCompat.sendMessage(player, Component.text("Usage: /reply <message>")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
             UUID lastUUID = lastMessage.get(player.getUniqueId());
             if (lastUUID == null) {
-                player.sendMessage(Component.text("Nobody to reply to!")
+                AdventureCompat.sendMessage(player, Component.text("Nobody to reply to!")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
             Player target = Bukkit.getPlayer(lastUUID);
             if (target == null) {
-                player.sendMessage(Component.text("Player is offline!")
+                AdventureCompat.sendMessage(player, Component.text("Player is offline!")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
             String message = String.join(" ", args);
 
-            player.sendMessage(
+            AdventureCompat.sendMessage(player,
                 Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY)
                     .append(Component.text(message).color(NamedTextColor.WHITE))
             );
 
-            target.sendMessage(
+            AdventureCompat.sendMessage(target,
                 Component.text("From " + player.getName() + ": ").color(NamedTextColor.GRAY)
                     .append(Component.text(message).color(NamedTextColor.WHITE))
             );

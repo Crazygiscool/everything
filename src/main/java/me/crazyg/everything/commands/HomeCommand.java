@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -118,7 +119,7 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("This command can only be used by players!")
+            AdventureCompat.sendMessage(sender, Component.text("This command can only be used by players!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -131,20 +132,20 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
             playerHomes.put(uuid, loc);
             saveAllHomes();
 
-            player.sendMessage(Component.text("Home set!").color(NamedTextColor.GREEN));
+            AdventureCompat.sendMessage(player, Component.text("Home set!").color(NamedTextColor.GREEN));
             return true;
         }
 
         // /home
         if (command.getName().equalsIgnoreCase("home")) {
             if (!playerHomes.containsKey(uuid)) {
-                player.sendMessage(Component.text("You haven't set a home yet!")
+                AdventureCompat.sendMessage(player, Component.text("You haven't set a home yet!")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
             player.teleport(playerHomes.get(uuid));
-            player.sendMessage(Component.text("Teleported to home!")
+            AdventureCompat.sendMessage(player, Component.text("Teleported to home!")
                     .color(NamedTextColor.GREEN));
             return true;
         }

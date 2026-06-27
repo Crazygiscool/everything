@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -26,13 +27,13 @@ public class NameColorCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use this command!")
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (args.length != 1) {
-            player.sendMessage(Component.text("Usage: /namecolor <color>")
+            AdventureCompat.sendMessage(player, Component.text("Usage: /namecolor <color>")
                     .color(NamedTextColor.YELLOW));
             return true;
         }
@@ -41,7 +42,7 @@ public class NameColorCommand implements CommandExecutor, TabCompleter {
         NamedTextColor color = NamedTextColor.NAMES.value(colorName.toLowerCase(Locale.ROOT));
 
         if (color == null) {
-            player.sendMessage(Component.text("Invalid color! Use names like RED, BLUE, GREEN, etc.")
+            AdventureCompat.sendMessage(player, Component.text("Invalid color! Use names like RED, BLUE, GREEN, etc.")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -49,7 +50,7 @@ public class NameColorCommand implements CommandExecutor, TabCompleter {
         plugin.getConfig().set("namecolors." + player.getUniqueId(), colorName);
         plugin.saveConfig();
 
-        player.sendMessage(
+        AdventureCompat.sendMessage(player,
             Component.text("Your name color has been set to ")
                 .append(Component.text(colorName).color(color).decorate(TextDecoration.BOLD))
                 .append(Component.text("!").color(NamedTextColor.WHITE))

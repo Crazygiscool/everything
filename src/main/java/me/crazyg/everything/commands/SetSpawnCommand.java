@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -67,7 +68,7 @@ public class SetSpawnCommand implements CommandExecutor {
 
         if (command.getName().equalsIgnoreCase("setspawn")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(Component.text("Only players can set the spawn location.")
+                AdventureCompat.sendMessage(sender, Component.text("Only players can set the spawn location.")
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -90,21 +91,21 @@ public class SetSpawnCommand implements CommandExecutor {
 
             world.setSpawnLocation(x, y, z);
 
-            player.sendMessage(Component.text("Spawn location set!")
+            AdventureCompat.sendMessage(player, Component.text("Spawn location set!")
                     .color(NamedTextColor.GREEN));
             return true;
         }
 
         if (command.getName().equalsIgnoreCase("spawn")) {
             if (!(sender instanceof Player player)) {
-                sender.sendMessage(Component.text("Only players can teleport to the spawn location.")
+                AdventureCompat.sendMessage(sender, Component.text("Only players can teleport to the spawn location.")
                         .color(NamedTextColor.RED));
                 return true;
             }
 
             String worldName = locationsConfig.getString("spawn.world");
             if (worldName == null) {
-                player.sendMessage(Component.text("Spawn location is not set.")
+                AdventureCompat.sendMessage(player, Component.text("Spawn location is not set.")
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -119,7 +120,7 @@ public class SetSpawnCommand implements CommandExecutor {
             );
 
             player.teleport(spawnLoc);
-            player.sendMessage(Component.text("Teleported to spawn!")
+            AdventureCompat.sendMessage(player, Component.text("Teleported to spawn!")
                     .color(NamedTextColor.GREEN));
             return true;
         }

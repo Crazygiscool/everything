@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -18,18 +19,18 @@ public class BalanceCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!plugin.isEconomyEnabled()) {
-            sender.sendMessage(Component.text("Economy features are currently disabled! Check if you have a economy plugin installed.", NamedTextColor.RED));
+            AdventureCompat.sendMessage(sender, Component.text("Economy features are currently disabled! Check if you have a economy plugin installed.", NamedTextColor.RED));
             return true;
         }
 
         if (!(sender instanceof Player)) {
-            sender.sendMessage(Component.text("Only players can use this command!", NamedTextColor.RED));
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command!", NamedTextColor.RED));
             return true;
         }
 
         Player player = (Player) sender;
         double balance = Everything.getEconomy().getBalance(player);
-        player.sendMessage(Component.text("Your balance: ", NamedTextColor.GREEN)
+        AdventureCompat.sendMessage(player, Component.text("Your balance: ", NamedTextColor.GREEN)
                 .append(Component.text(Everything.getEconomy().format(balance), NamedTextColor.GOLD)));
         return true;
     }

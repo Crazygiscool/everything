@@ -1,6 +1,7 @@
 package me.crazyg.everything.gui;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
@@ -44,7 +45,7 @@ public abstract class BaseGUI implements InventoryHolder {
     public BaseGUI(Player player, int size, Component title) {
         this.player = player;
         this.size = size;
-        this.inv = Bukkit.createInventory(this, size, title);
+        this.inv = Bukkit.createInventory(this, size, LegacyComponentSerializer.legacySection().serialize(title));
         this.fillerItem = createDefaultFiller();
     }
 
@@ -243,13 +244,6 @@ public abstract class BaseGUI implements InventoryHolder {
                    .replace("%player_food%", String.valueOf(player.getFoodLevel()))
                    .replace("%player_xp%", String.valueOf(player.getExp()))
                    .replace("%player_level%", String.valueOf(player.getLevel()));
-
-        try {
-            if (Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI")) {
-                me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, text);
-            }
-        } catch (Exception ignored) {
-        }
 
         return text;
     }

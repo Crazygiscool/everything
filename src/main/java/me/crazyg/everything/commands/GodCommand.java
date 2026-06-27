@@ -1,5 +1,6 @@
 package me.crazyg.everything.commands;
 
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -14,11 +15,11 @@ public class GodCommand implements CommandExecutor {
             if (args.length == 0) {
                 if (p.isInvulnerable()) {
                     p.setInvulnerable(false);
-                    p.sendMessage(Component.text("GOD MODE disabled")
+                    AdventureCompat.sendMessage(p, Component.text("GOD MODE disabled")
                             .color(NamedTextColor.DARK_RED));
                 } else {
                     p.setInvulnerable(true);
-                    p.sendMessage(Component.text("GOD MODE Enabled")
+                    AdventureCompat.sendMessage(p, Component.text("GOD MODE Enabled")
                             .color(NamedTextColor.GOLD));
                 }
             } else {
@@ -26,32 +27,32 @@ public class GodCommand implements CommandExecutor {
                 Player target = Bukkit.getServer().getPlayerExact(playername);
 
                 if (target == null) {
-                    p.sendMessage(Component.text("This Player is not online")
+                    AdventureCompat.sendMessage(p, Component.text("This Player is not online")
                             .color(NamedTextColor.RED));
                 } else {
                     if (p.isInvulnerable()) {
                         target.setInvulnerable(false);
-                        target.sendMessage(Component.text("")
+                        AdventureCompat.sendMessage(target, Component.text("")
                                 .append(Component.text("GOD MODE disabled by ").color(NamedTextColor.DARK_RED))
-                                .append(Component.text(p.displayName().toString()).color(NamedTextColor.DARK_RED)));
-                        p.sendMessage(Component.text("MADE HIM NO LONGER GOD")
+                                .append(Component.text(p.getDisplayName()).color(NamedTextColor.DARK_RED)));
+                        AdventureCompat.sendMessage(p, Component.text("MADE HIM NO LONGER GOD")
                                 .color(NamedTextColor.BLUE));
                     } else {
                         target.setInvulnerable(true);
-                        target.sendMessage(Component.text("")
+                        AdventureCompat.sendMessage(target, Component.text("")
                                 .append(Component.text("GOD MODE Enabled by ").color(NamedTextColor.GOLD))
-                                .append(Component.text(p.displayName().toString()).color(NamedTextColor.GOLD)));
-                        p.sendMessage(Component.text("MADE HIM GOD")
+                                .append(Component.text(p.getDisplayName()).color(NamedTextColor.GOLD)));
+                        AdventureCompat.sendMessage(p, Component.text("MADE HIM GOD")
                                 .color(NamedTextColor.BLUE));
                     }
                 }
             }
         } else if (sender instanceof ConsoleCommandSender p) {
-            p.sendMessage(Component.text("Command Cannot be runned by console, Silly")
+            AdventureCompat.sendMessage(p, Component.text("Command Cannot be runned by console, Silly")
                     .color(NamedTextColor.DARK_RED)
                     .decorate(TextDecoration.BOLD));
         } else if (sender instanceof BlockCommandSender p) {
-            p.sendMessage(Component.text("Command Cannot be runned by command block, L")
+            AdventureCompat.sendMessage(p, Component.text("Command Cannot be runned by command block, L")
                     .color(NamedTextColor.DARK_RED)
                     .decorate(TextDecoration.BOLD));
         }

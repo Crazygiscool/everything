@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Set;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -69,7 +70,7 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use this command!")
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -81,12 +82,12 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
         switch (args[0].toLowerCase()) {
             case "set" -> {
                 if (!player.hasPermission("everything.warp.set")) {
-                    player.sendMessage(Component.text("You don't have permission to set warps!")
+                    AdventureCompat.sendMessage(player, Component.text("You don't have permission to set warps!")
                             .color(NamedTextColor.RED));
                     return true;
                 }
                 if (args.length < 2) {
-                    player.sendMessage(Component.text("Usage: /warp set <name>")
+                    AdventureCompat.sendMessage(player, Component.text("Usage: /warp set <name>")
                             .color(NamedTextColor.RED));
                     return true;
                 }
@@ -95,12 +96,12 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
 
             case "delete" -> {
                 if (!player.hasPermission("everything.warp.delete")) {
-                    player.sendMessage(Component.text("You don't have permission to delete warps!")
+                    AdventureCompat.sendMessage(player, Component.text("You don't have permission to delete warps!")
                             .color(NamedTextColor.RED));
                     return true;
                 }
                 if (args.length < 2) {
-                    player.sendMessage(Component.text("Usage: /warp delete <name>")
+                    AdventureCompat.sendMessage(player, Component.text("Usage: /warp delete <name>")
                             .color(NamedTextColor.RED));
                     return true;
                 }
@@ -116,14 +117,14 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     private boolean listWarps(Player player) {
         Set<String> warps = warpsConfig.getKeys(false);
         if (warps.isEmpty()) {
-            player.sendMessage(Component.text("There are no warps set!")
+            AdventureCompat.sendMessage(player, Component.text("There are no warps set!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
-        player.sendMessage(Component.text("Available warps:")
+        AdventureCompat.sendMessage(player, Component.text("Available warps:")
                 .color(NamedTextColor.YELLOW));
-        warps.forEach(warp -> player.sendMessage(Component.text("- " + warp)
+        warps.forEach(warp -> AdventureCompat.sendMessage(player, Component.text("- " + warp)
                 .color(NamedTextColor.GREEN)));
         return true;
     }
@@ -138,14 +139,14 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
         warpsConfig.set(name.toLowerCase() + ".pitch", loc.getPitch());
         saveWarps();
 
-        player.sendMessage(Component.text("Warp '" + name + "' has been set!")
+        AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has been set!")
                 .color(NamedTextColor.GREEN));
         return true;
     }
 
     private boolean deleteWarp(Player player, String name) {
         if (!warpsConfig.contains(name.toLowerCase())) {
-            player.sendMessage(Component.text("Warp '" + name + "' does not exist!")
+            AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' does not exist!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -153,28 +154,28 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
         warpsConfig.set(name.toLowerCase(), null);
         saveWarps();
 
-        player.sendMessage(Component.text("Warp '" + name + "' has been deleted!")
+        AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has been deleted!")
                 .color(NamedTextColor.GREEN));
         return true;
     }
 
     private boolean teleportToWarp(Player player, String name) {
         if (!warpsConfig.contains(name.toLowerCase())) {
-            player.sendMessage(Component.text("Warp '" + name + "' does not exist!")
+            AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' does not exist!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (!player.hasPermission("everything.warp.use." + name.toLowerCase())
                 && !player.hasPermission("everything.warp.use.*")) {
-            player.sendMessage(Component.text("You don't have permission to use this warp!")
+            AdventureCompat.sendMessage(player, Component.text("You don't have permission to use this warp!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         String worldName = warpsConfig.getString(name.toLowerCase() + ".world");
         if (worldName == null || Bukkit.getWorld(worldName) == null) {
-            player.sendMessage(Component.text("Warp '" + name + "' has an invalid world!")
+            AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has an invalid world!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -188,7 +189,7 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
         Location loc = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
         player.teleport(loc);
 
-        player.sendMessage(Component.text("Teleported to warp '" + name + "'!")
+        AdventureCompat.sendMessage(player, Component.text("Teleported to warp '" + name + "'!")
                 .color(NamedTextColor.GREEN));
         return true;
     }

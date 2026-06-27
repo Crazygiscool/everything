@@ -1,8 +1,7 @@
 # Everything Plugin Configuration
 # Join / Leave Messages
 # Use 'adventure api minicolors' for color codes.
-# Use PlaceholderAPI placeholders (e.g., %player_name%, %player_displayname%).
-# PlaceholderAPI must be installed for its placeholders to work.
+# Use built-in placeholders (e.g., %player_name%, %player_displayname%, %player_world%).
 messages:
   # Set to "" (empty string) to disable a specific message.
   join: "<yellow>%player_name% joined the game."
@@ -13,7 +12,6 @@ messages:
 # Use adventureAPI color codes with <gray> for gray.
 # Use <player> where you want the player's name/displayname to appear.
 # Use <message> where you want the player's message to appear.
-# You can include PlaceholderAPI placeholders (e.g., %player_world%, %vault_prefix%).
-# PlaceholderAPI must be installed for its placeholders to work.
+# Built-in placeholders: %player_name%, %player_displayname%, %player_world%, etc.
 chat:
   format: "<prefix><player><suffix> <gray>» <white><message>"

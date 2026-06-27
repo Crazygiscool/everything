@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
@@ -31,18 +32,18 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player)) {
-            sender.sendMessage(Component.text("Only players can use this command!", NamedTextColor.RED));
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command!", NamedTextColor.RED));
             return true;
         }
 
         if (args.length < 2) {
             if (args.length == 0) {
-                sender.sendMessage(
+                AdventureCompat.sendMessage(sender,
                     Component.text("Your balance: ", NamedTextColor.GREEN).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(sender.getName()))), NamedTextColor.DARK_GREEN))
                 );
                 return true;
             }
-            sender.sendMessage(
+            AdventureCompat.sendMessage(sender,
                 Component.text(args[0], NamedTextColor.GREEN).append(Component.text("'s balance: ", NamedTextColor.GREEN)).append(Component.text(String.format("%.2f", econ.getBalance(Bukkit.getOfflinePlayer(args[0]))), NamedTextColor.DARK_GREEN))
             );
             return true;
@@ -52,7 +53,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
         OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]);
 
         if (target == null) {
-            sender.sendMessage(
+            AdventureCompat.sendMessage(sender,
                 Component.text("Player not found.").color(NamedTextColor.RED)
             );
             return true;
@@ -61,7 +62,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "reset":
                 econ.withdrawPlayer(target, econ.getBalance(target));
-                sender.sendMessage(
+                AdventureCompat.sendMessage(sender,
                     Component.text("Reset balance for ").color(NamedTextColor.GREEN)
                         .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
                 );
@@ -79,14 +80,14 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
                 try {
                     amount = Double.parseDouble(args[2]);
                 } catch (NumberFormatException e) {
-                    sender.sendMessage(
+                    AdventureCompat.sendMessage(sender,
                         Component.text("Invalid amount.").color(NamedTextColor.RED)
                     );
                     return true;
                 }
 
                 if (amount < 0) {
-                    sender.sendMessage(
+                    AdventureCompat.sendMessage(sender,
                         Component.text("Amount cannot be negative.").color(NamedTextColor.RED)
                     );
                     return true;
@@ -104,7 +105,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "give":
                 econ.depositPlayer(target, amount);
-                sender.sendMessage(
+                AdventureCompat.sendMessage(sender,
                         Component.text("Gave ").color(NamedTextColor.GREEN)
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
                             .append(Component.text(" to ").color(NamedTextColor.GREEN))
@@ -114,7 +115,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
 
             case "take":
                 econ.withdrawPlayer(target, amount);
-                sender.sendMessage(
+                AdventureCompat.sendMessage(sender,
                         Component.text("Took ").color(NamedTextColor.RED)
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
                             .append(Component.text(" from ").color(NamedTextColor.RED))
@@ -130,7 +131,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
                     econ.depositPlayer(target, amount - current);
                 }
 
-                sender.sendMessage(
+                AdventureCompat.sendMessage(sender,
                         Component.text("Set ").color(NamedTextColor.GREEN)
                             .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
                             .append(Component.text("'s balance to ").color(NamedTextColor.GREEN))
@@ -142,7 +143,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
     }
 
     private void sendUsage(CommandSender sender) {
-        sender.sendMessage(
+        AdventureCompat.sendMessage(sender,
                 Component.text("Usage: /eco <give|take|set|reset> <player> [amount]")
                     .color(NamedTextColor.YELLOW)
         );

@@ -1,6 +1,5 @@
 package me.crazyg.everything.listeners;
 
-import io.papermc.paper.event.player.AsyncChatEvent;
 import me.crazyg.everything.Everything;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -12,32 +11,31 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class ChatListener implements Listener {
     
     private final Everything plugin;
-    private final boolean papiEnabled;
     private final boolean vaultEnabled;
     private final net.milkbowl.vault.chat.Chat vaultChat;
     private final MiniMessage miniMessage;
 
     public ChatListener(Everything plugin) {
         this.plugin = plugin;
-        this.papiEnabled = Bukkit.getPluginManager().isPluginEnabled("PlaceholderAPI");
         this.vaultEnabled = plugin.isVaultChatEnabled();
         this.vaultChat = Everything.getChat();
         this.miniMessage = MiniMessage.miniMessage();
     }
 
     @EventHandler
-    public void onPlayerChat(AsyncChatEvent event) {
+    public void onPlayerChat(AsyncPlayerChatEvent event) {
         Player player = event.getPlayer();
-        Component message = event.message();
+        Component message = Component.text(event.getMessage());
 
-        // Get chat format from config, default to a basic format if not found
-        String format = plugin.getConfig().getString("chat.format", "<color:#00b7ff>%player% <gray>» <white>%message%");
+        event.setCancelled(true);
 
-        // Get prefix and suffix from Vault if available
+        String format = plugin.getConfig().getString("chat.format", "<color:#00b7ff><player> <gray>» <white><message>");
+
         String prefix = "";
         String suffix = "";
         if (vaultEnabled && vaultChat != null) {
@@ -45,19 +43,14 @@ public class ChatListener implements Listener {
                 prefix = vaultChat.getPlayerPrefix(player);
                 suffix = vaultChat.getPlayerSuffix(player);
 
-                // Ensure prefix and suffix aren't null
                 prefix = prefix != null ? prefix : "";
                 suffix = suffix != null ? suffix : "";
-            } catch (Exception e) {
-                // If there's any error with Vault, just continue without prefix/suffix
-            }
+            } catch (Exception ignored) {}
         }
 
-        // Convert &-color codes in prefix/suffix to proper components
         Component prefixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
         Component suffixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(suffix);
 
-        // Get name color from config
         String colorName = plugin.getConfig().getString("namecolors." + player.getUniqueId(), "WHITE");
         NamedTextColor color = NamedTextColor.NAMES.value(colorName.toLowerCase());
         if (color == null) {
@@ -65,26 +58,23 @@ public class ChatListener implements Listener {
         }
         Component displayName = Component.text(player.getName()).color(color);
 
-        // Create tag resolvers for placeholders
+        format = format.replace("%player_name%", player.getName())
+                       .replace("%player_displayname%", player.getDisplayName())
+                       .replace("%player_world%", player.getWorld().getName())
+                       .replace("%player_health%", String.format("%.1f", player.getHealth()))
+                       .replace("%player_food%", String.valueOf(player.getFoodLevel()))
+                       .replace("%player_level%", String.valueOf(player.getLevel()))
+                       .replace("%player_xp%", String.valueOf(player.getExp()))
+                       .replace("%player_ping%", String.valueOf(player.getPing()))
+                       .replace("%player_gamemode%", player.getGameMode().name());
+
         TagResolver.Builder resolver = TagResolver.builder()
             .resolver(Placeholder.component("prefix", prefixComponent))
             .resolver(Placeholder.component("suffix", suffixComponent))
             .resolver(Placeholder.component("player", displayName))
             .resolver(Placeholder.component("message", message));
 
-        // Apply PlaceholderAPI placeholders if available
-        if (papiEnabled && format != null) {
-            String papiResult = me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(player, format);
-            if (papiResult != null) {
-                format = papiResult;
-            }
-        }
-
-        // Parse the format with MiniMessage
         Component formattedMessage = miniMessage.deserialize(format, resolver.build());
-
-        // Set the formatted message
-        event.setCancelled(true);
-        Bukkit.getServer().broadcast(formattedMessage);
+        Bukkit.broadcastMessage(LegacyComponentSerializer.legacySection().serialize(formattedMessage));
     }
 }

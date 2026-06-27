@@ -8,6 +8,7 @@ import java.util.Map;
 import java.util.UUID;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -124,7 +125,7 @@ public class StatsCommand implements CommandExecutor {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!(sender instanceof Player viewer)) {
-            sender.sendMessage(Component.text("Only players can use this command!")
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -133,7 +134,7 @@ public class StatsCommand implements CommandExecutor {
 
         if (args.length > 0) {
             if (!viewer.hasPermission("everything.stats.others")) {
-                viewer.sendMessage(Component.text("You don't have permission to view other players' stats!")
+                AdventureCompat.sendMessage(viewer, Component.text("You don't have permission to view other players' stats!")
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -141,7 +142,7 @@ public class StatsCommand implements CommandExecutor {
             target = Bukkit.getPlayer(args[0]);
 
             if (target == null) {
-                viewer.sendMessage(Component.text("Player not found!")
+                AdventureCompat.sendMessage(viewer, Component.text("Player not found!")
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -166,29 +167,29 @@ public class StatsCommand implements CommandExecutor {
 
         stats.update(target);
 
-        viewer.sendMessage(Component.text("=== Stats for " + target.getName() + " ===")
+        AdventureCompat.sendMessage(viewer, Component.text("=== Stats for " + target.getName() + " ===")
                 .color(NamedTextColor.GOLD)
                 .decorate(TextDecoration.BOLD));
 
         long hours = stats.getPlayTime() / 72000L;
         long minutes = (stats.getPlayTime() % 72000L) / 1200L;
 
-        viewer.sendMessage(Component.text("Playtime: ").color(NamedTextColor.YELLOW)
+        AdventureCompat.sendMessage(viewer, Component.text("Playtime: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(hours + "h " + minutes + "m").color(NamedTextColor.WHITE)));
 
-        viewer.sendMessage(Component.text("Kills: ").color(NamedTextColor.YELLOW)
+        AdventureCompat.sendMessage(viewer, Component.text("Kills: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(stats.getKills()).color(NamedTextColor.WHITE)));
 
-        viewer.sendMessage(Component.text("Deaths: ").color(NamedTextColor.YELLOW)
+        AdventureCompat.sendMessage(viewer, Component.text("Deaths: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(stats.getDeaths()).color(NamedTextColor.WHITE)));
 
-        viewer.sendMessage(Component.text("K/D Ratio: ").color(NamedTextColor.YELLOW)
+        AdventureCompat.sendMessage(viewer, Component.text("K/D Ratio: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(String.format("%.2f", stats.getKDRatio())).color(NamedTextColor.WHITE)));
 
-        viewer.sendMessage(Component.text("Blocks Broken: ").color(NamedTextColor.YELLOW)
+        AdventureCompat.sendMessage(viewer, Component.text("Blocks Broken: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(stats.getBlocksBroken()).color(NamedTextColor.WHITE)));
 
-        viewer.sendMessage(Component.text("Blocks Placed: ").color(NamedTextColor.YELLOW)
+        AdventureCompat.sendMessage(viewer, Component.text("Blocks Placed: ").color(NamedTextColor.YELLOW)
                 .append(Component.text(stats.getBlocksPlaced()).color(NamedTextColor.WHITE)));
     }
 

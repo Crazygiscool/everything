@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -22,19 +23,19 @@ public class PayCommand implements CommandExecutor, TabCompleter {
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
         if (!plugin.isEconomyEnabled()) {
-            sender.sendMessage(Component.text("Economy features are currently disabled.")
+            AdventureCompat.sendMessage(sender, Component.text("Economy features are currently disabled.")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (!(sender instanceof Player player)) {
-            sender.sendMessage(Component.text("Only players can use this command!")
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (args.length < 2) {
-            sender.sendMessage(Component.text("Usage: /pay <player> <amount>")
+            AdventureCompat.sendMessage(sender, Component.text("Usage: /pay <player> <amount>")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -42,7 +43,7 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         Player target = Bukkit.getPlayerExact(args[0]);
 
         if (target == null) {
-            player.sendMessage(Component.text("Player not found!")
+            AdventureCompat.sendMessage(player, Component.text("Player not found!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -51,19 +52,19 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         try {
             amount = Double.parseDouble(args[1]);
         } catch (NumberFormatException e) {
-            player.sendMessage(Component.text("Invalid amount!")
+            AdventureCompat.sendMessage(player, Component.text("Invalid amount!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (amount <= 0) {
-            player.sendMessage(Component.text("Amount must be positive!")
+            AdventureCompat.sendMessage(player, Component.text("Amount must be positive!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (!Everything.getEconomy().has(player, amount)) {
-            player.sendMessage(Component.text("You don't have enough money!")
+            AdventureCompat.sendMessage(player, Component.text("You don't have enough money!")
                     .color(NamedTextColor.RED));
             return true;
         }
@@ -71,13 +72,13 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         Everything.getEconomy().withdrawPlayer(player, amount);
         Everything.getEconomy().depositPlayer(target, amount);
 
-        player.sendMessage(Component.text("")
+        AdventureCompat.sendMessage(player, Component.text("")
                 .append(Component.text("You paid ").color(NamedTextColor.GREEN))
                 .append(Component.text(Everything.getEconomy().format(amount)).color(NamedTextColor.GOLD))
                 .append(Component.text(" to ").color(NamedTextColor.GREEN))
                 .append(Component.text(target.getName()).color(NamedTextColor.GREEN)));
 
-        target.sendMessage(Component.text("")
+        AdventureCompat.sendMessage(target, Component.text("")
                 .append(Component.text("You received ").color(NamedTextColor.GREEN))
                 .append(Component.text(Everything.getEconomy().format(amount)).color(NamedTextColor.GOLD))
                 .append(Component.text(" from ").color(NamedTextColor.GREEN))

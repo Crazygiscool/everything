@@ -129,12 +129,12 @@ public class HelpCategoryGUI extends BaseGUI {
 
             ItemStack head = new ItemStack(Material.PLAYER_HEAD);
             SkullMeta meta = (SkullMeta) head.getItemMeta();
-            meta.displayName(ItemBuilder.builder(Material.PAPER).name("&6" + name).build()
-                    .getItemMeta().displayName());
+            meta.setDisplayName(ItemBuilder.builder(Material.PAPER).name("&6" + name).build()
+                    .getItemMeta().getDisplayName());
             meta.setOwningPlayer(offPlayer);
-            meta.lore(List.of(
+            meta.setLore(List.of(
                     ItemBuilder.builder(Material.PAPER).name("&eBalance: &f" + String.format("%.2f", bal)).build()
-                            .getItemMeta().displayName()
+                            .getItemMeta().getDisplayName()
             ));
             head.setItemMeta(meta);
             displayItems.add(head);

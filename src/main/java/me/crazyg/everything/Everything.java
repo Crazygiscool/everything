@@ -32,7 +32,7 @@ public final class Everything extends JavaPlugin {
 
     // Utility for sending a fancy message with prefix
     public static void sendFancy(CommandSender sender, Component message) {
-        sender.sendMessage(PLUGIN_PREFIX.append(message));
+        AdventureCompat.sendMessage(sender, PLUGIN_PREFIX.append(message));
     }
 
     private static Economy econ = null;
@@ -53,7 +53,7 @@ public final class Everything extends JavaPlugin {
         int pluginId = 28514;
         Metrics metrics = new Metrics(this, pluginId);
 
-        metrics.addCustomChart(new Metrics.SimplePie("plugin_version", () -> getPluginMeta().getVersion()));
+        metrics.addCustomChart(new Metrics.SimplePie("plugin_version", () -> getDescription().getVersion()));
         metrics.addCustomChart(new Metrics.SimplePie("cpu_cores", () -> String.valueOf(Runtime.getRuntime().availableProcessors())));
         metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
             String v = Bukkit.getBukkitVersion();
@@ -76,7 +76,7 @@ public final class Everything extends JavaPlugin {
         Component asciiArt = Component.text("\n███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n██╔══╝░░░╚████╔╝░██╔══╝░░██╔══██╗░░╚██╔╝░░░░░██║░░░██╔══██║██║██║╚████║██║░░╚██╗\n███████╗░░╚██╔╝░░███████╗██║░░██║░░░██║░░░░░░██║░░░██║░░██║██║██║░╚███║╚██████╔╝\n╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░  ")
             .color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD);
 
-        Bukkit.getConsoleSender().sendMessage(asciiArt);
+        AdventureCompat.sendMessage(Bukkit.getConsoleSender(), asciiArt);
 
         // --- Economy & Vault Setup ---
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
@@ -184,12 +184,6 @@ public final class Everything extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
 
-        // --- PlaceholderAPI Check ---
-        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) {
-            getLogger().warning("PlaceholderAPI not found. Some placeholders in chat/messages may not work.");
-        } else {
-            getLogger().info("PlaceholderAPI found & Hooked!");
-        }
         // --- Vault Check ---
         if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
             getLogger().warning("Vault not found. Prefixes in chat/messages may not work.");
@@ -217,7 +211,7 @@ public final class Everything extends JavaPlugin {
         Component goodbyeArt = Component.text("\n░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝")
             .color(NamedTextColor.RED);
 
-        Bukkit.getConsoleSender().sendMessage(goodbyeArt);
+        AdventureCompat.sendMessage(Bukkit.getConsoleSender(), goodbyeArt);
     }
 
     private void applyUpdate() {

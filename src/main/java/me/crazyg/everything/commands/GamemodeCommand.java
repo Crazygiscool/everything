@@ -1,5 +1,6 @@
 package me.crazyg.everything.commands;
 
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -23,7 +24,7 @@ public class GamemodeCommand implements CommandExecutor {
         // --- Check if sender is a Player ---
         // If not a player (e.g., Console, CommandBlock), deny execution immediately.
         if (!(sender instanceof Player)) {
-            sender.sendMessage(DISALLOWED_SENDER);
+            AdventureCompat.sendMessage(sender, DISALLOWED_SENDER);
             return true; // Command handled (by denying it)
         }
 
@@ -58,7 +59,7 @@ public class GamemodeCommand implements CommandExecutor {
                 break;
             default:
                 // Should not happen if plugin.yml is set up correctly
-                playerSender.sendMessage(Component.text("Unknown gamemode command executed.")
+                AdventureCompat.sendMessage(playerSender, Component.text("Unknown gamemode command executed.")
                         .color(NamedTextColor.RED));
                 return true;
         }
@@ -82,32 +83,32 @@ public class GamemodeCommand implements CommandExecutor {
             targetPlayer = sender;
             // Check permission for self
             if (!sender.hasPermission(modePermission)) {
-                sender.sendMessage(Component.text("You do not have permission to set your gamemode to " + modeName)
+                AdventureCompat.sendMessage(sender, Component.text("You do not have permission to set your gamemode to " + modeName)
                         .color(NamedTextColor.RED));
                 return true;
             }
         } else { // Targeting another player (args.length == 1 expected now)
             if (args.length > 1) {
-                sender.sendMessage(Component.text(GENERIC_USAGE.replace("<command>", commandName))
+                AdventureCompat.sendMessage(sender, Component.text(GENERIC_USAGE.replace("<command>", commandName))
                         .color(NamedTextColor.RED));
                 return true; // Too many arguments
             }
 
             targetPlayer = Bukkit.getPlayerExact(args[0]);
             if (targetPlayer == null) {
-                sender.sendMessage(PLAYER_NOT_FOUND);
+                AdventureCompat.sendMessage(sender, PLAYER_NOT_FOUND);
                 return true;
             }
 
             // Check general 'others' permission AND specific mode permission
             if (!sender.hasPermission("everything.gamemode.others")) {
-                sender.sendMessage(Component.text("You do not have permission to change other players' gamemodes")
+                AdventureCompat.sendMessage(sender, Component.text("You do not have permission to change other players' gamemodes")
                         .color(NamedTextColor.RED));
                 return true;
             }
             // Also check if they have permission for the specific mode they are trying to set *for others*
             if (!sender.hasPermission(modePermission)) {
-                sender.sendMessage(Component.text("You do not have permission to set other players' gamemode to " + modeName)
+                AdventureCompat.sendMessage(sender, Component.text("You do not have permission to set other players' gamemode to " + modeName)
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -118,12 +119,12 @@ public class GamemodeCommand implements CommandExecutor {
 
         // --- Feedback Messages ---
         if (targetingSelf) {
-            sender.sendMessage(Component.text("Your gamemode has been set to " + modeName + ".")
+            AdventureCompat.sendMessage(sender, Component.text("Your gamemode has been set to " + modeName + ".")
                     .color(NamedTextColor.GREEN));
         } else {
-            sender.sendMessage(Component.text("Set " + targetPlayer.getName() + "'s gamemode to " + modeName + ".")
+            AdventureCompat.sendMessage(sender, Component.text("Set " + targetPlayer.getName() + "'s gamemode to " + modeName + ".")
                     .color(NamedTextColor.GREEN));
-            targetPlayer.sendMessage(Component.text("Your gamemode has been set to " + modeName + " by " + sender.getName() + ".")
+            AdventureCompat.sendMessage(targetPlayer, Component.text("Your gamemode has been set to " + modeName + " by " + sender.getName() + ".")
                     .color(NamedTextColor.GREEN));
         }
 

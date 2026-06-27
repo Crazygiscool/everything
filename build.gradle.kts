@@ -4,10 +4,11 @@ import java.util.Properties
 
 plugins {
     java
+    id("com.gradleup.shadow") version "9.4.2"
 }
 
 group = "me.crazyg"
-version = "1.5.22"
+version = "1.6.0"
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -17,14 +18,17 @@ repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
     maven("https://oss.sonatype.org/content/groups/public/")
+    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.helpch.at/releases")
     maven("https://jitpack.io")
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
-    compileOnly("me.clip:placeholderapi:2.11.5")
+    compileOnly("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    implementation("net.kyori:adventure-api:4.17.0")
+    implementation("net.kyori:adventure-text-minimessage:4.17.0")
+    implementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
 }
 
 tasks.withType<JavaCompile> {
@@ -59,9 +63,19 @@ fun incrementBuildNumber(current: String) {
 }
 
 tasks.named<Jar>("jar") {
+    archiveFileName.set("${project.name}-${project.version}-unshaded.jar")
+}
+
+tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJar") {
     val buildNumber = resolveBuildNumber()
     archiveFileName.set("${project.name}-${project.version}-b${buildNumber}.jar")
+    relocate("net.kyori", "me.crazyg.everything.libs.kyori")
+    relocate("com.google.gson", "me.crazyg.everything.libs.gson")
     doLast {
         incrementBuildNumber(buildNumber)
     }
+}
+
+tasks.build {
+    dependsOn("shadowJar")
 }

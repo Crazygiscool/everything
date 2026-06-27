@@ -95,10 +95,10 @@ public class EverythingCommand implements CommandExecutor {
                 return true;
 
             case "info": {
-                String version = plugin.getPluginMeta().getVersion();
+                String version = plugin.getDescription().getVersion();
                 String githubUrl = "https://github.com/Crazygiscool/everything/releases";
-                List<String> authors = plugin.getPluginMeta().getAuthors();
-                String description = plugin.getPluginMeta().getDescription();
+                List<String> authors = plugin.getDescription().getAuthors();
+                String description = plugin.getDescription().getDescription();
 
                 Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("ℹ️ Plugin Info\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
@@ -142,7 +142,7 @@ public class EverythingCommand implements CommandExecutor {
                     Everything.sendFancy(sender, Component.text("")
                         .append(Component.text("A new version is available! ").color(NamedTextColor.GREEN))
                         .append(Component.text("Current: ").color(NamedTextColor.YELLOW))
-                        .append(Component.text(plugin.getPluginMeta().getVersion()).color(NamedTextColor.WHITE))
+                        .append(Component.text(plugin.getDescription().getVersion()).color(NamedTextColor.WHITE))
                         .append(Component.text(" Latest: ").color(NamedTextColor.YELLOW))
                         .append(Component.text(updater.getLatestVersion()).color(NamedTextColor.WHITE)));
                 } else {
@@ -206,7 +206,7 @@ public class EverythingCommand implements CommandExecutor {
                 // --- Fake updater test ---
                 Everything.sendFancy(sender, Component.text("[TEST] Faking updater state...").color(NamedTextColor.LIGHT_PURPLE));
                 // Simulate update available
-                String fakeCurrent = plugin.getPluginMeta().getVersion();
+                String fakeCurrent = plugin.getDescription().getVersion();
                 String fakeLatest = "v99.99.99-FAKE";
                 String fakeUrl = "https://example.com/fake-update.jar";
                 Everything.sendFancy(sender, Component.text("[TEST] Simulated update available!").color(NamedTextColor.GREEN)
@@ -222,10 +222,10 @@ public class EverythingCommand implements CommandExecutor {
 
                 // --- Print debug info ---
                 Everything.sendFancy(sender, Component.text("[DEBUG] Plugin info:").color(NamedTextColor.YELLOW));
-                Everything.sendFancy(sender, Component.text("  Name: " + plugin.getPluginMeta().getName()).color(NamedTextColor.GRAY));
-                Everything.sendFancy(sender, Component.text("  Version: " + plugin.getPluginMeta().getVersion()).color(NamedTextColor.GRAY));
-                Everything.sendFancy(sender, Component.text("  Authors: " + String.join(", ", plugin.getPluginMeta().getAuthors())).color(NamedTextColor.GRAY));
-                Everything.sendFancy(sender, Component.text("  Description: " + plugin.getPluginMeta().getDescription()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Name: " + plugin.getDescription().getName()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Version: " + plugin.getDescription().getVersion()).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Authors: " + String.join(", ", plugin.getDescription().getAuthors())).color(NamedTextColor.GRAY));
+                Everything.sendFancy(sender, Component.text("  Description: " + plugin.getDescription().getDescription()).color(NamedTextColor.GRAY));
                 Everything.sendFancy(sender, Component.text("[DEBUG] Java version: " + System.getProperty("java.version")).color(NamedTextColor.GRAY));
                 Everything.sendFancy(sender, Component.text("[DEBUG] OS: " + System.getProperty("os.name") + " (" + System.getProperty("os.arch") + ")").color(NamedTextColor.GRAY));
                 Everything.sendFancy(sender, Component.text("[DEBUG] Bukkit version: " + plugin.getServer().getBukkitVersion()).color(NamedTextColor.GRAY));

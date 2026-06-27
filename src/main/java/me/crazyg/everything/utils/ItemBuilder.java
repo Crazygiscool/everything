@@ -4,6 +4,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextColor;
 import net.kyori.adventure.text.format.TextDecoration;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemFlag;
@@ -149,11 +150,13 @@ public class ItemBuilder {
         ItemMeta meta = item.getItemMeta();
 
         if (displayName != null) {
-            meta.displayName(displayName);
+            meta.setDisplayName(LegacyComponentSerializer.legacySection().serialize(displayName));
         }
 
         if (!lore.isEmpty()) {
-            meta.lore(lore);
+            meta.setLore(lore.stream()
+                    .map(c -> LegacyComponentSerializer.legacySection().serialize(c))
+                    .toList());
         }
 
         if (glowing) {
@@ -205,11 +208,13 @@ public class ItemBuilder {
         if (owner != null && !owner.isEmpty()) {
             skullMeta.setOwningPlayer(Bukkit.getOfflinePlayer(owner));
         }
-        skullMeta.displayName(Component.text(name).color(NamedTextColor.GOLD));
+        skullMeta.setDisplayName(LegacyComponentSerializer.legacySection().serialize(
+                Component.text(name).color(NamedTextColor.GOLD)));
         if (lore.length > 0) {
-            skullMeta.lore(
+            skullMeta.setLore(
                     Arrays.stream(lore)
-                            .map(s -> Component.text(s).color(NamedTextColor.GRAY))
+                            .map(s -> LegacyComponentSerializer.legacySection().serialize(
+                                    Component.text(s).color(NamedTextColor.GRAY)))
                             .toList()
             );
         }

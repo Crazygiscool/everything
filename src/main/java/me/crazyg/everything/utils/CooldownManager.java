@@ -3,6 +3,7 @@ package me.crazyg.everything.utils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.entity.Player;
@@ -24,7 +25,7 @@ public class CooldownManager {
         
         if (cooldownTime > System.currentTimeMillis()) {
             long secondsLeft = (cooldownTime - System.currentTimeMillis()) / 1000;
-            player.sendMessage(Component.text("You must wait " + secondsLeft + " seconds before using this command again!")
+            AdventureCompat.sendMessage(player, Component.text("You must wait " + secondsLeft + " seconds before using this command again!")
                     .color(NamedTextColor.RED));
             return true;
         }

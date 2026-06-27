@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.Objects;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -118,11 +119,11 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
         List<Map<?, ?>> reportsList = dataConfig.getMapList("reports");
 
         if (reportsList.isEmpty()) {
-            sender.sendMessage(NO_REPORTS);
+            AdventureCompat.sendMessage(sender, NO_REPORTS);
             return;
         }
 
-        sender.sendMessage(REPORT_HEADER);
+        AdventureCompat.sendMessage(sender, REPORT_HEADER);
         int index = 0;
 
         for (Map<?, ?> reportData : reportsList) {
@@ -151,7 +152,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                 reportLine = Component.text("").append(reportLine).append(acceptBtn).append(denyBtn);
             }
 
-            sender.sendMessage(reportLine);
+            AdventureCompat.sendMessage(sender, reportLine);
             index++;
         }
     }
@@ -168,7 +169,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                 if (p.hasPermission(VIEW_REPORTS_PERMISSION)) {
                     displayReports(sender);
                 } else {
-                    p.sendMessage(NO_VIEW_PERMISSION);
+                    AdventureCompat.sendMessage(p, NO_VIEW_PERMISSION);
                 }
                 return true;
             }
@@ -177,7 +178,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
             if (args.length == 2 && (args[0].equalsIgnoreCase("accept") || args[0].equalsIgnoreCase("deny"))) {
 
                 if (!p.hasPermission(VIEW_REPORTS_PERMISSION)) {
-                    p.sendMessage(NO_VIEW_PERMISSION);
+                    AdventureCompat.sendMessage(p, NO_VIEW_PERMISSION);
                     return true;
                 }
 
@@ -185,14 +186,14 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                 try {
                     index = Integer.parseInt(args[1]);
                 } catch (NumberFormatException e) {
-                    p.sendMessage(Component.text("Invalid report index.").color(NamedTextColor.RED));
+                    AdventureCompat.sendMessage(p, Component.text("Invalid report index.").color(NamedTextColor.RED));
                     return true;
                 }
 
                 List<Map<?, ?>> reportsList = dataConfig.getMapList("reports");
 
                 if (index < 0 || index >= reportsList.size()) {
-                    p.sendMessage(Component.text("No report at that index.").color(NamedTextColor.RED));
+                    AdventureCompat.sendMessage(p, Component.text("No report at that index.").color(NamedTextColor.RED));
                     return true;
                 }
 
@@ -208,7 +209,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                 saveData();
 
                 // Notify admin
-                p.sendMessage(Component.text("Report for player '").color(NamedTextColor.GREEN)
+                AdventureCompat.sendMessage(p, Component.text("Report for player '").color(NamedTextColor.GREEN)
                         .append(Component.text(reported).color(NamedTextColor.YELLOW))
                         .append(Component.text("' has been ").color(NamedTextColor.GREEN))
                         .append(Component.text(action).color(args[0].equalsIgnoreCase("accept") ? NamedTextColor.GREEN : NamedTextColor.RED))
@@ -217,7 +218,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                 // Notify reporter if online
                 Player reporterPlayer = Bukkit.getPlayerExact(reporter);
                 if (reporterPlayer != null && reporterPlayer.isOnline()) {
-                    reporterPlayer.sendMessage(Component.text("Your report against '").color(NamedTextColor.GOLD)
+                    AdventureCompat.sendMessage(reporterPlayer, Component.text("Your report against '").color(NamedTextColor.GOLD)
                             .append(Component.text(reported).color(NamedTextColor.YELLOW))
                             .append(Component.text("' was ").color(NamedTextColor.GOLD))
                             .append(Component.text(action).color(args[0].equalsIgnoreCase("accept") ? NamedTextColor.GREEN : NamedTextColor.RED))
@@ -229,7 +230,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
 
             // Not enough args
             if (args.length < 2) {
-                p.sendMessage(NEEDS_MORE_ARGS);
+                AdventureCompat.sendMessage(p, NEEDS_MORE_ARGS);
                 return true;
             }
 
@@ -238,7 +239,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
             OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
 
             if (!target.hasPlayedBefore() && !target.isOnline()) {
-                p.sendMessage(Component.text("Player '" + playerName + "' has never joined before.")
+                AdventureCompat.sendMessage(p, Component.text("Player '" + playerName + "' has never joined before.")
                         .color(NamedTextColor.RED));
                 return true;
             }
@@ -248,7 +249,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
             addReportToConfig(p.getName(), target.getName(), reason);
 
             // Console log
-            Bukkit.getConsoleSender().sendMessage(
+            AdventureCompat.sendMessage(Bukkit.getConsoleSender(), 
                     Component.text("Report sent for player: ").color(NamedTextColor.GREEN)
                             .append(Component.text(target.getName()).color(NamedTextColor.YELLOW))
                             .append(Component.text(" Reported by: ").color(NamedTextColor.GREEN))
@@ -257,7 +258,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                             .append(Component.text(reason).color(NamedTextColor.WHITE))
             );
 
-            p.sendMessage(Component.text("Reported player ")
+            AdventureCompat.sendMessage(p, Component.text("Reported player ")
                     .color(NamedTextColor.GREEN)
                     .append(Component.text(target.getName()).color(NamedTextColor.YELLOW))
                     .append(Component.text(". Thank you for your report.").color(NamedTextColor.GREEN)));
@@ -269,11 +270,11 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
             if (args.length == 0) {
                 displayReports(sender);
             } else {
-                sender.sendMessage(CONSOLE_DENIED);
+                AdventureCompat.sendMessage(sender, CONSOLE_DENIED);
             }
 
         } else if (sender instanceof BlockCommandSender) {
-            sender.sendMessage(COMMAND_BLOCK_DENIED);
+            AdventureCompat.sendMessage(sender, COMMAND_BLOCK_DENIED);
         }
 
         return true;

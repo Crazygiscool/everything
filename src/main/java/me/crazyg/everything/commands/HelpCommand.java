@@ -2,6 +2,7 @@ package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.gui.help.*;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -25,7 +26,7 @@ public class HelpCommand implements CommandExecutor {
         String[] args
     ) {
         if (!(sender instanceof Player p)) {
-            sender.sendMessage(
+            AdventureCompat.sendMessage(sender,
                 Component.text(
                     "This command can only be used by players!"
                 ).color(NamedTextColor.RED)

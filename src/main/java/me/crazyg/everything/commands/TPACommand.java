@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Bukkit;
@@ -24,25 +25,25 @@ public class TPACommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player p)) {
-            sender.sendMessage(Component.text("Only players can use this command.").color(NamedTextColor.RED));
+            AdventureCompat.sendMessage(sender, Component.text("Only players can use this command.").color(NamedTextColor.RED));
             return true;
         }
         if (args.length == 1) {
             Player target = Bukkit.getPlayerExact(args[0]);
             if (target == null || !target.isOnline()) {
-                p.sendMessage(Component.text("Player not found or not online.").color(NamedTextColor.RED));
+                AdventureCompat.sendMessage(p, Component.text("Player not found or not online.").color(NamedTextColor.RED));
                 return true;
             }
             if (target.equals(p)) {
-                p.sendMessage(Component.text("You cannot send a TPA request to yourself.").color(NamedTextColor.RED));
+                AdventureCompat.sendMessage(p, Component.text("You cannot send a TPA request to yourself.").color(NamedTextColor.RED));
                 return true;
             }
             tpaRequests.put(target.getUniqueId(), p.getUniqueId());
-            target.sendMessage(Component.text(p.getName() + " has requested to teleport to you. Type /tpaccept or /tpdeny.").color(NamedTextColor.AQUA));
-            p.sendMessage(Component.text("TPA request sent to " + target.getName()).color(NamedTextColor.GREEN));
+            AdventureCompat.sendMessage(target, Component.text(p.getName() + " has requested to teleport to you. Type /tpaccept or /tpdeny.").color(NamedTextColor.AQUA));
+            AdventureCompat.sendMessage(p, Component.text("TPA request sent to " + target.getName()).color(NamedTextColor.GREEN));
             return true;
         } else if (args.length == 0) {
-            p.sendMessage(Component.text("Usage: /tpa <player>").color(NamedTextColor.YELLOW));
+            AdventureCompat.sendMessage(p, Component.text("Usage: /tpa <player>").color(NamedTextColor.YELLOW));
             return true;
         }
         return false;
@@ -51,31 +52,31 @@ public class TPACommand implements CommandExecutor {
     public boolean handleTpAccept(Player target) {
         UUID requesterId = tpaRequests.remove(target.getUniqueId());
         if (requesterId == null) {
-            target.sendMessage(Component.text("No pending TPA requests.").color(NamedTextColor.RED));
+            AdventureCompat.sendMessage(target, Component.text("No pending TPA requests.").color(NamedTextColor.RED));
             return true;
         }
         Player requester = Bukkit.getPlayer(requesterId);
         if (requester == null || !requester.isOnline()) {
-            target.sendMessage(Component.text("Requester is no longer online.").color(NamedTextColor.RED));
+            AdventureCompat.sendMessage(target, Component.text("Requester is no longer online.").color(NamedTextColor.RED));
             return true;
         }
         requester.teleport(target.getLocation());
-        requester.sendMessage(Component.text("Teleported to " + target.getName()).color(NamedTextColor.GREEN));
-        target.sendMessage(Component.text(requester.getName() + " has teleported to you.").color(NamedTextColor.GREEN));
+        AdventureCompat.sendMessage(requester, Component.text("Teleported to " + target.getName()).color(NamedTextColor.GREEN));
+        AdventureCompat.sendMessage(target, Component.text(requester.getName() + " has teleported to you.").color(NamedTextColor.GREEN));
         return true;
     }
 
     public boolean handleTpDeny(Player target) {
         UUID requesterId = tpaRequests.remove(target.getUniqueId());
         if (requesterId == null) {
-            target.sendMessage(Component.text("No pending TPA requests.").color(NamedTextColor.RED));
+            AdventureCompat.sendMessage(target, Component.text("No pending TPA requests.").color(NamedTextColor.RED));
             return true;
         }
         Player requester = Bukkit.getPlayer(requesterId);
         if (requester != null && requester.isOnline()) {
-            requester.sendMessage(Component.text(target.getName() + " denied your TPA request.").color(NamedTextColor.RED));
+            AdventureCompat.sendMessage(requester, Component.text(target.getName() + " denied your TPA request.").color(NamedTextColor.RED));
         }
-        target.sendMessage(Component.text("TPA request denied.").color(NamedTextColor.RED));
+        AdventureCompat.sendMessage(target, Component.text("TPA request denied.").color(NamedTextColor.RED));
         return true;
     }
 }
