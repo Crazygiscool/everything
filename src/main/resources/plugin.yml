@@ -147,13 +147,18 @@ commands:
     usage: /tpaccept
     permission: everything.tpaccept
     permission-message: You do not have permission to accept tpa requests.
-  tpdeny:
-    description: Deny a teleport request
-    usage: /tpdeny
-    permission: everything.tpdeny
-    permission-message: You do not have permission to deny tpa requests.
-
-permissions:
+   tpdeny:
+     description: Deny a teleport request
+     usage: /tpdeny
+     permission: everything.tpdeny
+     permission-message: You do not have permission to deny tpa requests.
+   rtp:
+     description: Randomly teleport to a random location.
+     usage: /rtp
+     permission: everything.rtp
+     permission-message: You do not have permission to random teleport.
+ 
+ permissions:
   everything.eco:
     description: Allow player to view their economy
     default: true
@@ -256,6 +261,12 @@ permissions:
   everything.balance:
     description: Allows using the /balance command.
     default: op
-  everything.pay:
-    description: Allows using the /pay command.
-    default: op
+   everything.pay:
+     description: Allows using the /pay command.
+     default: op
+   everything.rtp:
+     description: Allows using the /rtp command.
+     default: true
+   everything.rtp.bypasscooldown:
+     description: Bypasses the RTP cooldown.
+     default: op

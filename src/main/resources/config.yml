@@ -15,3 +15,12 @@ messages:
 # Built-in placeholders: %player_name%, %player_displayname%, %player_world%, etc.
 chat:
   format: "<prefix><player><suffix> <gray>» <white><message>"
+
+# Random Teleport (/rtp) settings
+rtp:
+  center-x: 0
+  center-z: 0
+  min-radius: 500
+  max-radius: 5000
+  cooldown-seconds: 60
+  max-attempts: 20
