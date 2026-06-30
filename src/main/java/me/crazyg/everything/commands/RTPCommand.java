@@ -19,6 +19,7 @@ public class RTPCommand implements CommandExecutor {
 
     private final Everything plugin;
     private final CooldownManager cooldownManager;
+    private final Random random = new Random();
 
     public RTPCommand(Everything plugin) {
         this.plugin = plugin;
@@ -47,6 +48,13 @@ public class RTPCommand implements CommandExecutor {
 
         World world = player.getWorld();
 
+        World.Environment env = world.getEnvironment();
+        if (env == World.Environment.NETHER || env == World.Environment.THE_END) {
+            AdventureCompat.sendMessage(player, Component.text("You cannot use /rtp in the Nether or the End!")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+
         double centerX = plugin.getConfig().getDouble("rtp.center-x", 0);
         double centerZ = plugin.getConfig().getDouble("rtp.center-z", 0);
         double minRadius = plugin.getConfig().getDouble("rtp.min-radius", 500);
@@ -59,6 +67,8 @@ public class RTPCommand implements CommandExecutor {
             minRadius = maxRadius;
             maxRadius = temp;
         }
+        minRadius = Math.max(0, minRadius);
+        maxRadius = Math.max(0, maxRadius);
 
         Location safeLocation = findSafeLocation(world, centerX, centerZ, minRadius, maxRadius, maxAttempts);
 
@@ -81,7 +91,6 @@ public class RTPCommand implements CommandExecutor {
 
     private Location findSafeLocation(World world, double centerX, double centerZ,
                                        double minRadius, double maxRadius, int maxAttempts) {
-        Random random = new Random();
         org.bukkit.WorldBorder border = world.getWorldBorder();
         double borderCenterX = border.getCenter().getX();
         double borderCenterZ = border.getCenter().getZ();
@@ -116,12 +125,16 @@ public class RTPCommand implements CommandExecutor {
         int maxY = world.getMaxHeight() - 2;
         int minY = world.getMinHeight();
 
+        if (!world.isChunkLoaded(x >> 4, z >> 4)) {
+            world.loadChunk(x >> 4, z >> 4);
+        }
+
         for (int y = maxY; y >= minY; y--) {
             Block ground = world.getBlockAt(x, y, z);
             Block feet = world.getBlockAt(x, y + 1, z);
             Block head = world.getBlockAt(x, y + 2, z);
 
-            if (isSafeGround(ground) && isPassable(feet) && isPassable(head)) {
+            if (isSafeGround(ground) && isPassable(feet) && isPassable(head) && hasSkyAccess(world, x, z, y)) {
                 return y;
             }
         }
@@ -139,9 +152,20 @@ public class RTPCommand implements CommandExecutor {
 
     private boolean isPassable(Block block) {
         Material type = block.getType();
-        return !type.isSolid()
+        return type == Material.AIR
+                || type == Material.CAVE_AIR
+                || type == Material.VOID_AIR
                 || type == Material.TALL_GRASS
                 || type == Material.FERN
                 || type == Material.DEAD_BUSH;
+    }
+
+    private boolean hasSkyAccess(World world, int x, int z, int groundY) {
+        for (int y = groundY + 3; y < world.getMaxHeight(); y++) {
+            if (world.getBlockAt(x, y, z).getType().isSolid()) {
+                return false;
+            }
+        }
+        return true;
     }
 }
