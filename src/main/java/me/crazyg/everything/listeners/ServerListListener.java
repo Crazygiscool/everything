@@ -41,12 +41,7 @@ public class ServerListListener implements Listener {
         this.random = new Random();
         this.startTime = System.currentTimeMillis();
 
-        File folder = new File(plugin.getDataFolder(), "motd");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        File resource = new File(folder, "motd.yml");
+        File resource = new File(plugin.getDataFolder(), "motd.yml");
         if (!resource.exists()) {
             plugin.saveResource("motd.yml", false);
         }
