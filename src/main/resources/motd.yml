@@ -1,0 +1,17 @@
+# Server list ping MOTD configuration
+# Supports MiniMessage format (<color>, <gradient>, etc.) and & color codes (&a, &c, &l, etc.)
+# Placeholders: %player_count%, %max_players%, %server_name%, %server_version%, %server_uptime%
+lines:
+  - "&a✦ Everything Server ✦\n&7Welcome %player_count%/%max_players% players!"
+  - "&b✦ Everything Server ✦\n&7Have a great day!"
+maintenance-lines:
+  - "&c✘ Maintenance Mode\n&7We'll be back soon!"
+
+# Player count display
+persist-online: 10
+hide-during-maintenance: true
+custom-max: -1
+
+# Server icon files (relative to plugin data folder)
+icon: "server-icon.png"
+icon-maintenance: "server-icon-maintenance.png"

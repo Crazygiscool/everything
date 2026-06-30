@@ -42,6 +42,7 @@ public final class Everything extends JavaPlugin {
 
     private WarpCommand warpCommand;
     private SetSpawnCommand spawnCommand;
+    private ServerListListener serverListListener;
     private EcoStorage ecoStorage;
 
     @Override
@@ -188,6 +189,9 @@ public final class Everything extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
 
+        this.serverListListener = new ServerListListener(this);
+        getServer().getPluginManager().registerEvents(serverListListener, this);
+
         // Initialize updater
         boolean autoUpdate = getConfig().getBoolean("auto-update", true);
 
@@ -293,6 +297,10 @@ public final class Everything extends JavaPlugin {
 
     public SetSpawnCommand getSpawnCommand() {
         return spawnCommand;
+    }
+
+    public ServerListListener getServerListListener() {
+        return serverListListener;
     }
 
     public EcoStorage getEcoStorage() {
