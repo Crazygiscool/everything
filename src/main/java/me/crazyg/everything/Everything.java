@@ -186,13 +186,6 @@ public final class Everything extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
 
-        // --- Vault Check ---
-        if (Bukkit.getPluginManager().getPlugin("Vault") == null) {
-            getLogger().warning("Vault not found. Prefixes in chat/messages may not work.");
-        } else {
-            getLogger().info("Vault found & Hooked!");
-        }
-
         // Initialize updater
         boolean autoUpdate = getConfig().getBoolean("auto-update", true);
 
