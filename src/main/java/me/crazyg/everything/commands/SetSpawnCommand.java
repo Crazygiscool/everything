@@ -55,6 +55,10 @@ public class SetSpawnCommand implements CommandExecutor {
         locationsConfig = YamlConfiguration.loadConfiguration(locationsFile);
     }
 
+    public void reload() {
+        loadLocations();
+    }
+
     private void saveLocations() {
         try {
             locationsConfig.save(locationsFile);

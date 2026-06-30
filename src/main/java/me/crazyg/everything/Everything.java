@@ -41,6 +41,7 @@ public final class Everything extends JavaPlugin {
     private boolean vaultChatEnabled = false;
 
     private WarpCommand warpCommand;
+    private SetSpawnCommand spawnCommand;
     private EcoStorage ecoStorage;
 
     @Override
@@ -160,8 +161,9 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("msg", new MessageCommand(this));
         commandManager.registerCommand("reply", new MessageCommand(this));
         commandManager.registerCommand("maintenance", new MaintenanceCommand(this));
-        commandManager.registerCommand("setspawn", new SetSpawnCommand(this));
-        commandManager.registerCommand("spawn", new SetSpawnCommand(this));
+        this.spawnCommand = new SetSpawnCommand(this);
+        commandManager.registerCommand("setspawn", spawnCommand);
+        commandManager.registerCommand("spawn", spawnCommand);
         commandManager.registerCommand("pay", new PayCommand(this));
         commandManager.registerCommand("balance", new BalanceCommand(this));
         commandManager.registerCommand("stats", new StatsCommand(this));
@@ -287,6 +289,10 @@ public final class Everything extends JavaPlugin {
 
     public WarpCommand getWarpCommand() {
         return warpCommand;
+    }
+
+    public SetSpawnCommand getSpawnCommand() {
+        return spawnCommand;
     }
 
     public EcoStorage getEcoStorage() {

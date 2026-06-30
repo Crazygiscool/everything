@@ -91,6 +91,7 @@ public class EverythingCommand implements CommandExecutor {
                     return true;
                 }
                 plugin.reloadConfig();
+                plugin.getSpawnCommand().reload();
                 Everything.sendFancy(sender, Component.text("Plugin configuration reloaded successfully!").color(NamedTextColor.GREEN));
                 return true;
 
