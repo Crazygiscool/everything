@@ -1,5 +1,6 @@
 package me.crazyg.everything;
 
+import java.io.File;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
@@ -8,9 +9,6 @@ import me.crazyg.everything.utils.economy.EcoStorage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
-
-import java.io.File;
-
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -27,7 +25,12 @@ public final class Everything extends JavaPlugin {
     // Fancy prefix for all plugin messages
     public static final Component PLUGIN_PREFIX = Component.text("")
         .append(Component.text("❖ ").color(NamedTextColor.AQUA))
-        .append(Component.text("Everything").color(NamedTextColor.BLUE).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD).decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC))
+        .append(
+            Component.text("Everything")
+                .color(NamedTextColor.BLUE)
+                .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
+                .decorate(net.kyori.adventure.text.format.TextDecoration.ITALIC)
+        )
         .append(Component.text(" » ").color(NamedTextColor.AQUA));
 
     // Utility for sending a fancy message with prefix
@@ -55,16 +58,33 @@ public final class Everything extends JavaPlugin {
         int pluginId = 28514;
         Metrics metrics = new Metrics(this, pluginId);
 
-        metrics.addCustomChart(new Metrics.SimplePie("plugin_version", () -> getDescription().getVersion()));
-        metrics.addCustomChart(new Metrics.SimplePie("cpu_cores", () -> String.valueOf(Runtime.getRuntime().availableProcessors())));
-        metrics.addCustomChart(new Metrics.SimplePie("minecraft_version", () -> {
-            String v = Bukkit.getBukkitVersion();
-            int dash = v.indexOf('-');
-            return dash > 0 ? v.substring(0, dash) : v;
-        }));
-        metrics.addCustomChart(new Metrics.SimplePie("server_region", () ->
-            java.util.TimeZone.getDefault().getDisplayName()));
-        metrics.addCustomChart(new Metrics.SimplePie("os_arch", () -> System.getProperty("os.arch")));
+        metrics.addCustomChart(
+            new Metrics.SimplePie("plugin_version", () ->
+                getDescription().getVersion()
+            )
+        );
+        metrics.addCustomChart(
+            new Metrics.SimplePie("cpu_cores", () ->
+                String.valueOf(Runtime.getRuntime().availableProcessors())
+            )
+        );
+        metrics.addCustomChart(
+            new Metrics.SimplePie("minecraft_version", () -> {
+                String v = Bukkit.getBukkitVersion();
+                int dash = v.indexOf('-');
+                return dash > 0 ? v.substring(0, dash) : v;
+            })
+        );
+        metrics.addCustomChart(
+            new Metrics.SimplePie("server_region", () ->
+                java.util.TimeZone.getDefault().getDisplayName()
+            )
+        );
+        metrics.addCustomChart(
+            new Metrics.SimplePie("os_arch", () ->
+                System.getProperty("os.arch")
+            )
+        );
 
         // --- Config Loading ---
         getConfig().options().copyDefaults(true);
@@ -75,24 +95,26 @@ public final class Everything extends JavaPlugin {
         getLogger().info("THANK YOU FOR USING THE PLUGIN");
 
         // ASCII art with Adventure API
-        Component asciiArt = Component.text("\n███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n██╔══╝░░░╚████╔╝░██╔══╝░░██╔══██╗░░╚██╔╝░░░░░██║░░░██╔══██║██║██║╚████║██║░░╚██╗\n███████╗░░╚██╔╝░░███████╗██║░░██║░░░██║░░░░░░██║░░░██║░░██║██║██║░╚███║╚██████╔╝\n╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░  ")
-            .color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD);
+        Component asciiArt = Component.text(
+            "███████╗██╗░░░██╗███████╗██████╗░██╗░░░██╗████████╗██╗░░██╗██╗███╗░░██╗░██████╗░\n██╔════╝██║░░░██║██╔════╝██╔══██╗╚██╗░██╔╝╚══██╔══╝██║░░██║██║████╗░██║██╔════╝░\n█████╗░░╚██╗░██╔╝█████╗░░██████╔╝░╚████╔╝░░░░██║░░░███████║██║██╔██╗██║██║░░██╗░\n██╔══╝░░░╚████╔╝░██╔══╝░░██╔══██╗░░╚██╔╝░░░░░██║░░░██╔══██║██║██║╚████║██║░░╚██╗\n███████╗░░╚██╔╝░░███████╗██║░░██║░░░██║░░░░░░██║░░░██║░░██║██║██║░╚███║╚██████╔╝\n╚══════╝░░░╚═╝░░░╚══════╝╚═╝░░╚═╝░░░╚═╝░░░░░░╚═╝░░░╚═╝░░╚═╝╚═╝╚═╝░░╚══╝░╚═════╝░  "
+        )
+            .color(NamedTextColor.GOLD)
+            .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD);
 
         AdventureCompat.sendMessage(Bukkit.getConsoleSender(), asciiArt);
 
         // --- Economy & Vault Setup ---
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
-
             // Register EverythingEconomy
             EcoStorage storage = new EcoStorage(this);
             this.ecoStorage = storage;
             EcoProvider ecoProvider = new EcoProvider(storage);
 
             Bukkit.getServicesManager().register(
-                    Economy.class,
-                    ecoProvider,
-                    this,
-                    org.bukkit.plugin.ServicePriority.Highest
+                Economy.class,
+                ecoProvider,
+                this,
+                org.bukkit.plugin.ServicePriority.Highest
             );
 
             getLogger().info("EverythingEconomy registered as Vault provider.");
@@ -102,7 +124,9 @@ public final class Everything extends JavaPlugin {
                 getLogger().info("Vault economy hooked successfully!");
                 economyEnabled = true;
             } else {
-                getLogger().warning("Vault found but no economy provider detected!");
+                getLogger().warning(
+                    "Vault found but no economy provider detected!\n(Not sure how this happened, there is a Econ lib for everything, unless you modified to code, or I messed something up real bad)"
+                );
             }
 
             // Hook chat
@@ -110,11 +134,14 @@ public final class Everything extends JavaPlugin {
                 getLogger().info("Vault chat hooked successfully!");
                 vaultChatEnabled = true;
             } else {
-                getLogger().warning("Vault found but no chat provider detected!");
+                getLogger().warning(
+                    "Vault found but no chat provider detected!"
+                );
             }
-
         } else {
-            getLogger().warning("Vault not found! Economy and chat features will be disabled.");
+            getLogger().warning(
+                "Vault not found! Economy and chat features will be disabled."
+            );
         }
 
         // --- Command Manager ---
@@ -151,17 +178,29 @@ public final class Everything extends JavaPlugin {
         TPACommand tpaCommand = new TPACommand(this);
         commandManager.registerCommand("tp", new TPCommand(this));
         commandManager.registerCommand("tpa", tpaCommand);
-        commandManager.registerCommand("tpaccept", new TPAcceptCommand(this, tpaCommand));
-        commandManager.registerCommand("tpdeny", new TPDenyCommand(this, tpaCommand));
+        commandManager.registerCommand(
+            "tpaccept",
+            new TPAcceptCommand(this, tpaCommand)
+        );
+        commandManager.registerCommand(
+            "tpdeny",
+            new TPDenyCommand(this, tpaCommand)
+        );
         commandManager.registerCommand("kill", new KillCommand());
         commandManager.registerCommand("god", new GodCommand());
         commandManager.registerCommand("report", new ReportCommand(this));
-        commandManager.registerCommand("everything", new EverythingCommand(this));
+        commandManager.registerCommand(
+            "everything",
+            new EverythingCommand(this)
+        );
         commandManager.registerCommand("home", new HomeCommand(this));
         commandManager.registerCommand("sethome", new HomeCommand(this));
         commandManager.registerCommand("msg", new MessageCommand(this));
         commandManager.registerCommand("reply", new MessageCommand(this));
-        commandManager.registerCommand("maintenance", new MaintenanceCommand(this));
+        commandManager.registerCommand(
+            "maintenance",
+            new MaintenanceCommand(this)
+        );
         this.spawnCommand = new SetSpawnCommand(this);
         commandManager.registerCommand("setspawn", spawnCommand);
         commandManager.registerCommand("spawn", spawnCommand);
@@ -185,19 +224,24 @@ public final class Everything extends JavaPlugin {
 
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
-        getServer().getPluginManager().registerEvents(new onJoinleaveListener(this), this);
-        getServer().getPluginManager().registerEvents(new ChatListener(this), this);
+        getServer()
+            .getPluginManager()
+            .registerEvents(new onJoinleaveListener(this), this);
+        getServer()
+            .getPluginManager()
+            .registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
-
-        this.serverListListener = new ServerListListener(this);
-        getServer().getPluginManager().registerEvents(serverListListener, this);
+        getServer()
+            .getPluginManager()
+            .registerEvents(new ServerListListener(this), this);
 
         // Initialize updater
         boolean autoUpdate = getConfig().getBoolean("auto-update", true);
 
         if (autoUpdate) {
-            getServer().getPluginManager().registerEvents(new Updater(this), this);
-
+            getServer()
+                .getPluginManager()
+                .registerEvents(new Updater(this), this);
         } else {
             getLogger().info("Auto-update is disabled in config.yml");
         }
@@ -209,25 +253,34 @@ public final class Everything extends JavaPlugin {
 
         applyUpdate();
 
-        Component goodbyeArt = Component.text("\n░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝")
-            .color(NamedTextColor.RED);
+        Component goodbyeArt = Component.text(
+            "\n░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝"
+        ).color(NamedTextColor.RED);
 
         AdventureCompat.sendMessage(Bukkit.getConsoleSender(), goodbyeArt);
     }
 
     private void applyUpdate() {
         try {
-            File updateFolder = new File(getDataFolder().getParentFile(), "update");
+            File updateFolder = new File(
+                getDataFolder().getParentFile(),
+                "update"
+            );
             if (!updateFolder.isDirectory()) return;
 
-            File[] updates = updateFolder.listFiles((dir, name) -> name.endsWith(".jar") && !name.contains(".bak"));
+            File[] updates = updateFolder.listFiles(
+                (dir, name) -> name.endsWith(".jar") && !name.contains(".bak")
+            );
             if (updates == null || updates.length == 0) return;
 
             File pluginsFolder = getDataFolder().getParentFile();
 
             // Delete all old Everything JARs from plugins folder
-            File[] oldJars = pluginsFolder.listFiles((dir, name) ->
-                    name.toLowerCase().startsWith("everything") && name.endsWith(".jar"));
+            File[] oldJars = pluginsFolder.listFiles(
+                (dir, name) ->
+                    name.toLowerCase().startsWith("everything") &&
+                    name.endsWith(".jar")
+            );
             if (oldJars != null) {
                 for (File old : oldJars) {
                     old.delete();
@@ -237,11 +290,17 @@ public final class Everything extends JavaPlugin {
             for (File update : updates) {
                 File target = new File(pluginsFolder, update.getName());
                 update.renameTo(target);
-                getLogger().info("Applied update: " + update.getName() + ". Restart or reload to activate.");
+                getLogger().info(
+                    "Applied update: " +
+                        update.getName() +
+                        ". Restart or reload to activate."
+                );
             }
 
             // Clean up backup files
-            File[] backups = updateFolder.listFiles((dir, name) -> name.contains(".bak-"));
+            File[] backups = updateFolder.listFiles((dir, name) ->
+                name.contains(".bak-")
+            );
             if (backups != null) {
                 for (File bak : backups) {
                     bak.delete();
@@ -256,7 +315,9 @@ public final class Everything extends JavaPlugin {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
-        RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        RegisteredServiceProvider<Economy> rsp = getServer()
+            .getServicesManager()
+            .getRegistration(Economy.class);
         if (rsp == null) {
             return false;
         }
@@ -266,7 +327,9 @@ public final class Everything extends JavaPlugin {
 
     private boolean setupChat() {
         RegisteredServiceProvider<net.milkbowl.vault.chat.Chat> rsp =
-            getServer().getServicesManager().getRegistration(net.milkbowl.vault.chat.Chat.class);
+            getServer()
+                .getServicesManager()
+                .getRegistration(net.milkbowl.vault.chat.Chat.class);
         if (rsp == null) {
             return false;
         }
