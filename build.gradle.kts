@@ -20,7 +20,9 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.helpch.at/releases")
-    maven("https://repo.luckperms.net/")
+    maven("https://repo.luckperms.net/") {
+        content { includeGroup("net.luckperms") }
+    }
     maven("https://jitpack.io")
 }
 

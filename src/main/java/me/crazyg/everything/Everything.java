@@ -247,9 +247,11 @@ public final class Everything extends JavaPlugin {
             .getPluginManager()
             .registerEvents(new ChatListener(this), this);
         getServer().getPluginManager().registerEvents(new GUIListener(), this);
+        ServerListListener serverListListener = new ServerListListener(this);
+        this.serverListListener = serverListListener;
         getServer()
             .getPluginManager()
-            .registerEvents(new ServerListListener(this), this);
+            .registerEvents(serverListListener, this);
 
         // Initialize updater
         boolean autoUpdate = getConfig().getBoolean("auto-update", true);
