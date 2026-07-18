@@ -36,10 +36,21 @@ public class InspectWand implements Listener {
     private final RollbackManager rollbackManager;
 
     private final Map<UUID, Boolean> inspectors = new ConcurrentHashMap<>();
+    private final Map<UUID, InspectArea> areas = new ConcurrentHashMap<>();
     private ItemStack wandItem;
 
     private static final DateTimeFormatter TIME_FMT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+
+    static final class InspectArea {
+        final Location center;
+        final int size;
+
+        InspectArea(Location center, int size) {
+            this.center = center;
+            this.size = size;
+        }
+    }
 
     public InspectWand(Everything plugin, BlockLogDatabase database,
                        RollbackManager rollbackManager) {
@@ -63,7 +74,7 @@ public class InspectWand implements Listener {
         this.wandItem = ItemBuilder.builder(mat)
             .name("&bInspect Wand")
             .lore("&7Left-click a block to view its history.",
-                "&7Right-click to roll it back.")
+                "&7Right-click a block to set the inspect area.")
             .glowing()
             .unbreakable()
             .build();
@@ -92,13 +103,29 @@ public class InspectWand implements Listener {
                 Component.text("Inspect wand enabled! ")
                     .color(NamedTextColor.GREEN)
                     .append(Component.text(
-                        "Left-click a block for history, right-click to roll back.")
+                        "Left-click a block for history, right-click to set the inspect area.")
                         .color(NamedTextColor.GRAY)));
         }
     }
 
     public boolean isInspecting(UUID uuid) {
         return inspectors.containsKey(uuid);
+    }
+
+    // ---------------------------------------------------------
+    // Per-player inspect area (configured via right-click GUI)
+    // ---------------------------------------------------------
+
+    public void setArea(UUID uuid, Location center, int size) {
+        areas.put(uuid, new InspectArea(center, size));
+    }
+
+    public InspectArea getArea(UUID uuid) {
+        return areas.get(uuid);
+    }
+
+    public void clearArea(UUID uuid) {
+        areas.remove(uuid);
     }
 
     @EventHandler
@@ -120,13 +147,11 @@ public class InspectWand implements Listener {
         if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
             showHistory(player, block.getLocation());
         } else {
-            if (!player.hasPermission("everything.blocklog.rollback")) {
-                AdventureCompat.sendMessage(player,
-                    Component.text("You do not have permission to rollback.")
-                        .color(NamedTextColor.RED));
-                return;
-            }
-            rollbackSingle(player, block.getLocation());
+            InspectArea current = areas.get(player.getUniqueId());
+            int initial = current == null ? 10 : current.size;
+            InspectAreaGUI gui = new InspectAreaGUI(
+                player, this, block.getLocation(), initial);
+            gui.open();
         }
     }
 
@@ -174,30 +199,6 @@ public class InspectWand implements Listener {
 
             AdventureCompat.sendMessage(player, line);
             index++;
-        }
-    }
-
-    private void rollbackSingle(Player player, Location loc) {
-        int limit = plugin.getConfig()
-            .getInt("blocklog.max-history-per-block", 25);
-        java.util.List<BlockChange> history = database.getHistory(loc, limit);
-        if (history.isEmpty()) {
-            AdventureCompat.sendMessage(player,
-                Component.text("No logged changes to roll back here.")
-                    .color(NamedTextColor.YELLOW));
-            return;
-        }
-        // Roll back the most recent change only.
-        BlockChange latest = history.get(0);
-        boolean ok = rollbackManager.rollbackSingle(latest);
-        if (ok) {
-            AdventureCompat.sendMessage(player,
-                Component.text("Rolled back 1 change at this block.")
-                    .color(NamedTextColor.GREEN));
-        } else {
-            AdventureCompat.sendMessage(player,
-                Component.text("Failed to roll back this block.")
-                    .color(NamedTextColor.RED));
         }
     }
 

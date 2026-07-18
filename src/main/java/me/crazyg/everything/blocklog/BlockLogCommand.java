@@ -8,6 +8,7 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.World;
 import org.bukkit.command.Command;
@@ -137,10 +138,10 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                         .color(NamedTextColor.RED));
                 return true;
             }
+            Area area = resolveHereArea(player);
             List<BlockChange> changes = database.query(
-                player.getWorld(), player.getLocation().getBlockX(),
-                player.getLocation().getBlockY(),
-                player.getLocation().getBlockZ(), 10, null, null);
+                area.world, area.cx, area.cy, area.cz,
+                area.radius, null, null);
             printLookup(sender, changes, "near you");
             return true;
         }
@@ -184,10 +185,10 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                         .color(NamedTextColor.RED));
                 return true;
             }
+            Area area = resolveHereArea(player);
             List<BlockChange> changes = database.query(
-                player.getWorld(), player.getLocation().getBlockX(),
-                player.getLocation().getBlockY(),
-                player.getLocation().getBlockZ(), 10, null, null);
+                area.world, area.cx, area.cy, area.cz,
+                area.radius, null, null);
             return doRollback(sender, changes, confirm);
         }
 
@@ -347,6 +348,29 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return null;
         }
         return p;
+    }
+
+    // ---------------------------------------------------------
+    // "here" area resolution (uses the wand's configured inspect area)
+    // ---------------------------------------------------------
+
+    /** Resolved center + radius for the `here` subcommands. */
+    private record Area(org.bukkit.World world, int cx, int cy, int cz,
+                        int radius) {}
+
+    private Area resolveHereArea(Player player) {
+        InspectWand.InspectArea configured =
+            inspectWand.getArea(player.getUniqueId());
+        if (configured != null) {
+            Location c = configured.center;
+            int half = configured.size / 2;
+            return new Area(c.getWorld(), c.getBlockX(), c.getBlockY(),
+                c.getBlockZ(), half);
+        }
+        // Default: 10-block radius around the player.
+        Location loc = player.getLocation();
+        return new Area(player.getWorld(), loc.getBlockX(),
+            loc.getBlockY(), loc.getBlockZ(), 10);
     }
 
     private Integer tryRadius(String s) {
