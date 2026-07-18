@@ -106,6 +106,26 @@ public class BlockLogDatabase {
             stmt.execute(
                 "CREATE INDEX IF NOT EXISTS idx_block_time "
                     + "ON block_log(timestamp)");
+            migrateColumns(stmt);
+        }
+    }
+
+    /**
+     * Adds tile-state columns if they are missing (supports existing DBs
+     * created before tile data was introduced).
+     */
+    private void migrateColumns(Statement stmt) {
+        addColumnIfMissing(stmt, "old_tile", "TEXT");
+        addColumnIfMissing(stmt, "new_tile", "TEXT");
+    }
+
+    private void addColumnIfMissing(Statement stmt, String column,
+                                     String type) {
+        try {
+            stmt.execute("ALTER TABLE block_log ADD COLUMN "
+                + column + " " + type);
+        } catch (SQLException e) {
+            // Column already exists - ignore.
         }
     }
 
@@ -115,11 +135,13 @@ public class BlockLogDatabase {
 
     public void logChange(Location loc, String blockType, String oldData,
                           String newData, BlockChange.Action action,
-                          UUID playerUuid, String playerName) {
+                          UUID playerUuid, String playerName,
+                          String oldTile, String newTile) {
         if (connection == null) return;
         String sql = "INSERT INTO block_log(world, x, y, z, block_type, "
-            + "old_data, new_data, action, player_uuid, player_name, timestamp) "
-            + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            + "old_data, new_data, action, player_uuid, player_name, "
+            + "timestamp, old_tile, new_tile) "
+            + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (PreparedStatement ps = connection.prepareStatement(sql)) {
             ps.setString(1, loc.getWorld() == null
                 ? "world" : loc.getWorld().getName());
@@ -134,6 +156,8 @@ public class BlockLogDatabase {
                 ? null : playerUuid.toString());
             ps.setString(10, playerName);
             ps.setString(11, DB_FORMAT.format(LocalDateTime.now()));
+            ps.setString(12, oldTile == null ? "" : oldTile);
+            ps.setString(13, newTile == null ? "" : newTile);
             ps.executeUpdate();
         } catch (SQLException e) {
             plugin.getLogger().warning(
@@ -302,8 +326,10 @@ public class BlockLogDatabase {
         } catch (Exception e) {
             ts = LocalDateTime.now();
         }
+        String oldTile = rs.getString("old_tile");
+        String newTile = rs.getString("new_tile");
         return new BlockChange(id, world, x, y, z, blockType, oldData,
-            newData, action, uuid, playerName, ts);
+            newData, action, uuid, playerName, ts, oldTile, newTile);
     }
 
     private UUID parseUuid(String s) {

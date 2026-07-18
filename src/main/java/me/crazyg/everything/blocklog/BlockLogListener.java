@@ -33,10 +33,12 @@ public class BlockLogListener implements Listener {
 
     private final Everything plugin;
     private final BlockLogDatabase database;
+    private final TileStateSerializer tileSerializer;
 
     public BlockLogListener(Everything plugin, BlockLogDatabase database) {
         this.plugin = plugin;
         this.database = database;
+        this.tileSerializer = new TileStateSerializer(plugin);
     }
 
     // ---------------------------------------------------------
@@ -58,7 +60,7 @@ public class BlockLogListener implements Listener {
         log(block, block.getType().name(),
             "AIR", serialize(block.getState()),
             BlockChange.Action.PLACE, player.getUniqueId(),
-            player.getName());
+            player.getName(), null, block.getState());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -69,7 +71,7 @@ public class BlockLogListener implements Listener {
         log(block, block.getType().name(),
             serialize(block.getState()), "AIR",
             BlockChange.Action.BREAK, player.getUniqueId(),
-            player.getName());
+            player.getName(), block.getState(), null);
     }
 
     // ---------------------------------------------------------
@@ -83,7 +85,7 @@ public class BlockLogListener implements Listener {
             if (isLocked(block.getLocation())) continue;
             log(block, block.getType().name(),
                 serialize(block.getState()), "AIR",
-                BlockChange.Action.EXPLODE, null, "Explosion");
+                BlockChange.Action.EXPLODE, null, "Explosion", null, null);
         }
     }
 
@@ -96,7 +98,7 @@ public class BlockLogListener implements Listener {
             if (isLocked(block.getLocation())) continue;
             log(block, block.getType().name(),
                 serialize(block.getState()), "AIR",
-                BlockChange.Action.EXPLODE, null, name);
+                BlockChange.Action.EXPLODE, null, name, null, null);
         }
     }
 
@@ -107,7 +109,7 @@ public class BlockLogListener implements Listener {
         if (isLocked(block.getLocation())) return;
         log(block, block.getType().name(),
             serialize(block.getState()), "AIR",
-            BlockChange.Action.BURN, null, "Fire");
+            BlockChange.Action.BURN, null, "Fire", null, null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -119,7 +121,7 @@ public class BlockLogListener implements Listener {
         log(block, block.getType().name(),
             serialize(block.getState()),
             newState.getType().name(),
-            BlockChange.Action.FADE, null, "Environment");
+            BlockChange.Action.FADE, null, "Environment", null, null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -132,7 +134,7 @@ public class BlockLogListener implements Listener {
             serialize(block.getState()),
             event.getTo().name(),
             BlockChange.Action.ENTITY, null,
-            event.getEntity().getType().name());
+            event.getEntity().getType().name(), null, null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -144,7 +146,7 @@ public class BlockLogListener implements Listener {
             serialize(block.getState()),
             event.getNewState().getType().name(),
             BlockChange.Action.ENTITY, null,
-            event.getEntity().getType().name());
+            event.getEntity().getType().name(), null, null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -155,7 +157,7 @@ public class BlockLogListener implements Listener {
         log(to, to.getType().name(),
             serialize(to.getState()),
             event.getBlock().getType().name(),
-            BlockChange.Action.FLUID, null, "Fluid");
+            BlockChange.Action.FLUID, null, "Fluid", null, null);
     }
 
     // ---------------------------------------------------------
@@ -164,10 +166,13 @@ public class BlockLogListener implements Listener {
 
     private void log(Block block, String blockType, String oldData,
                       String newData, BlockChange.Action action,
-                      UUID uuid, String name) {
+                      UUID uuid, String name, BlockState oldState,
+                      BlockState newState) {
         if (isLocked(block.getLocation())) return;
+        String oldTile = oldState == null ? null : tileSerializer.serialize(oldState);
+        String newTile = newState == null ? null : tileSerializer.serialize(newState);
         database.logChange(block.getLocation(), blockType, oldData,
-            newData, action, uuid, name);
+            newData, action, uuid, name, oldTile, newTile);
     }
 
     private String serialize(BlockState state) {

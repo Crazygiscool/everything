@@ -8,7 +8,6 @@ import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.HashSet;
 import java.util.List;
@@ -26,10 +25,12 @@ public class RollbackManager {
 
     private final Everything plugin;
     private final BlockLogDatabase database;
+    private final TileStateSerializer tileSerializer;
 
     public RollbackManager(Everything plugin, BlockLogDatabase database) {
         this.plugin = plugin;
         this.database = database;
+        this.tileSerializer = new TileStateSerializer(plugin);
     }
 
     public static boolean isLocked(Location loc) {
@@ -106,7 +107,17 @@ public class RollbackManager {
                 return false;
             }
             block.setType(oldMat, false);
-            restoreState(block, oldData);
+
+            // Restore tile-entity data (sign text, skull owner, chest
+            // inventory, etc.) when available.
+            if (change.hasOldTile()) {
+                BlockState oldState = tileSerializer.deserialize(
+                    change.getOldTile());
+                if (oldState != null) {
+                    BlockState relocated = oldState.copy(loc);
+                    relocated.update(true, true);
+                }
+            }
             return true;
         } catch (Exception e) {
             plugin.getLogger().warning(
@@ -125,10 +136,5 @@ public class RollbackManager {
         } catch (Exception e) {
             return null;
         }
-    }
-
-    private void restoreState(Block block, String data) {
-        // Only the material is restored for robustness. Complex tile-entity
-        // state (signs, skulls, etc.) is intentionally not reconstructed.
     }
 }
