@@ -1,0 +1,6 @@
+# Everything Chat storage
+# Per-player prefix/suffix fallback used by the EverythingChat Vault provider.
+# Stored as:
+# <uuid>:
+#   prefix: "..."
+#   suffix: "..."

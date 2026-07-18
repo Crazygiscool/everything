@@ -15,6 +15,10 @@ messages:
 # Built-in placeholders: %player_name%, %player_displayname%, %player_world%, etc.
 chat:
   format: "<prefix><player><suffix> <gray>» <white><message>"
+  # Fallback prefix/suffix used when neither LuckPerms nor stored data provides one.
+  # Supports legacy '&' color codes. Set to "" to disable.
+  default-prefix: ""
+  default-suffix: ""
 
 # Random Teleport (/rtp) settings
 rtp:

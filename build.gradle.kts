@@ -20,12 +20,14 @@ repositories {
     maven("https://oss.sonatype.org/content/groups/public/")
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/")
     maven("https://repo.helpch.at/releases")
+    maven("https://repo.luckperms.net/")
     maven("https://jitpack.io")
 }
 
 dependencies {
     compileOnly("org.spigotmc:spigot-api:1.20.4-R0.1-SNAPSHOT")
     compileOnly("com.github.MilkBowl:VaultAPI:1.7.1")
+    compileOnly("net.luckperms:api:5.4")
     implementation("net.kyori:adventure-api:4.17.0")
     implementation("net.kyori:adventure-text-minimessage:4.17.0")
     implementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
@@ -78,4 +80,10 @@ tasks.named<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar>("shadowJ
 
 tasks.build {
     dependsOn("shadowJar")
+}
+
+tasks.register("printCp") {
+    doLast {
+        println(sourceSets["main"].compileClasspath.asPath)
+    }
 }

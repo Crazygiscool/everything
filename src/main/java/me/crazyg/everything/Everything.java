@@ -4,10 +4,13 @@ import java.io.File;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
+import me.crazyg.everything.utils.chat.ChatStorage;
+import me.crazyg.everything.utils.chat.EverythingChat;
 import me.crazyg.everything.utils.economy.EcoProvider;
 import me.crazyg.everything.utils.economy.EcoStorage;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.milkbowl.vault.chat.Chat;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -47,6 +50,7 @@ public final class Everything extends JavaPlugin {
     private SetSpawnCommand spawnCommand;
     private ServerListListener serverListListener;
     private EcoStorage ecoStorage;
+    private ChatStorage chatStorage;
 
     @Override
     public void onEnable() {
@@ -119,6 +123,18 @@ public final class Everything extends JavaPlugin {
 
             getLogger().info("EverythingEconomy registered as Vault provider.");
 
+            // Register EverythingChat
+            ChatStorage chatStore = new ChatStorage(this);
+            this.chatStorage = chatStore;
+            EverythingChat chatProvider = new EverythingChat(this, chatStore);
+            Bukkit.getServicesManager().register(
+                Chat.class,
+                chatProvider,
+                this,
+                org.bukkit.plugin.ServicePriority.Highest
+            );
+            getLogger().info("EverythingChat registered as Vault chat provider.");
+
             // Hook economy
             if (setupEconomy()) {
                 getLogger().info("Vault economy hooked successfully!");
@@ -135,7 +151,7 @@ public final class Everything extends JavaPlugin {
                 vaultChatEnabled = true;
             } else {
                 getLogger().warning(
-                    "Vault found but no chat provider detected!"
+                    "Vault found but no chat provider detected!(LuckPerms)"
                 );
             }
         } else {
@@ -368,5 +384,9 @@ public final class Everything extends JavaPlugin {
 
     public EcoStorage getEcoStorage() {
         return ecoStorage;
+    }
+
+    public ChatStorage getChatStorage() {
+        return chatStorage;
     }
 }
