@@ -33,6 +33,7 @@ dependencies {
     implementation("net.kyori:adventure-api:4.17.0")
     implementation("net.kyori:adventure-text-minimessage:4.17.0")
     implementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
+    implementation("org.xerial:sqlite-jdbc:3.46.0.0")
 }
 
 tasks.withType<JavaCompile> {

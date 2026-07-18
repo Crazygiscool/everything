@@ -157,6 +157,31 @@ commands:
     usage: /rtp
     permission: everything.rtp
     permission-message: You do not have permission to random teleport.
+  rollback:
+    description: Roll back block changes by player, area, or time.
+    usage: |
+      /rollback <player|*> [radius] [time] [-y]
+      /rollback here [-y]
+    permission: everything.blocklog.rollback
+    permission-message: You do not have permission to rollback blocks.
+  lookup:
+    description: Look up (preview) logged block changes.
+    usage: |
+      /lookup <player|*> [radius] [time]
+      /lookup here
+    permission: everything.blocklog.lookup
+    permission-message: You do not have permission to lookup block changes.
+  inspect:
+    description: Toggle the block inspect wand.
+    usage: /inspect
+    permission: everything.blocklog.inspect
+    permission-message: You do not have permission to use the inspect wand.
+  lb:
+    description: Block log utility (prune logs, etc).
+    usage: |
+      /lb prune <days>
+    permission: everything.blocklog.prune
+    permission-message: You do not have permission to manage block logs.
 
 permissions:
   everything.eco:
@@ -269,4 +294,16 @@ permissions:
     default: true
   everything.rtp.bypasscooldown:
     description: Bypasses the RTP cooldown.
+    default: op
+  everything.blocklog.rollback:
+    description: Allows rolling back block changes.
+    default: op
+  everything.blocklog.lookup:
+    description: Allows looking up logged block changes.
+    default: op
+  everything.blocklog.inspect:
+    description: Allows using the inspect wand.
+    default: op
+  everything.blocklog.prune:
+    description: Allows pruning/cleaning the block log database.
     default: op

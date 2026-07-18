@@ -21,3 +21,14 @@ categories:
     icon: "GOLD_INGOT"
     type: "economy"
     description: "Player balances"
+
+  blocklog:
+    name: "Block Logging & Rollback"
+    icon: "COMPASS"
+    type: "blocklog"
+    description: "Inspect and revert block changes"
+    commands:
+      - "/inspect - Toggle the inspect wand"
+      - "/lookup <player|*> [radius] [time] - Preview block changes"
+      - "/rollback <player|*> [radius] [time] [-y] - Revert block changes"
+      - "/lb prune <days> - Delete old log entries"

@@ -1,6 +1,11 @@
 package me.crazyg.everything;
 
 import java.io.File;
+import me.crazyg.everything.blocklog.BlockLogCommand;
+import me.crazyg.everything.blocklog.BlockLogDatabase;
+import me.crazyg.everything.blocklog.BlockLogListener;
+import me.crazyg.everything.blocklog.InspectWand;
+import me.crazyg.everything.blocklog.RollbackManager;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
@@ -51,6 +56,12 @@ public final class Everything extends JavaPlugin {
     private ServerListListener serverListListener;
     private EcoStorage ecoStorage;
     private ChatStorage chatStorage;
+
+    private BlockLogDatabase blockLogDatabase;
+    private BlockLogListener blockLogListener;
+    private InspectWand inspectWand;
+    private RollbackManager rollbackManager;
+    private BlockLogCommand blockLogCommand;
 
     @Override
     public void onEnable() {
@@ -238,6 +249,33 @@ public final class Everything extends JavaPlugin {
 
         // Remove duplicate direct setExecutor for setspawn, spawn, balance, pay
 
+        // --- Block Logging & Rollback ---
+        if (getConfig().getBoolean("blocklog.enabled", true)) {
+            this.blockLogDatabase = new BlockLogDatabase(this);
+            this.blockLogDatabase.init();
+            this.rollbackManager = new RollbackManager(this, blockLogDatabase);
+            this.inspectWand =
+                new InspectWand(this, blockLogDatabase, rollbackManager);
+            this.blockLogListener =
+                new BlockLogListener(this, blockLogDatabase);
+            this.blockLogCommand = new BlockLogCommand(
+                this, blockLogDatabase, rollbackManager, inspectWand);
+
+            getServer().getPluginManager().registerEvents(
+                blockLogListener, this);
+            getServer().getPluginManager().registerEvents(
+                inspectWand, this);
+
+            getCommand("rollback").setExecutor(blockLogCommand);
+            getCommand("lookup").setExecutor(blockLogCommand);
+            getCommand("inspect").setExecutor(blockLogCommand);
+            getCommand("lb").setExecutor(blockLogCommand);
+
+            getLogger().info("Block logging & rollback enabled.");
+        } else {
+            getLogger().info("Block logging & rollback disabled in config.yml");
+        }
+
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
         getServer()
@@ -268,6 +306,10 @@ public final class Everything extends JavaPlugin {
     @Override
     public void onDisable() {
         getLogger().info("Everything plugin disabled.");
+
+        if (blockLogDatabase != null) {
+            blockLogDatabase.close();
+        }
 
         applyUpdate();
 
@@ -390,5 +432,17 @@ public final class Everything extends JavaPlugin {
 
     public ChatStorage getChatStorage() {
         return chatStorage;
+    }
+
+    public BlockLogDatabase getBlockLogDatabase() {
+        return blockLogDatabase;
+    }
+
+    public InspectWand getInspectWand() {
+        return inspectWand;
+    }
+
+    public RollbackManager getRollbackManager() {
+        return rollbackManager;
     }
 }

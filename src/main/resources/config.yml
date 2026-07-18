@@ -28,3 +28,20 @@ rtp:
   max-radius: 5000
   cooldown-seconds: 60
   max-attempts: 20
+
+# Block Logging & Rollback (/rollback, /lookup, /inspect)
+blocklog:
+  # Master switch for the entire feature.
+  enabled: true
+  # Log natural changes (explosions, fire, block burn/fade, endermen, falling blocks).
+  log-natural: true
+  # Log fluid spread/flow changes (lava/water). Can be very spammy, keep off by default.
+  log-fluid: false
+  # Automatically prune log entries older than this many days (0 = never).
+  max-retention-days: 30
+  # Material used for the inspect wand tool.
+  inspect-wand-material: "STICK"
+  # Max number of history entries shown per block in the inspect wand.
+  max-history-per-block: 25
+  # Max blocks a single /rollback may affect (safety cap, 0 = unlimited).
+  max-rollback-blocks: 10000
