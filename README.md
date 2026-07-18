@@ -98,6 +98,8 @@ JAVA
 
 * 1.20.X
 * 1.21.X
+* 26.1.X
+* 26.2
 
 ### Dependencies
 
