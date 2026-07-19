@@ -17,6 +17,11 @@ public class BlockChange {
         ENTITY,
         BUCKET,
         FLUID,
+        LEAF_DECAY,
+        GROWTH,
+        PISTON,
+        PORTAL,
+        SIGN_EDIT,
         UNKNOWN;
 
         public static Action fromString(String s) {
@@ -138,5 +143,32 @@ public class BlockChange {
 
     public boolean isNatural() {
         return playerUuid == null;
+    }
+
+    /**
+     * Returns the stored data string in the format
+     * {@code MATERIAL|blockdata} (blockdata may be empty). This helper returns
+     * just the material token, used for rollback material resolution and
+     * display.
+     */
+    public static String materialOf(String data) {
+        if (data == null) return "";
+        int sep = data.indexOf('|');
+        return (sep >= 0 ? data.substring(0, sep) : data).trim();
+    }
+
+    public String getOldMaterial() {
+        return materialOf(oldData);
+    }
+
+    public String getNewMaterial() {
+        return materialOf(newData);
+    }
+
+    /** Returns the block-data portion (after '|'), or empty if none. */
+    public static String blockDataOf(String data) {
+        if (data == null) return "";
+        int sep = data.indexOf('|');
+        return sep >= 0 ? data.substring(sep + 1) : "";
     }
 }

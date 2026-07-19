@@ -56,6 +56,11 @@ public final class BlockLogConfig {
         return config.getInt(MAX_ROLLBACK_BLOCKS, 10000);
     }
 
+    public static boolean getBoolean(FileConfiguration config, String key,
+                                     boolean def) {
+        return config.getBoolean(key, def);
+    }
+
     public static boolean isWorldLogged(FileConfiguration config, String world) {
         String mode = config.getString(WORLDS_MODE, "blacklist");
         java.util.List<String> list = config.getStringList(WORLDS_LIST);

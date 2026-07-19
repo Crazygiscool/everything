@@ -250,8 +250,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                 .append(Component.text(who).color(NamedTextColor.AQUA))
                 .append(Component.text(" @ " + c.getX() + "," + c.getY()
                     + "," + c.getZ()).color(NamedTextColor.WHITE))
-                .append(Component.text(" | " + c.getOldData().split(":")[0]
-                    + " -> " + c.getNewData().split(":")[0])
+                .append(Component.text(" | " + c.getOldMaterial()
+                    + " -> " + c.getNewMaterial())
                     .color(NamedTextColor.WHITE))
                 .append(Component.text(" | " + c.getTimestamp()
                     .format(java.time.format.DateTimeFormatter

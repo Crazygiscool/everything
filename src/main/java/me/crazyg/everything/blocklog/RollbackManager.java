@@ -9,6 +9,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -53,8 +54,8 @@ public class RollbackManager {
 
     /**
      * Rolls back the given changes in batches. Each change is reverted to its
-     * old state (old_data). Log entries are deleted afterwards so they are not
-     * reverted twice. Returns the number of blocks actually reverted.
+     * old state (old_data). Entries are marked rolled_back (not deleted) so the
+     * operation can be undone later. Returns the number of blocks reverted.
      */
     public int rollback(List<BlockChange> changes, int maxBlocks) {
         if (changes.isEmpty()) return 0;
@@ -62,20 +63,20 @@ public class RollbackManager {
         int limit = maxBlocks > 0
             ? Math.min(maxBlocks, changes.size()) : changes.size();
 
-        int[] reverted = {0};
         int batchSize = 200;
 
         for (int i = 0; i < limit; i += batchSize) {
             final int start = i;
             final int end = Math.min(i + batchSize, limit);
             Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                List<Integer> marked = new ArrayList<>();
                 for (int j = start; j < end; j++) {
                     BlockChange change = changes.get(j);
                     if (applyRevert(change)) {
-                        reverted[0]++;
+                        marked.add(change.getId());
                     }
-                    database.deleteEntries(List.of(change.getId()));
                 }
+                database.markRolledBack(marked);
             }, (i / batchSize));
         }
 
@@ -88,7 +89,7 @@ public class RollbackManager {
     public boolean rollbackSingle(BlockChange change) {
         boolean ok = applyRevert(change);
         if (ok) {
-            database.deleteEntries(List.of(change.getId()));
+            database.markRolledBack(List.of(change.getId()));
         }
         return ok;
     }
@@ -107,6 +108,7 @@ public class RollbackManager {
                 return false;
             }
             block.setType(oldMat, false);
+            applyBlockData(block, BlockChange.blockDataOf(oldData));
 
             // Restore tile-entity data (sign text, skull owner, chest
             // inventory, etc.) when available.
@@ -130,11 +132,26 @@ public class RollbackManager {
 
     private Material parseMaterial(String data) {
         if (data == null || data.isEmpty()) return null;
-        String matName = data.split(":")[0].trim().toUpperCase(Locale.ROOT);
+        String matName = BlockChange.materialOf(data)
+            .toUpperCase(Locale.ROOT);
         try {
             return Material.matchMaterial(matName);
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    /** Applies the serialized BlockData portion (after '|') if present. */
+    private void applyBlockData(Block block, String blockData) {
+        if (blockData == null || blockData.isEmpty()) return;
+        try {
+            org.bukkit.block.data.BlockData bd =
+                org.bukkit.Bukkit.createBlockData(blockData);
+            if (bd != null) {
+                block.setBlockData(bd, false);
+            }
+        } catch (Exception e) {
+            // Fall back to material-only restoration.
         }
     }
 }

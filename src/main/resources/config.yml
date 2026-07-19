@@ -45,6 +45,16 @@ blocklog:
   max-retention-days: 30
   # Auto-prune log entries older than max-retention-days on plugin enable.
   prune-on-startup: false
+  # Log tree/crop/mushroom/vine/amethyst/chorus/bamboo growth.
+  log-growth: true
+  # Log piston-extended/retracted block movement.
+  log-piston: true
+  # Log nether/end portal generation.
+  log-portal: true
+  # Log player bucket fill/empty (liquid source placement).
+  log-bucket: true
+  # Log sign text/color/glow/wax edits.
+  log-sign-edit: true
   # Write block changes to the database off the main thread (batched).
   # Keeps TPS stable under heavy logging load.
   async: true

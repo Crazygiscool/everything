@@ -191,8 +191,8 @@ public class InspectWand implements Listener {
                 .append(Component.text(who == null ? "Natural" : who)
                     .color(NamedTextColor.AQUA))
                 .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
-                .append(Component.text(change.getOldData().split(":")[0]
-                    + " -> " + change.getNewData().split(":")[0])
+                .append(Component.text(change.getOldMaterial()
+                    + " -> " + change.getNewMaterial())
                     .color(NamedTextColor.WHITE))
                 .append(Component.text(" | ").color(NamedTextColor.DARK_GRAY))
                 .append(Component.text(ago).color(NamedTextColor.YELLOW));

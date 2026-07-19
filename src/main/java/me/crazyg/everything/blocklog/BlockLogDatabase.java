@@ -115,10 +115,19 @@ public class BlockLogDatabase {
                     "jdbc:sqlite:" + dbFile.getAbsolutePath());
                 createTable();
             }
-            // Asynchronous batched writer — runs off the main thread.
-            flushTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(
-                plugin, this::flush, FLUSH_INTERVAL_TICKS,
-                FLUSH_INTERVAL_TICKS).getTaskId();
+            // Asynchronous batched writer — runs off the main thread unless
+            // blocklog.async is disabled in config.
+            if (BlockLogConfig.async(plugin.getConfig())) {
+                flushTaskId = Bukkit.getScheduler()
+                    .runTaskTimerAsynchronously(plugin, this::flush,
+                        FLUSH_INTERVAL_TICKS, FLUSH_INTERVAL_TICKS)
+                    .getTaskId();
+            } else {
+                flushTaskId = Bukkit.getScheduler()
+                    .runTaskTimer(plugin, this::flush,
+                        FLUSH_INTERVAL_TICKS, FLUSH_INTERVAL_TICKS)
+                    .getTaskId();
+            }
             plugin.getLogger().info("BlockLog database initialized.");
         } catch (ClassNotFoundException e) {
             plugin.getLogger().severe(
@@ -180,6 +189,7 @@ public class BlockLogDatabase {
     private void migrateColumns(Statement stmt) {
         addColumnIfMissing(stmt, "old_tile", "TEXT");
         addColumnIfMissing(stmt, "new_tile", "TEXT");
+        addColumnIfMissing(stmt, "rolled_back", "INTEGER DEFAULT 0");
     }
 
     private void addColumnIfMissing(Statement stmt, String column,
@@ -280,7 +290,7 @@ public class BlockLogDatabase {
         List<BlockChange> result = new ArrayList<>();
         if (connection == null) return result;
         String sql = "SELECT * FROM block_log WHERE world = ? AND x = ? AND y = ? AND z = ? "
-            + "ORDER BY id DESC LIMIT ?";
+            + "AND rolled_back = 0 ORDER BY id DESC LIMIT ?";
         synchronized (lock) {
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
                 ps.setString(1, loc.getWorld() == null
@@ -312,7 +322,7 @@ public class BlockLogDatabase {
         List<BlockChange> result = new ArrayList<>();
         if (connection == null) return result;
         StringBuilder sql = new StringBuilder(
-            "SELECT * FROM block_log WHERE world = ? ");
+            "SELECT * FROM block_log WHERE world = ? AND rolled_back = 0 ");
         if (radius >= 0) {
             sql.append("AND x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? ");
         }
@@ -361,14 +371,15 @@ public class BlockLogDatabase {
     // ---------------------------------------------------------
 
     /**
-     * Deletes log entries that match the given parameters. Used internally to
-     * remove log rows that have been rolled back so they are not reverted again.
+     * Marks the given log entries as rolled back instead of deleting them, so
+     * the change can be undone later (re-applied) via the inverse delta.
      */
-    public void deleteEntries(List<Integer> ids) {
+    public void markRolledBack(List<Integer> ids) {
         if (ids.isEmpty()) return;
         String placeholders = String.join(",",
             java.util.Collections.nCopies(ids.size(), "?"));
-        String sql = "DELETE FROM block_log WHERE id IN (" + placeholders + ")";
+        String sql = "UPDATE block_log SET rolled_back = 1 "
+            + "WHERE id IN (" + placeholders + ")";
         synchronized (lock) {
             if (connection == null) return;
             try (PreparedStatement ps = connection.prepareStatement(sql)) {
@@ -378,9 +389,32 @@ public class BlockLogDatabase {
                 ps.executeUpdate();
             } catch (SQLException e) {
                 plugin.getLogger().warning(
-                    "Failed to delete block log entries: " + e.getMessage());
+                    "Failed to mark block log entries as rolled back: "
+                        + e.getMessage());
             }
         }
+    }
+
+    /** Returns the ids of the most recently rolled-back entries (for undo). */
+    public List<Integer> getRolledBackIds(int limit) {
+        List<Integer> ids = new ArrayList<>();
+        if (connection == null) return ids;
+        String sql = "SELECT id FROM block_log WHERE rolled_back = 1 "
+            + "ORDER BY id DESC LIMIT ?";
+        synchronized (lock) {
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setInt(1, limit <= 0 ? Integer.MAX_VALUE : limit);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        ids.add(rs.getInt("id"));
+                    }
+                }
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to query rolled-back entries: " + e.getMessage());
+            }
+        }
+        return ids;
     }
 
     public int pruneOlderThan(int days) {
