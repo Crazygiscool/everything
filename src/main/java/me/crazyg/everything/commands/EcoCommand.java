@@ -2,6 +2,7 @@ package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
+import me.crazyg.everything.utils.Permissions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.economy.Economy;
@@ -93,7 +94,7 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
                     return true;
                 }
 
-                return handleMoneyAction(sender, target, action, amount);
+                return handleMoneyAction((Player) sender, target, action, amount);
 
             default:
                 sendUsage(sender);
@@ -101,7 +102,23 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
         }
     }
 
-    private boolean handleMoneyAction(CommandSender sender, OfflinePlayer target, String action, double amount) {
+    private boolean handleMoneyAction(Player sender, OfflinePlayer target,
+                                       String action, double amount) {
+        // Admin money actions require everything.eco.set.
+        if (!sender.hasPermission(Permissions.ECO_SET)) {
+            AdventureCompat.sendMessage(sender,
+                Component.text("You do not have permission to modify balances.")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
+        // Modifying another player's balance requires everything.eco.set.others.
+        if (!target.getUniqueId().equals(sender.getUniqueId())
+                && !sender.hasPermission(Permissions.ECO_SET_OTHERS)) {
+            AdventureCompat.sendMessage(sender,
+                Component.text("You do not have permission to modify other players' balances.")
+                    .color(NamedTextColor.RED));
+            return true;
+        }
         switch (action) {
             case "give":
                 econ.depositPlayer(target, amount);

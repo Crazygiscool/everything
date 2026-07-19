@@ -5,6 +5,7 @@ import me.crazyg.everything.Everything;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.block.BlockState;
 
 import java.io.File;
 import java.sql.Connection;
@@ -18,22 +19,71 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
  * SQLite-backed storage for block change logging and rollbacks.
  *
+ * <p>Writes are buffered in memory and flushed asynchronously in batches
+ * (one transaction per flush) so block-change events never block the server
+ * main thread. Reads remain synchronous (command/rollback context) but all
+ * connection access is guarded by a single lock since SQLite connections are
+ * not thread-safe.
+ *
  * <p>Table {@code block_log}:
  * id, world, x, y, z, block_type, old_data, new_data, action,
- * player_uuid, player_name, timestamp
+ * player_uuid, player_name, timestamp, old_tile, new_tile
  */
 public class BlockLogDatabase {
 
     private static final DateTimeFormatter DB_FORMAT =
         DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
+    private static final int FLUSH_INTERVAL_TICKS = 20;
+    private static final int MAX_BATCH = 500;
+
     private final Everything plugin;
     private final File dbFile;
     private Connection connection;
+    private final Object lock = new Object();
+
+    private final ConcurrentLinkedQueue<QueuedChange> writeQueue =
+        new ConcurrentLinkedQueue<>();
+    private int flushTaskId = -1;
+
+    private static final class QueuedChange {
+        final String world;
+        final int x, y, z;
+        final String blockType;
+        final String oldData;
+        final String newData;
+        final BlockChange.Action action;
+        final UUID playerUuid;
+        final String playerName;
+        final BlockState oldState;
+        final BlockState newState;
+        final LocalDateTime timestamp;
+
+        QueuedChange(String world, int x, int y, int z, String blockType,
+                     String oldData, String newData,
+                     BlockChange.Action action, UUID playerUuid,
+                     String playerName, BlockState oldState,
+                     BlockState newState) {
+            this.world = world;
+            this.x = x;
+            this.y = y;
+            this.z = z;
+            this.blockType = blockType;
+            this.oldData = oldData;
+            this.newData = newData;
+            this.action = action;
+            this.playerUuid = playerUuid;
+            this.playerName = playerName;
+            this.oldState = oldState;
+            this.newState = newState;
+            this.timestamp = LocalDateTime.now();
+        }
+    }
 
     public BlockLogDatabase(Everything plugin) {
         this.plugin = plugin;
@@ -60,9 +110,15 @@ public class BlockLogDatabase {
                 }
             }
             Class.forName("org.sqlite.JDBC");
-            this.connection = DriverManager.getConnection(
-                "jdbc:sqlite:" + dbFile.getAbsolutePath());
-            createTable();
+            synchronized (lock) {
+                this.connection = DriverManager.getConnection(
+                    "jdbc:sqlite:" + dbFile.getAbsolutePath());
+                createTable();
+            }
+            // Asynchronous batched writer — runs off the main thread.
+            flushTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(
+                plugin, this::flush, FLUSH_INTERVAL_TICKS,
+                FLUSH_INTERVAL_TICKS).getTaskId();
             plugin.getLogger().info("BlockLog database initialized.");
         } catch (ClassNotFoundException e) {
             plugin.getLogger().severe(
@@ -74,12 +130,19 @@ public class BlockLogDatabase {
     }
 
     public void close() {
-        if (connection != null) {
-            try {
-                connection.close();
-            } catch (SQLException e) {
-                plugin.getLogger().warning(
-                    "Error closing blocklog database: " + e.getMessage());
+        flush(); // drain remaining queued entries
+        if (flushTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(flushTaskId);
+            flushTaskId = -1;
+        }
+        synchronized (lock) {
+            if (connection != null) {
+                try {
+                    connection.close();
+                } catch (SQLException e) {
+                    plugin.getLogger().warning(
+                        "Error closing blocklog database: " + e.getMessage());
+                }
             }
         }
     }
@@ -130,38 +193,79 @@ public class BlockLogDatabase {
     }
 
     // ---------------------------------------------------------
-    // Logging
+    // Logging (main-thread safe: only enqueues)
     // ---------------------------------------------------------
 
+    /**
+     * Queues a block change for asynchronous, batched persistence.
+     * Tile-state serialization is deferred to the flush thread so it never
+     * runs on the server main thread.
+     */
     public void logChange(Location loc, String blockType, String oldData,
                           String newData, BlockChange.Action action,
                           UUID playerUuid, String playerName,
-                          String oldTile, String newTile) {
-        if (connection == null) return;
-        String sql = "INSERT INTO block_log(world, x, y, z, block_type, "
-            + "old_data, new_data, action, player_uuid, player_name, "
-            + "timestamp, old_tile, new_tile) "
-            + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, loc.getWorld() == null
-                ? "world" : loc.getWorld().getName());
-            ps.setInt(2, loc.getBlockX());
-            ps.setInt(3, loc.getBlockY());
-            ps.setInt(4, loc.getBlockZ());
-            ps.setString(5, blockType);
-            ps.setString(6, oldData == null ? "" : oldData);
-            ps.setString(7, newData == null ? "" : newData);
-            ps.setString(8, action.name());
-            ps.setString(9, playerUuid == null
-                ? null : playerUuid.toString());
-            ps.setString(10, playerName);
-            ps.setString(11, DB_FORMAT.format(LocalDateTime.now()));
-            ps.setString(12, oldTile == null ? "" : oldTile);
-            ps.setString(13, newTile == null ? "" : newTile);
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().warning(
-                "Failed to log block change: " + e.getMessage());
+                          BlockState oldState, BlockState newState) {
+        String world = loc.getWorld() == null
+            ? "world" : loc.getWorld().getName();
+        writeQueue.add(new QueuedChange(
+            world, loc.getBlockX(), loc.getBlockY(), loc.getBlockZ(),
+            blockType, oldData, newData, action, playerUuid,
+            playerName, oldState, newState));
+    }
+
+    /** Drains the queue and writes entries in a single transaction. */
+    private void flush() {
+        if (writeQueue.isEmpty()) return;
+        List<QueuedChange> batch = new ArrayList<>();
+        QueuedChange item;
+        while ((item = writeQueue.poll()) != null && batch.size() < MAX_BATCH) {
+            batch.add(item);
+        }
+        if (batch.isEmpty()) return;
+
+        synchronized (lock) {
+            if (connection == null) return;
+            String sql = "INSERT INTO block_log(world, x, y, z, block_type, "
+                + "old_data, new_data, action, player_uuid, player_name, "
+                + "timestamp, old_tile, new_tile) "
+                + "VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                connection.setAutoCommit(false);
+                TileStateSerializer serializer =
+                    new TileStateSerializer(plugin);
+                for (QueuedChange c : batch) {
+                    String oldTile = c.oldState == null ? null
+                        : serializer.serialize(c.oldState);
+                    String newTile = c.newState == null ? null
+                        : serializer.serialize(c.newState);
+                    ps.setString(1, c.world);
+                    ps.setInt(2, c.x);
+                    ps.setInt(3, c.y);
+                    ps.setInt(4, c.z);
+                    ps.setString(5, c.blockType);
+                    ps.setString(6, c.oldData == null ? "" : c.oldData);
+                    ps.setString(7, c.newData == null ? "" : c.newData);
+                    ps.setString(8, c.action.name());
+                    ps.setString(9, c.playerUuid == null
+                        ? null : c.playerUuid.toString());
+                    ps.setString(10, c.playerName);
+                    ps.setString(11, DB_FORMAT.format(c.timestamp));
+                    ps.setString(12, oldTile == null ? "" : oldTile);
+                    ps.setString(13, newTile == null ? "" : newTile);
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+                connection.commit();
+                connection.setAutoCommit(true);
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to flush block log batch: " + e.getMessage());
+                try {
+                    connection.rollback();
+                    connection.setAutoCommit(true);
+                } catch (SQLException ignored) {
+                }
+            }
         }
     }
 
@@ -177,21 +281,23 @@ public class BlockLogDatabase {
         if (connection == null) return result;
         String sql = "SELECT * FROM block_log WHERE world = ? AND x = ? AND y = ? AND z = ? "
             + "ORDER BY id DESC LIMIT ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, loc.getWorld() == null
-                ? "world" : loc.getWorld().getName());
-            ps.setInt(2, loc.getBlockX());
-            ps.setInt(3, loc.getBlockY());
-            ps.setInt(4, loc.getBlockZ());
-            ps.setInt(5, limit <= 0 ? Integer.MAX_VALUE : limit);
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapRow(rs));
+        synchronized (lock) {
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, loc.getWorld() == null
+                    ? "world" : loc.getWorld().getName());
+                ps.setInt(2, loc.getBlockX());
+                ps.setInt(3, loc.getBlockY());
+                ps.setInt(4, loc.getBlockZ());
+                ps.setInt(5, limit <= 0 ? Integer.MAX_VALUE : limit);
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(mapRow(rs));
+                    }
                 }
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to query block history: " + e.getMessage());
             }
-        } catch (SQLException e) {
-            plugin.getLogger().warning(
-                "Failed to query block history: " + e.getMessage());
         }
         return result;
     }
@@ -218,32 +324,34 @@ public class BlockLogDatabase {
         }
         sql.append("ORDER BY id DESC");
 
-        try (PreparedStatement ps =
-                 connection.prepareStatement(sql.toString())) {
-            int idx = 1;
-            ps.setString(idx++, world == null ? "world" : world.getName());
-            if (radius >= 0) {
-                ps.setInt(idx++, cx - radius);
-                ps.setInt(idx++, cx + radius);
-                ps.setInt(idx++, cy - radius);
-                ps.setInt(idx++, cy + radius);
-                ps.setInt(idx++, cz - radius);
-                ps.setInt(idx++, cz + radius);
-            }
-            if (playerUuid != null) {
-                ps.setString(idx++, playerUuid.toString());
-            }
-            if (since != null) {
-                ps.setString(idx++, DB_FORMAT.format(since));
-            }
-            try (ResultSet rs = ps.executeQuery()) {
-                while (rs.next()) {
-                    result.add(mapRow(rs));
+        synchronized (lock) {
+            try (PreparedStatement ps =
+                     connection.prepareStatement(sql.toString())) {
+                int idx = 1;
+                ps.setString(idx++, world == null ? "world" : world.getName());
+                if (radius >= 0) {
+                    ps.setInt(idx++, cx - radius);
+                    ps.setInt(idx++, cx + radius);
+                    ps.setInt(idx++, cy - radius);
+                    ps.setInt(idx++, cy + radius);
+                    ps.setInt(idx++, cz - radius);
+                    ps.setInt(idx++, cz + radius);
                 }
+                if (playerUuid != null) {
+                    ps.setString(idx++, playerUuid.toString());
+                }
+                if (since != null) {
+                    ps.setString(idx++, DB_FORMAT.format(since));
+                }
+                try (ResultSet rs = ps.executeQuery()) {
+                    while (rs.next()) {
+                        result.add(mapRow(rs));
+                    }
+                }
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to query block log: " + e.getMessage());
             }
-        } catch (SQLException e) {
-            plugin.getLogger().warning(
-                "Failed to query block log: " + e.getMessage());
         }
         return result;
     }
@@ -257,48 +365,56 @@ public class BlockLogDatabase {
      * remove log rows that have been rolled back so they are not reverted again.
      */
     public void deleteEntries(List<Integer> ids) {
-        if (connection == null || ids.isEmpty()) return;
+        if (ids.isEmpty()) return;
         String placeholders = String.join(",",
             java.util.Collections.nCopies(ids.size(), "?"));
         String sql = "DELETE FROM block_log WHERE id IN (" + placeholders + ")";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            for (int i = 0; i < ids.size(); i++) {
-                ps.setInt(i + 1, ids.get(i));
+        synchronized (lock) {
+            if (connection == null) return;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                for (int i = 0; i < ids.size(); i++) {
+                    ps.setInt(i + 1, ids.get(i));
+                }
+                ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to delete block log entries: " + e.getMessage());
             }
-            ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().warning(
-                "Failed to delete block log entries: " + e.getMessage());
         }
     }
 
     public int pruneOlderThan(int days) {
-        if (connection == null || days <= 0) return 0;
+        if (days <= 0) return 0;
         LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
         String sql = "DELETE FROM block_log WHERE timestamp < ?";
-        try (PreparedStatement ps = connection.prepareStatement(sql)) {
-            ps.setString(1, DB_FORMAT.format(cutoff));
-            return ps.executeUpdate();
-        } catch (SQLException e) {
-            plugin.getLogger().warning(
-                "Failed to prune block log: " + e.getMessage());
-            return 0;
+        synchronized (lock) {
+            if (connection == null) return 0;
+            try (PreparedStatement ps = connection.prepareStatement(sql)) {
+                ps.setString(1, DB_FORMAT.format(cutoff));
+                return ps.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to prune block log: " + e.getMessage());
+                return 0;
+            }
         }
     }
 
     public int countEntries() {
-        if (connection == null) return 0;
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(
-                 "SELECT COUNT(*) FROM block_log")) {
-            if (rs.next()) {
-                return rs.getInt(1);
+        synchronized (lock) {
+            if (connection == null) return 0;
+            try (Statement stmt = connection.createStatement();
+                 ResultSet rs = stmt.executeQuery(
+                     "SELECT COUNT(*) FROM block_log")) {
+                if (rs.next()) {
+                    return rs.getInt(1);
+                }
+            } catch (SQLException e) {
+                plugin.getLogger().warning(
+                    "Failed to count block log entries: " + e.getMessage());
             }
-        } catch (SQLException e) {
-            plugin.getLogger().warning(
-                "Failed to count block log entries: " + e.getMessage());
+            return 0;
         }
-        return 0;
     }
 
     // ---------------------------------------------------------

@@ -1,4 +1,7 @@
 # Everything Plugin Configuration
+# Auto-update: download new plugin builds on release (Modrinth).
+# Set to false to disable automatic updating.
+auto-update: true
 # Join / Leave Messages
 # Use 'adventure api minicolors' for color codes.
 # Use built-in placeholders (e.g., %player_name%, %player_displayname%, %player_world%).
@@ -37,8 +40,20 @@ blocklog:
   log-natural: true
   # Log fluid spread/flow changes (lava/water). Can be very spammy, keep off by default.
   log-fluid: false
-  # Automatically prune log entries older than this many days (0 = never).
+  # Entries older than this many days are eligible for pruning via /lb prune.
+  # Set prune-on-startup: true to prune automatically on plugin enable.
   max-retention-days: 30
+  # Auto-prune log entries older than max-retention-days on plugin enable.
+  prune-on-startup: false
+  # Write block changes to the database off the main thread (batched).
+  # Keeps TPS stable under heavy logging load.
+  async: true
+  # Per-world filtering for block logging.
+  # mode: blacklist -> skip the listed worlds
+  # mode: whitelist -> log ONLY the listed worlds
+  worlds:
+    mode: blacklist
+    list: []
   # Material used for the inspect wand tool.
   inspect-wand-material: "STICK"
   # Max number of history entries shown per block in the inspect wand.

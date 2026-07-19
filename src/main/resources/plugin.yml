@@ -12,7 +12,7 @@ commands:
     description: Economy admin command
     usage: /eco <give|take|set|reset|player> <player> [amount]
     aliases: ["economy"]
-    permission: [everything.eco, everything.eco.others, everything.eco.set]
+    permission: [everything.eco, everything.eco.others, everything.eco.set, everything.eco.set.others]
     permission-message: You do not have permission to use the eco command.
   help:
     description: Custom help menu
@@ -109,20 +109,24 @@ commands:
     usage: /msg <player> <message>
     aliases: [tell, w, whisper]
     permission: everything.msg
+    permission-message: You do not have permission to send private messages.
   reply:
     description: Reply to the last received message
     usage: /reply <message>
     aliases: [r]
     permission: everything.reply
+    permission-message: You do not have permission to reply to messages.
   balance:
     description: Check your balance
     usage: /balance
     aliases: [bal, money]
     permission: everything.balance
+    permission-message: You do not have permission to check your balance.
   pay:
     description: Pay another player
     usage: /pay <player> <amount>
     permission: everything.pay
+    permission-message: You do not have permission to pay players.
   kill:
     description: Kill a player or entity (supports selectors)
     usage: /kill [player|@selector]

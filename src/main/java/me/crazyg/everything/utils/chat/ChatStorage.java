@@ -1,12 +1,10 @@
 package me.crazyg.everything.utils.chat;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.storage.YamlRepository;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.UUID;
 
 /**
@@ -17,27 +15,10 @@ import java.util.UUID;
  *   prefix: "..."
  *   suffix: "..."
  */
-public class ChatStorage {
-
-    private final Everything plugin;
-    private final File file;
-    private final FileConfiguration config;
+public class ChatStorage extends YamlRepository {
 
     public ChatStorage(Everything plugin) {
-        this.plugin = plugin;
-
-        File folder = new File(plugin.getDataFolder(), "data");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        File chatResource = new File(folder, "chat.yml");
-        if (!chatResource.exists()) {
-            plugin.saveResource("data/chat.yml", false);
-        }
-
-        this.file = chatResource;
-        this.config = YamlConfiguration.loadConfiguration(file);
+        super(plugin, "data", "data/chat.yml", "chat.yml");
     }
 
     public String getPlayerPrefix(UUID uuid) {
@@ -56,13 +37,5 @@ public class ChatStorage {
     public void setPlayerSuffix(UUID uuid, String suffix) {
         config.set(uuid.toString() + ".suffix", suffix);
         save();
-    }
-
-    private void save() {
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save chat.yml: " + e.getMessage());
-        }
     }
 }

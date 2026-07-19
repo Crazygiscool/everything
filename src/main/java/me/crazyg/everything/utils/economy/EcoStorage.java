@@ -1,12 +1,10 @@
 package me.crazyg.everything.utils.economy;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.storage.YamlRepository;
 
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 import java.util.UUID;
 
@@ -16,30 +14,10 @@ import java.util.UUID;
  *
  * <uuid>: <balance>
  */
-public class EcoStorage {
-
-    private final Everything plugin;
-    private final File file;
-    private final FileConfiguration config;
+public class EcoStorage extends YamlRepository {
 
     public EcoStorage(Everything plugin) {
-        this.plugin = plugin;
-
-        // Ensure /plugins/Everything/data/ exists
-        File folder = new File(plugin.getDataFolder(), "data");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        // Extract eco.yml from resources if missing
-        File ecoResource = new File(folder, "eco.yml");
-        if (!ecoResource.exists()) {
-            // Path inside your JAR: src/main/resources/data/eco.yml
-            plugin.saveResource("data/eco.yml", false);
-        }
-
-        this.file = ecoResource;
-        this.config = YamlConfiguration.loadConfiguration(file);
+        super(plugin, "data", "data/eco.yml", "eco.yml");
     }
 
     // ---------------------------------------------------------
@@ -73,17 +51,5 @@ public class EcoStorage {
     public void setBalance(UUID uuid, double amount) {
         config.set(uuid.toString(), amount);
         save();
-    }
-
-    // ---------------------------------------------------------
-    // Save File
-    // ---------------------------------------------------------
-
-    private void save() {
-        try {
-            config.save(file);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save eco.yml: " + e.getMessage());
-        }
     }
 }

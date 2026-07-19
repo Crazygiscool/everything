@@ -1,12 +1,8 @@
 package me.crazyg.everything.commands;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Set;
-
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
+import me.crazyg.everything.utils.storage.YamlRepository;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
@@ -14,53 +10,36 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.command.*;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-public class WarpCommand implements CommandExecutor, TabCompleter {
+import java.util.List;
+import java.util.Set;
+
+public class WarpCommand extends YamlRepository
+        implements CommandExecutor, TabCompleter {
 
     private final Everything plugin;
-    private final File warpsFile;
-    private FileConfiguration warpsConfig;
 
     public WarpCommand(Everything plugin) {
+        super(plugin, "location", "location/warp.yml", "warp.yml");
         this.plugin = plugin;
-
-        // Ensure /plugins/Everything/location/ exists
-        File folder = new File(plugin.getDataFolder(), "location");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        // Extract warp.yml from resources if missing
-        File warpResource = new File(folder, "warp.yml");
-        if (!warpResource.exists()) {
-            plugin.saveResource("location/warp.yml", false);
-        }
-
-        // Load the actual file
-        this.warpsFile = warpResource;
 
         loadWarps();
     }
 
     public Set<String> getWarpNames() {
-        return warpsConfig.getKeys(false);
+        return config.getKeys(false);
     }
 
     private void loadWarps() {
-        if (!warpsFile.exists()) {
-            plugin.saveResource("warp.yml", false);
+        if (!config.contains("warps")) {
+            config.createSection("warps");
+            save();
         }
-        warpsConfig = YamlConfiguration.loadConfiguration(warpsFile);
     }
 
     private void saveWarps() {
-        try {
-            warpsConfig.save(warpsFile);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Could not save warps file!");
-        }
+        save();
     }
 
     // ----------------------------------------------------
@@ -115,7 +94,7 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean listWarps(Player player) {
-        Set<String> warps = warpsConfig.getKeys(false);
+        Set<String> warps = config.getKeys(false);
         if (warps.isEmpty()) {
             AdventureCompat.sendMessage(player, Component.text("There are no warps set!")
                     .color(NamedTextColor.RED));
@@ -131,12 +110,12 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
 
     private boolean setWarp(Player player, String name) {
         Location loc = player.getLocation();
-        warpsConfig.set(name.toLowerCase() + ".world", loc.getWorld().getName());
-        warpsConfig.set(name.toLowerCase() + ".x", loc.getX());
-        warpsConfig.set(name.toLowerCase() + ".y", loc.getY());
-        warpsConfig.set(name.toLowerCase() + ".z", loc.getZ());
-        warpsConfig.set(name.toLowerCase() + ".yaw", loc.getYaw());
-        warpsConfig.set(name.toLowerCase() + ".pitch", loc.getPitch());
+        config.set(name.toLowerCase() + ".world", loc.getWorld().getName());
+        config.set(name.toLowerCase() + ".x", loc.getX());
+        config.set(name.toLowerCase() + ".y", loc.getY());
+        config.set(name.toLowerCase() + ".z", loc.getZ());
+        config.set(name.toLowerCase() + ".yaw", loc.getYaw());
+        config.set(name.toLowerCase() + ".pitch", loc.getPitch());
         saveWarps();
 
         AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has been set!")
@@ -145,13 +124,13 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean deleteWarp(Player player, String name) {
-        if (!warpsConfig.contains(name.toLowerCase())) {
+        if (!config.contains(name.toLowerCase())) {
             AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' does not exist!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
-        warpsConfig.set(name.toLowerCase(), null);
+        config.set(name.toLowerCase(), null);
         saveWarps();
 
         AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has been deleted!")
@@ -160,7 +139,7 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     }
 
     private boolean teleportToWarp(Player player, String name) {
-        if (!warpsConfig.contains(name.toLowerCase())) {
+        if (!config.contains(name.toLowerCase())) {
             AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' does not exist!")
                     .color(NamedTextColor.RED));
             return true;
@@ -173,18 +152,18 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        String worldName = warpsConfig.getString(name.toLowerCase() + ".world");
+        String worldName = config.getString(name.toLowerCase() + ".world");
         if (worldName == null || Bukkit.getWorld(worldName) == null) {
             AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has an invalid world!")
                     .color(NamedTextColor.RED));
             return true;
         }
 
-        double x = warpsConfig.getDouble(name.toLowerCase() + ".x");
-        double y = warpsConfig.getDouble(name.toLowerCase() + ".y");
-        double z = warpsConfig.getDouble(name.toLowerCase() + ".z");
-        float yaw = (float) warpsConfig.getDouble(name.toLowerCase() + ".yaw");
-        float pitch = (float) warpsConfig.getDouble(name.toLowerCase() + ".pitch");
+        double x = config.getDouble(name.toLowerCase() + ".x");
+        double y = config.getDouble(name.toLowerCase() + ".y");
+        double z = config.getDouble(name.toLowerCase() + ".z");
+        float yaw = (float) config.getDouble(name.toLowerCase() + ".yaw");
+        float pitch = (float) config.getDouble(name.toLowerCase() + ".pitch");
 
         Location loc = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
         player.teleport(loc);
@@ -200,7 +179,7 @@ public class WarpCommand implements CommandExecutor, TabCompleter {
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
 
-        Set<String> warps = warpsConfig.getKeys(false);
+        Set<String> warps = config.getKeys(false);
 
         // /warp <tab>
         if (args.length == 1) {

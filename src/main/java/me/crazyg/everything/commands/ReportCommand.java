@@ -1,7 +1,5 @@
 package me.crazyg.everything.commands;
 
-import java.io.File;
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
@@ -20,16 +18,12 @@ import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.*;
-import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
-public class ReportCommand implements CommandExecutor, TabCompleter{
+public class ReportCommand extends me.crazyg.everything.utils.storage.YamlRepository
+        implements CommandExecutor, TabCompleter {
 
     private final Everything plugin;
-
-    private final File dataFile;
-    private FileConfiguration dataConfig;
 
     private static final DateTimeFormatter TIMESTAMP_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE_TIME;
 
@@ -55,31 +49,17 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
     private static final Component NO_VIEW_PERMISSION = Component.text("You do not have permission to view reports.")
             .color(NamedTextColor.RED);
 
-    private static final String VIEW_REPORTS_PERMISSION = "everything.report.view";
+    private static final String VIEW_REPORTS_PERMISSION =
+        me.crazyg.everything.utils.Permissions.REPORT_VIEW;
 
     public ReportCommand(Everything plugin) {
+        super(plugin, "data", "data/report.yml", "report.yml");
         this.plugin = plugin;
 
-        // Ensure /plugins/Everything/data/ exists
-        File folder = new File(plugin.getDataFolder(), "data");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        // Extract report.yml from resources if missing
-        File reportResource = new File(folder, "report.yml");
-        if (!reportResource.exists()) {
-            // Path inside your JAR: src/main/resources/data/report.yml
-            plugin.saveResource("data/report.yml", false);
-        }
-
-        this.dataFile = reportResource;
-        this.dataConfig = YamlConfiguration.loadConfiguration(dataFile);
-
         // Ensure "reports" list exists
-        if (!dataConfig.contains("reports")) {
-            dataConfig.set("reports", new java.util.ArrayList<>());
-            saveData();
+        if (!config.contains("reports")) {
+            config.set("reports", new java.util.ArrayList<>());
+            save();
         }
     }
 
@@ -87,18 +67,14 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
     // Save report.yml
     // -----------------------------
     private void saveData() {
-        try {
-            dataConfig.save(dataFile);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Could not save report.yml!");
-        }
+        save();
     }
 
     // -----------------------------
     // Add Report
     // -----------------------------
     private void addReportToConfig(String reporterName, String reportedName, String reason) {
-        List<Map<?, ?>> reportsList = dataConfig.getMapList("reports");
+        List<Map<?, ?>> reportsList = config.getMapList("reports");
 
         Map<String, String> newReport = Map.of(
                 "reporter", reporterName,
@@ -108,7 +84,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
         );
 
         reportsList.add(newReport);
-        dataConfig.set("reports", reportsList);
+        config.set("reports", reportsList);
         saveData();
     }
 
@@ -116,7 +92,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
     // Display Reports
     // -----------------------------
     private void displayReports(CommandSender sender) {
-        List<Map<?, ?>> reportsList = dataConfig.getMapList("reports");
+        List<Map<?, ?>> reportsList = config.getMapList("reports");
 
         if (reportsList.isEmpty()) {
             AdventureCompat.sendMessage(sender, NO_REPORTS);
@@ -190,7 +166,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
                     return true;
                 }
 
-                List<Map<?, ?>> reportsList = dataConfig.getMapList("reports");
+                List<Map<?, ?>> reportsList = config.getMapList("reports");
 
                 if (index < 0 || index >= reportsList.size()) {
                     AdventureCompat.sendMessage(p, Component.text("No report at that index.").color(NamedTextColor.RED));
@@ -205,7 +181,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
 
                 // Remove report
                 reportsList.remove(index);
-                dataConfig.set("reports", reportsList);
+                config.set("reports", reportsList);
                 saveData();
 
                 // Notify admin
@@ -333,7 +309,7 @@ public class ReportCommand implements CommandExecutor, TabCompleter{
 
     // Helper to list report indices
     private List<String> getReportIndexSuggestions(String input) {
-        List<Map<?, ?>> reports = dataConfig.getMapList("reports");
+        List<Map<?, ?>> reports = config.getMapList("reports");
 
         return java.util.stream.IntStream.range(0, reports.size())
                 .mapToObj(String::valueOf)

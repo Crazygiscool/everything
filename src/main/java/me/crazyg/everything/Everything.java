@@ -2,6 +2,7 @@ package me.crazyg.everything;
 
 import java.io.File;
 import me.crazyg.everything.blocklog.BlockLogCommand;
+import me.crazyg.everything.blocklog.BlockLogConfig;
 import me.crazyg.everything.blocklog.BlockLogDatabase;
 import me.crazyg.everything.blocklog.BlockLogListener;
 import me.crazyg.everything.blocklog.InspectWand;
@@ -102,8 +103,12 @@ public final class Everything extends JavaPlugin {
         );
 
         // --- Config Loading ---
+        // copyDefaults merges missing keys from the embedded default config
+        // into memory; saveConfig() persists them to the user's file without
+        // wiping their custom values. (saveDefaultConfig() alone would not
+        // persist newly-added default keys on upgrade.)
         getConfig().options().copyDefaults(true);
-        saveDefaultConfig();
+        saveConfig();
 
         // --- Logging ---
         getLogger().info("THIS PLUGIN IS WRITTEN BY CRAZYG");
@@ -250,9 +255,15 @@ public final class Everything extends JavaPlugin {
         // Remove duplicate direct setExecutor for setspawn, spawn, balance, pay
 
         // --- Block Logging & Rollback ---
-        if (getConfig().getBoolean("blocklog.enabled", true)) {
+        if (BlockLogConfig.isEnabled(getConfig())) {
             this.blockLogDatabase = new BlockLogDatabase(this);
             this.blockLogDatabase.init();
+            if (BlockLogConfig.pruneOnStartup(getConfig())) {
+                int removed = this.blockLogDatabase.pruneOlderThan(
+                    BlockLogConfig.maxRetentionDays(getConfig()));
+                getLogger().info("Pruned " + removed
+                    + " old block-log entries on startup.");
+            }
             this.rollbackManager = new RollbackManager(this, blockLogDatabase);
             this.inspectWand =
                 new InspectWand(this, blockLogDatabase, rollbackManager);
@@ -444,5 +455,9 @@ public final class Everything extends JavaPlugin {
 
     public RollbackManager getRollbackManager() {
         return rollbackManager;
+    }
+
+    public BlockLogListener getBlockLogListener() {
+        return blockLogListener;
     }
 }

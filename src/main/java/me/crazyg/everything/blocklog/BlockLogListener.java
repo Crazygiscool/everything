@@ -2,12 +2,9 @@ package me.crazyg.everything.blocklog;
 
 import me.crazyg.everything.Everything;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -26,19 +23,30 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import java.util.UUID;
 
 /**
- * Captures block changes (player + natural) and writes them to the block log
- * database. A rollback lock prevents logging blocks that are being reverted.
+ * Captures block changes (player + natural) and queues them for asynchronous
+ * persistence. A rollback lock prevents logging blocks that are being reverted.
  */
 public class BlockLogListener implements Listener {
 
     private final Everything plugin;
     private final BlockLogDatabase database;
-    private final TileStateSerializer tileSerializer;
+
+    // Cached config flags (refreshed on reload).
+    private volatile boolean enabled;
+    private volatile boolean logNatural;
+    private volatile boolean logFluid;
 
     public BlockLogListener(Everything plugin, BlockLogDatabase database) {
         this.plugin = plugin;
         this.database = database;
-        this.tileSerializer = new TileStateSerializer(plugin);
+        reloadConfig();
+    }
+
+    /** Refresh cached config flags (call on plugin config reload). */
+    public void reloadConfig() {
+        this.enabled = BlockLogConfig.isEnabled(plugin.getConfig());
+        this.logNatural = BlockLogConfig.logNatural(plugin.getConfig());
+        this.logFluid = BlockLogConfig.logFluid(plugin.getConfig());
     }
 
     // ---------------------------------------------------------
@@ -48,29 +56,35 @@ public class BlockLogListener implements Listener {
         return RollbackManager.isLocked(loc);
     }
 
+    private boolean isWorldLogged(Location loc) {
+        return loc.getWorld() != null
+            && BlockLogConfig.isWorldLogged(
+                plugin.getConfig(), loc.getWorld().getName());
+    }
+
     // ---------------------------------------------------------
     // Player actions
     // ---------------------------------------------------------
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
-        if (!isEnabled()) return;
+        if (!enabled) return;
         Block block = event.getBlock();
+        if (!isWorldLogged(block.getLocation())) return;
         Player player = event.getPlayer();
         log(block, block.getType().name(),
-            "AIR", serialize(block.getState()),
-            BlockChange.Action.PLACE, player.getUniqueId(),
+            "AIR", BlockChange.Action.PLACE, player.getUniqueId(),
             player.getName(), null, block.getState());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (!isEnabled()) return;
+        if (!enabled) return;
         Block block = event.getBlock();
+        if (!isWorldLogged(block.getLocation())) return;
         Player player = event.getPlayer();
         log(block, block.getType().name(),
-            serialize(block.getState()), "AIR",
-            BlockChange.Action.BREAK, player.getUniqueId(),
+            "AIR", BlockChange.Action.BREAK, player.getUniqueId(),
             player.getName(), block.getState(), null);
     }
 
@@ -80,125 +94,98 @@ public class BlockLogListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockExplode(BlockExplodeEvent event) {
-        if (!isEnabled() || !logNatural()) return;
+        if (!enabled || !logNatural) return;
         for (Block block : event.blockList()) {
             if (isLocked(block.getLocation())) continue;
+            if (!isWorldLogged(block.getLocation())) continue;
             log(block, block.getType().name(),
-                serialize(block.getState()), "AIR",
-                BlockChange.Action.EXPLODE, null, "Explosion", null, null);
+                "AIR", BlockChange.Action.EXPLODE, null, "Explosion",
+                block.getState(), null);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityExplode(EntityExplodeEvent event) {
-        if (!isEnabled() || !logNatural()) return;
+        if (!enabled || !logNatural) return;
         Entity entity = event.getEntity();
         String name = entity == null ? "Explosion" : entity.getType().name();
         for (Block block : event.blockList()) {
             if (isLocked(block.getLocation())) continue;
+            if (!isWorldLogged(block.getLocation())) continue;
             log(block, block.getType().name(),
-                serialize(block.getState()), "AIR",
-                BlockChange.Action.EXPLODE, null, name, null, null);
+                "AIR", BlockChange.Action.EXPLODE, null, name,
+                block.getState(), null);
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockBurn(BlockBurnEvent event) {
-        if (!isEnabled() || !logNatural()) return;
+        if (!enabled || !logNatural) return;
         Block block = event.getBlock();
         if (isLocked(block.getLocation())) return;
+        if (!isWorldLogged(block.getLocation())) return;
         log(block, block.getType().name(),
-            serialize(block.getState()), "AIR",
-            BlockChange.Action.BURN, null, "Fire", null, null);
+            "AIR", BlockChange.Action.BURN, null, "Fire",
+            block.getState(), null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFade(BlockFadeEvent event) {
-        if (!isEnabled() || !logNatural()) return;
+        if (!enabled || !logNatural) return;
         Block block = event.getBlock();
         BlockState newState = event.getNewState();
         if (isLocked(block.getLocation())) return;
+        if (!isWorldLogged(block.getLocation())) return;
         log(block, block.getType().name(),
-            serialize(block.getState()),
-            newState.getType().name(),
-            BlockChange.Action.FADE, null, "Environment", null, null);
+            newState.getType().name(), BlockChange.Action.FADE, null,
+            "Environment", block.getState(), null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityChangeBlock(EntityChangeBlockEvent event) {
-        if (!isEnabled() || !logNatural()) return;
+        if (!enabled || !logNatural) return;
         Block block = event.getBlock();
         if (isLocked(block.getLocation())) return;
+        if (!isWorldLogged(block.getLocation())) return;
         // Endermen picking up blocks, falling blocks, etc.
         log(block, block.getType().name(),
-            serialize(block.getState()),
-            event.getTo().name(),
-            BlockChange.Action.ENTITY, null,
-            event.getEntity().getType().name(), null, null);
+            event.getTo().name(), BlockChange.Action.ENTITY, null,
+            event.getEntity().getType().name(), block.getState(), null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEntityBlockForm(EntityBlockFormEvent event) {
-        if (!isEnabled() || !logNatural()) return;
+        if (!enabled || !logNatural) return;
         Block block = event.getBlock();
         if (isLocked(block.getLocation())) return;
+        if (!isWorldLogged(block.getLocation())) return;
         log(block, block.getType().name(),
-            serialize(block.getState()),
             event.getNewState().getType().name(),
             BlockChange.Action.ENTITY, null,
-            event.getEntity().getType().name(), null, null);
+            event.getEntity().getType().name(), block.getState(), null);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockFromTo(BlockFromToEvent event) {
-        if (!isEnabled() || !logFluid()) return;
+        if (!enabled || !logFluid) return;
         Block to = event.getToBlock();
         if (isLocked(to.getLocation())) return;
+        if (!isWorldLogged(to.getLocation())) return;
         log(to, to.getType().name(),
-            serialize(to.getState()),
             event.getBlock().getType().name(),
-            BlockChange.Action.FLUID, null, "Fluid", null, null);
+            BlockChange.Action.FLUID, null, "Fluid",
+            to.getState(), null);
     }
 
     // ---------------------------------------------------------
     // Helpers
     // ---------------------------------------------------------
 
-    private void log(Block block, String blockType, String oldData,
-                      String newData, BlockChange.Action action,
-                      UUID uuid, String name, BlockState oldState,
-                      BlockState newState) {
+    private void log(Block block, String blockType, String newData,
+                      BlockChange.Action action, UUID uuid, String name,
+                      BlockState oldState, BlockState newState) {
         if (isLocked(block.getLocation())) return;
-        String oldTile = oldState == null ? null : tileSerializer.serialize(oldState);
-        String newTile = newState == null ? null : tileSerializer.serialize(newState);
-        database.logChange(block.getLocation(), blockType, oldData,
-            newData, action, uuid, name, oldTile, newTile);
-    }
-
-    private String serialize(BlockState state) {
-        Material type = state.getType();
-        if (state instanceof ConfigurationSerializable serializable) {
-            try {
-                java.util.Map<String, Object> map = serializable.serialize();
-                if (map != null && !map.isEmpty()) {
-                    return type.name() + ":" + map.toString();
-                }
-            } catch (Exception e) {
-                // fall through to material-only
-            }
-        }
-        return type.name();
-    }
-
-    private boolean isEnabled() {
-        return plugin.getConfig().getBoolean("blocklog.enabled", true);
-    }
-
-    private boolean logNatural() {
-        return plugin.getConfig().getBoolean("blocklog.log-natural", true);
-    }
-
-    private boolean logFluid() {
-        return plugin.getConfig().getBoolean("blocklog.log-fluid", false);
+        database.logChange(block.getLocation(), blockType, "AIR", newData,
+            action, uuid, name, oldState, newState);
     }
 }

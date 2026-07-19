@@ -2,11 +2,10 @@ package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
+import me.crazyg.everything.utils.storage.YamlRepository;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 
-import java.io.File;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -19,35 +18,19 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 
 import java.util.List;
 
-public class HomeCommand implements CommandExecutor, TabCompleter {
+public class HomeCommand extends YamlRepository
+        implements CommandExecutor, TabCompleter {
 
     private final Everything plugin;
-    private final File homesFile;
-    private FileConfiguration homesConfig;
     private final Map<UUID, Location> playerHomes = new HashMap<>();
 
     public HomeCommand(Everything plugin) {
+        super(plugin, "location", "location/home.yml", "home.yml");
         this.plugin = plugin;
-
-        // Ensure /plugins/Everything/locations/ exists
-        File folder = new File(plugin.getDataFolder(), "location");
-        if (!folder.exists()) {
-            folder.mkdirs();
-        }
-
-        // Extract home.yml from resources if missing
-        File homeResource = new File(folder, "home.yml");
-        if (!homeResource.exists()) {
-            plugin.saveResource("location/home.yml", false);
-        }
-
-        // Load the actual file
-        this.homesFile = homeResource;
 
         loadHomes();
 
@@ -59,30 +42,20 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
     // LOAD HOMES
     // ------------------------------
     private void loadHomes() {
-        if (!homesFile.exists()) {
-            try {
-                homesFile.createNewFile();
-            } catch (IOException e) {
-                plugin.getLogger().severe("Could not create home.yml!");
-            }
-        }
+        if (!config.contains("homes")) return;
 
-        homesConfig = YamlConfiguration.loadConfiguration(homesFile);
-
-        if (!homesConfig.contains("homes")) return;
-
-        for (String uuidStr : homesConfig.getConfigurationSection("homes").getKeys(false)) {
+        for (String uuidStr : config.getConfigurationSection("homes").getKeys(false)) {
             UUID uuid = UUID.fromString(uuidStr);
 
-            String worldName = homesConfig.getString("homes." + uuidStr + ".world");
+            String worldName = config.getString("homes." + uuidStr + ".world");
             World world = Bukkit.getWorld(worldName);
             if (world == null) continue;
 
-            double x = homesConfig.getDouble("homes." + uuidStr + ".x");
-            double y = homesConfig.getDouble("homes." + uuidStr + ".y");
-            double z = homesConfig.getDouble("homes." + uuidStr + ".z");
-            float yaw = (float) homesConfig.getDouble("homes." + uuidStr + ".yaw");
-            float pitch = (float) homesConfig.getDouble("homes." + uuidStr + ".pitch");
+            double x = config.getDouble("homes." + uuidStr + ".x");
+            double y = config.getDouble("homes." + uuidStr + ".y");
+            double z = config.getDouble("homes." + uuidStr + ".z");
+            float yaw = (float) config.getDouble("homes." + uuidStr + ".yaw");
+            float pitch = (float) config.getDouble("homes." + uuidStr + ".pitch");
 
             Location loc = new Location(world, x, y, z, yaw, pitch);
             playerHomes.put(uuid, loc);
@@ -97,19 +70,15 @@ public class HomeCommand implements CommandExecutor, TabCompleter {
             UUID uuid = entry.getKey();
             Location loc = entry.getValue();
 
-            homesConfig.set("homes." + uuid + ".world", loc.getWorld().getName());
-            homesConfig.set("homes." + uuid + ".x", loc.getX());
-            homesConfig.set("homes." + uuid + ".y", loc.getY());
-            homesConfig.set("homes." + uuid + ".z", loc.getZ());
-            homesConfig.set("homes." + uuid + ".yaw", loc.getYaw());
-            homesConfig.set("homes." + uuid + ".pitch", loc.getPitch());
+            config.set("homes." + uuid + ".world", loc.getWorld().getName());
+            config.set("homes." + uuid + ".x", loc.getX());
+            config.set("homes." + uuid + ".y", loc.getY());
+            config.set("homes." + uuid + ".z", loc.getZ());
+            config.set("homes." + uuid + ".yaw", loc.getYaw());
+            config.set("homes." + uuid + ".pitch", loc.getPitch());
         }
 
-        try {
-            homesConfig.save(homesFile);
-        } catch (IOException e) {
-            plugin.getLogger().severe("Failed to save home.yml!");
-        }
+        save();
     }
 
     // ------------------------------
