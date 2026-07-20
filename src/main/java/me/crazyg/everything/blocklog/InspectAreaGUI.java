@@ -62,9 +62,15 @@ public class InspectAreaGUI extends BaseGUI {
             .build();
         set(13, sizeItem);
 
+        ItemStack minus5 = ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE)
+            .name("&c-5")
+            .lore("&7Decrease cube size (min " + MIN_SIZE + ")")
+            .build();
+        set(10, minus5);
+
         ItemStack minus = ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE)
             .name("&c-1")
-            .lore("&7Decrease cube size (min " + MIN_SIZE + ")")
+            .lore("&7Fine decrease by 1 (min " + MIN_SIZE + ")")
             .build();
         set(11, minus);
 
@@ -93,6 +99,7 @@ public class InspectAreaGUI extends BaseGUI {
     public void onClick(InventoryClickEvent e) {
         int slot = e.getSlot();
         switch (slot) {
+            case 10 -> size = Math.max(MIN_SIZE, size - 5);
             case 11 -> size = Math.max(MIN_SIZE, size - 1);
             case 15 -> size = Math.min(MAX_SIZE, size + 5);
             case 16 -> size = Math.min(MAX_SIZE, size + 1);
@@ -127,7 +134,7 @@ public class InspectAreaGUI extends BaseGUI {
             default -> { /* filler / ignored */ }
         }
         // Refresh size display for size-changing clicks.
-        if (slot == 11 || slot == 15 || slot == 16) {
+        if (slot == 10 || slot == 11 || slot == 15 || slot == 16) {
             update();
         }
     }

@@ -23,6 +23,15 @@ public final class BlockLogConfig {
     public static final String MAX_ROLLBACK_BLOCKS = "blocklog.max-rollback-blocks";
     public static final String WORLDS_MODE = "blocklog.worlds.mode";
     public static final String WORLDS_LIST = "blocklog.worlds.list";
+    public static final String LOG_INTERACT = "blocklog.log-interact";
+    public static final String LOG_CONTAINER = "blocklog.log-container";
+    public static final String LOG_CRAFT = "blocklog.log-craft";
+    public static final String LOG_TRADE = "blocklog.log-trade";
+    public static final String LOG_ENTITY_DEATH = "blocklog.log-entity-death";
+    public static final String MAX_ROLLBACK_BLOCKS_PER_WORLD =
+        "blocklog.max-rollback-blocks-per-world";
+    public static final String WORLDEDIT_INTEGRATION =
+        "blocklog.worldedit-integration";
 
     public static boolean isEnabled(FileConfiguration config) {
         return config.getBoolean(ENABLED, true);
@@ -67,5 +76,33 @@ public final class BlockLogConfig {
         if (list.isEmpty()) return true;
         boolean contains = list.contains(world);
         return "whitelist".equalsIgnoreCase(mode) ? contains : !contains;
+    }
+
+    public static boolean logInteract(FileConfiguration config) {
+        return config.getBoolean(LOG_INTERACT, true);
+    }
+
+    public static boolean logContainer(FileConfiguration config) {
+        return config.getBoolean(LOG_CONTAINER, true);
+    }
+
+    public static boolean logCraft(FileConfiguration config) {
+        return config.getBoolean(LOG_CRAFT, true);
+    }
+
+    public static boolean logTrade(FileConfiguration config) {
+        return config.getBoolean(LOG_TRADE, true);
+    }
+
+    public static boolean logEntityDeath(FileConfiguration config) {
+        return config.getBoolean(LOG_ENTITY_DEATH, true);
+    }
+
+    public static int maxRollbackBlocksPerWorld(FileConfiguration config) {
+        return config.getInt(MAX_ROLLBACK_BLOCKS_PER_WORLD, 10000);
+    }
+
+    public static boolean worldEditIntegration(FileConfiguration config) {
+        return config.getBoolean(WORLDEDIT_INTEGRATION, true);
     }
 }

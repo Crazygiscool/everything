@@ -22,6 +22,12 @@ public class BlockChange {
         PISTON,
         PORTAL,
         SIGN_EDIT,
+        INTERACT,
+        ENTITY_KILL,
+        ENTITY_DEATH,
+        CONTAINER,
+        CRAFT,
+        TRADE,
         UNKNOWN;
 
         public static Action fromString(String s) {

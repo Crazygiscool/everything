@@ -4,6 +4,8 @@ import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
 
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
@@ -33,6 +35,9 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     private final BlockLogDatabase database;
     private final RollbackManager rollbackManager;
     private final InspectWand inspectWand;
+    private final LookupResultCache lookupCache = new LookupResultCache();
+
+    private static final int PAGE_SIZE = 25;
 
     public BlockLogCommand(Everything plugin, BlockLogDatabase database,
                            RollbackManager rollbackManager,
@@ -82,7 +87,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // /lb prune <days>
+    // /lb prune <days> [world] [player] [blocktype]
     // ---------------------------------------------------------
     private boolean handleLb(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.prune")) {
@@ -93,7 +98,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length < 1 || !args[0].equalsIgnoreCase("prune")) {
             AdventureCompat.sendMessage(sender,
-                Component.text("Usage: /lb prune <days>")
+                Component.text("Usage: /lb prune <days> [world] [player] [blocktype]")
                     .color(NamedTextColor.YELLOW));
             return true;
         }
@@ -112,16 +117,50 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                     .color(NamedTextColor.RED));
             return true;
         }
-        int removed = database.pruneOlderThan(days);
+        String world = null;
+        UUID player = null;
+        String blockType = null;
+        for (int i = 2; i < args.length; i++) {
+            String a = args[i];
+            // Check if it's a world name
+            if (Bukkit.getWorld(a) != null) {
+                world = a;
+                continue;
+            }
+            // Check if it's a player name
+            OfflinePlayer op = Bukkit.getOfflinePlayer(a);
+            if (op.hasPlayedBefore() || op.isOnline()) {
+                player = op.getUniqueId();
+                continue;
+            }
+            Player online = Bukkit.getPlayerExact(a);
+            if (online != null) {
+                player = online.getUniqueId();
+                continue;
+            }
+            // Otherwise treat as block type
+            blockType = a;
+        }
+        int removed = database.pruneOlderThan(days, world, player, blockType);
+        StringBuilder msg = new StringBuilder("Pruned " + removed
+            + " log entries older than " + days + " days");
+        boolean hasFilter = world != null || player != null || blockType != null;
+        if (hasFilter) {
+            msg.append(" (filters:");
+            if (world != null) msg.append(" world=").append(world);
+            if (player != null) msg.append(" player=").append(player);
+            if (blockType != null) msg.append(" block=").append(blockType);
+            msg.append(")");
+        }
+        msg.append(".");
         AdventureCompat.sendMessage(sender,
-            Component.text("Pruned " + removed + " log entries older than "
-                + days + " days.").color(NamedTextColor.GREEN));
+            Component.text(msg.toString()).color(NamedTextColor.GREEN));
         return true;
     }
 
     // ---------------------------------------------------------
-    // /lookup <player|*> [radius] [time]
-    // /lookup here
+    // /lookup <player|*> [radius] [time] [page]
+    // /lookup here [page]
     // ---------------------------------------------------------
     private boolean handleLookup(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.lookup")) {
@@ -131,7 +170,19 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        if (args.length >= 1 && args[0].equalsIgnoreCase("here")) {
+        // Check if last arg is a page number
+        int page = 1;
+        String[] cmdArgs = args;
+        if (args.length > 0) {
+            Integer lastAsPage = tryRadius(args[args.length - 1]);
+            if (lastAsPage != null && lastAsPage > 0
+                && tryTime(args[args.length - 1]) == null) {
+                page = lastAsPage;
+                cmdArgs = Arrays.copyOf(args, args.length - 1);
+            }
+        }
+
+        if (cmdArgs.length >= 1 && cmdArgs[0].equalsIgnoreCase("here")) {
             if (!(sender instanceof Player player)) {
                 AdventureCompat.sendMessage(sender,
                     Component.text("'here' can only be used by a player.")
@@ -142,28 +193,62 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             List<BlockChange> changes = database.query(
                 area.world, area.cx, area.cy, area.cz,
                 area.radius, null, null);
-            printLookup(sender, changes, "near you");
+            if (sender instanceof Player p) {
+                lookupCache.store(p.getUniqueId(), changes, "near you");
+            }
+            printLookupPaginated(sender, changes, "near you", page);
             return true;
         }
 
-        QueryParams params = parseArgs(sender, args);
+        QueryParams params = parseArgs(sender, cmdArgs);
         if (params == null) return true;
         List<BlockChange> changes = database.query(
             params.world, params.cx, params.cy, params.cz,
             params.radius, params.uuid, params.since);
-        printLookup(sender, changes, params.describe());
+        if (sender instanceof Player p) {
+            lookupCache.store(p.getUniqueId(), changes, params.describe());
+        }
+        printLookupPaginated(sender, changes, params.describe(), page);
         return true;
     }
 
     // ---------------------------------------------------------
     // /rollback <player|*> [radius] [time] [-y]
     // /rollback here [-y]
+    // /rollback undo
     // ---------------------------------------------------------
     private boolean handleRollback(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.rollback")) {
             AdventureCompat.sendMessage(sender,
                 Component.text("You do not have permission to rollback blocks.")
                     .color(NamedTextColor.RED));
+            return true;
+        }
+
+        // /rollback undo
+        if (args.length >= 1 && args[0].equalsIgnoreCase("undo")) {
+            if (!(sender instanceof Player player)) {
+                AdventureCompat.sendMessage(sender,
+                    Component.text("Undo can only be used by a player.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            if (!player.hasPermission("everything.blocklog.rollback.undo")) {
+                AdventureCompat.sendMessage(sender,
+                    Component.text("You do not have permission to undo rollbacks.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            int undone = rollbackManager.undoLastRollback(player.getUniqueId());
+            if (undone == 0) {
+                AdventureCompat.sendMessage(sender,
+                    Component.text("Nothing to undo (no recent rollback within 10 minutes).")
+                        .color(NamedTextColor.YELLOW));
+            } else {
+                AdventureCompat.sendMessage(sender,
+                    Component.text("Undid rollback of " + undone + " blocks.")
+                        .color(NamedTextColor.GREEN));
+            }
             return true;
         }
 
@@ -203,6 +288,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     private boolean doRollback(CommandSender sender,
                                List<BlockChange> changes, boolean confirm) {
         int max = plugin.getConfig().getInt("blocklog.max-rollback-blocks", 10000);
+        int maxPerWorld = plugin.getConfig().getInt(
+            "blocklog.max-rollback-blocks-per-world", 10000);
         if (changes.isEmpty()) {
             AdventureCompat.sendMessage(sender,
                 Component.text("No matching block changes to roll back.")
@@ -210,13 +297,27 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (!confirm) {
-            AdventureCompat.sendMessage(sender,
-                Component.text("Found " + changes.size()
-                    + " changes. Run again with -y to confirm rollback.")
-                    .color(NamedTextColor.YELLOW));
+            Component msg = Component.text("Found " + changes.size()
+                + " changes. Click to confirm rollback.")
+                .color(NamedTextColor.YELLOW);
+            if (sender instanceof Player player) {
+                Component clickable = msg.clickEvent(
+                    ClickEvent.runCommand("/rollback -y"));
+                clickable = clickable.hoverEvent(
+                    HoverEvent.showText(
+                        Component.text("Click to confirm rollback of "
+                            + changes.size() + " blocks")
+                            .color(NamedTextColor.GOLD)));
+                AdventureCompat.sendInteractiveMessage(player, clickable);
+            } else {
+                AdventureCompat.sendMessage(sender, msg);
+                AdventureCompat.sendMessage(sender,
+                    Component.text("Run again with -y to confirm.")
+                        .color(NamedTextColor.GRAY));
+            }
             return true;
         }
-        int queued = rollbackManager.rollback(changes, max);
+        int queued = rollbackManager.rollback(changes, max, maxPerWorld);
         AdventureCompat.sendMessage(sender,
             Component.text("Queued rollback of " + queued + " blocks...")
                 .color(NamedTextColor.GREEN));
@@ -224,27 +325,34 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // Lookup printing
+    // Lookup printing (paginated)
     // ---------------------------------------------------------
-    private void printLookup(CommandSender sender,
-                             List<BlockChange> changes, String scope) {
+    private void printLookupPaginated(CommandSender sender,
+                                      List<BlockChange> changes,
+                                      String scope, int page) {
         if (changes.isEmpty()) {
             AdventureCompat.sendMessage(sender,
                 Component.text("No logged changes " + scope + ".")
                     .color(NamedTextColor.YELLOW));
             return;
         }
+        int totalPages = (int) Math.ceil((double) changes.size() / PAGE_SIZE);
+        page = Math.max(1, Math.min(page, totalPages));
+        int start = (page - 1) * PAGE_SIZE;
+        int end = Math.min(start + PAGE_SIZE, changes.size());
+
         AdventureCompat.sendMessage(sender,
             Component.text("----- Block Log (" + changes.size()
                 + " found " + scope + ") -----")
                 .color(NamedTextColor.GOLD)
                 .decorate(TextDecoration.BOLD));
-        int index = 0;
+
         LocalDateTime now = LocalDateTime.now();
-        for (BlockChange c : changes) {
+        for (int i = start; i < end; i++) {
+            BlockChange c = changes.get(i);
             String who = c.getPlayerName() == null ? "Natural" : c.getPlayerName();
             Component line = Component.text("")
-                .append(Component.text("#" + index + " ").color(NamedTextColor.DARK_GRAY))
+                .append(Component.text("#" + (i + 1) + " ").color(NamedTextColor.DARK_GRAY))
                 .append(Component.text("[" + c.getAction().name() + "] ")
                     .color(NamedTextColor.GRAY))
                 .append(Component.text(who).color(NamedTextColor.AQUA))
@@ -257,13 +365,37 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                     .format(java.time.format.DateTimeFormatter
                         .ofPattern("MM-dd HH:mm"))).color(NamedTextColor.YELLOW));
             AdventureCompat.sendMessage(sender, line);
-            index++;
-            if (index >= 200) {
-                AdventureCompat.sendMessage(sender,
-                    Component.text("... and " + (changes.size() - index)
-                        + " more (showing first 200).")
-                        .color(NamedTextColor.GRAY));
-                break;
+        }
+
+        if (totalPages > 1) {
+            Component nav = Component.text("");
+            if (page > 1) {
+                nav = nav.append(
+                    Component.text("<< Prev ")
+                        .color(NamedTextColor.GREEN)
+                        .clickEvent(ClickEvent.runCommand(
+                            "/lookup " + scope + " " + (page - 1)))
+                        .hoverEvent(HoverEvent.showText(
+                            Component.text("Page " + (page - 1))
+                                .color(NamedTextColor.GREEN))));
+            }
+            nav = nav.append(
+                Component.text("[Page " + page + "/" + totalPages + "]")
+                    .color(NamedTextColor.GOLD));
+            if (page < totalPages) {
+                nav = nav.append(
+                    Component.text(" Next >>")
+                        .color(NamedTextColor.GREEN)
+                        .clickEvent(ClickEvent.runCommand(
+                            "/lookup " + scope + " " + (page + 1)))
+                        .hoverEvent(HoverEvent.showText(
+                            Component.text("Page " + (page + 1))
+                                .color(NamedTextColor.GREEN))));
+            }
+            if (sender instanceof Player player) {
+                AdventureCompat.sendInteractiveMessage(player, nav);
+            } else {
+                AdventureCompat.sendMessage(sender, nav);
             }
         }
     }
@@ -316,7 +448,19 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }
 
         // Center: executor location, or world spawn if console.
+        // If WorldEdit selection exists and no explicit radius, use it.
+        WorldEditIntegration.SelectionBounds weSelection = null;
         if (sender instanceof Player player) {
+            weSelection = WorldEditIntegration.getSelection(player);
+        }
+        if (weSelection != null) {
+            p.world = weSelection.world();
+            p.cx = weSelection.getCenterX();
+            p.cy = weSelection.getCenterY();
+            p.cz = weSelection.getCenterZ();
+            p.radius = Math.max(weSelection.getRadiusX(),
+                Math.max(weSelection.getRadiusY(), weSelection.getRadiusZ()));
+        } else if (sender instanceof Player player) {
             p.world = player.getWorld();
             p.cx = player.getLocation().getBlockX();
             p.cy = player.getLocation().getBlockY();
@@ -383,24 +527,37 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     private LocalDateTime tryTime(String s) {
-        // Formats: 10m, 2h, 5d, 30s
+        // Supports compound formats: 10m, 2h, 5d, 30s, 1h30m, 2d5h, 10m30s
         if (s.length() < 2) return null;
-        String numPart = s.substring(0, s.length() - 1);
-        char unit = Character.toLowerCase(s.charAt(s.length() - 1));
-        int amount;
-        try {
-            amount = Integer.parseInt(numPart);
-        } catch (NumberFormatException e) {
-            return null;
-        }
         LocalDateTime now = LocalDateTime.now();
-        return switch (unit) {
-            case 's' -> now.minusSeconds(amount);
-            case 'm' -> now.minusMinutes(amount);
-            case 'h' -> now.minusHours(amount);
-            case 'd' -> now.minusDays(amount);
-            default -> null;
-        };
+        long totalSeconds = 0;
+        int i = 0;
+        while (i < s.length()) {
+            // Parse digits
+            int start = i;
+            while (i < s.length() && Character.isDigit(s.charAt(i))) {
+                i++;
+            }
+            if (i == start || i >= s.length()) return null;
+            int amount;
+            try {
+                amount = Integer.parseInt(s.substring(start, i));
+            } catch (NumberFormatException e) {
+                return null;
+            }
+            char unit = Character.toLowerCase(s.charAt(i));
+            i++;
+            long secs = switch (unit) {
+                case 's' -> amount;
+                case 'm' -> amount * 60L;
+                case 'h' -> amount * 3600L;
+                case 'd' -> amount * 86400L;
+                default -> -1;
+            };
+            if (secs < 0) return null;
+            totalSeconds += secs;
+        }
+        return totalSeconds > 0 ? now.minusSeconds(totalSeconds) : null;
     }
 
     // ---------------------------------------------------------

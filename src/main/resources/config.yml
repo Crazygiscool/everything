@@ -70,3 +70,17 @@ blocklog:
   max-history-per-block: 25
   # Max blocks a single /rollback may affect (safety cap, 0 = unlimited).
   max-rollback-blocks: 10000
+  # Log player interactions with doors, buttons, levers, containers, etc.
+  log-interact: true
+  # Log items taken from/placed into containers (chests, barrels, hoppers, etc.).
+  log-container: true
+  # Log items crafted by players.
+  log-craft: true
+  # Log villager trades.
+  log-trade: true
+  # Log entity kills and deaths.
+  log-entity-death: true
+  # Max blocks a single /rollback may affect per world (safety cap).
+  max-rollback-blocks-per-world: 10000
+  # Enable WorldEdit/FAWE selection integration for lookups and rollbacks.
+  worldedit-integration: true

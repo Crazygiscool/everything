@@ -34,6 +34,7 @@ public class InspectWand implements Listener {
     private final Everything plugin;
     private final BlockLogDatabase database;
     private final RollbackManager rollbackManager;
+    private final InspectAreaStorage areaStorage;
 
     private final Map<UUID, Boolean> inspectors = new ConcurrentHashMap<>();
     private final Map<UUID, InspectArea> areas = new ConcurrentHashMap<>();
@@ -42,9 +43,9 @@ public class InspectWand implements Listener {
     private static final DateTimeFormatter TIME_FMT =
         DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
-    static final class InspectArea {
-        final Location center;
-        final int size;
+    public static final class InspectArea {
+        public final Location center;
+        public final int size;
 
         InspectArea(Location center, int size) {
             this.center = center;
@@ -57,6 +58,7 @@ public class InspectWand implements Listener {
         this.plugin = plugin;
         this.database = database;
         this.rollbackManager = rollbackManager;
+        this.areaStorage = new InspectAreaStorage(plugin);
         buildWand();
     }
 
@@ -93,6 +95,8 @@ public class InspectWand implements Listener {
         UUID uuid = player.getUniqueId();
         if (inspectors.containsKey(uuid)) {
             inspectors.remove(uuid);
+            player.getInventory().removeItem(wandItem);
+            clearArea(uuid);
             AdventureCompat.sendMessage(player,
                 Component.text("Inspect wand disabled.")
                     .color(NamedTextColor.GRAY));
@@ -117,15 +121,32 @@ public class InspectWand implements Listener {
     // ---------------------------------------------------------
 
     public void setArea(UUID uuid, Location center, int size) {
-        areas.put(uuid, new InspectArea(center, size));
+        InspectArea area = new InspectArea(center, size);
+        areas.put(uuid, area);
+        areaStorage.save(uuid, area);
     }
 
     public InspectArea getArea(UUID uuid) {
-        return areas.get(uuid);
+        InspectArea area = areas.get(uuid);
+        if (area == null) {
+            area = areaStorage.load(uuid);
+            if (area != null) {
+                areas.put(uuid, area);
+            }
+        }
+        return area;
     }
 
     public void clearArea(UUID uuid) {
         areas.remove(uuid);
+        areaStorage.remove(uuid);
+    }
+
+    public void loadArea(UUID uuid) {
+        InspectArea area = areaStorage.load(uuid);
+        if (area != null) {
+            areas.put(uuid, area);
+        }
     }
 
     @EventHandler
@@ -180,8 +201,7 @@ public class InspectWand implements Listener {
         int index = 0;
         LocalDateTime now = LocalDateTime.now();
         for (BlockChange change : history) {
-            String who = change.isNatural()
-                ? change.getPlayerName() : change.getPlayerName();
+            String who = change.getPlayerName();
             String ago = formatAgo(change.getTimestamp(), now);
 
             Component line = Component.text("")
