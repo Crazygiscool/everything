@@ -3,32 +3,253 @@ server-link: "https://crazyg.is-a.dev"
 server-author: "Crazygiscool"
 server-description: "A fun Minecraft server with lots of features!"
 
-categories:
+# -------------------------------------------------------
+# Main Menu
+# -------------------------------------------------------
+# Define items with explicit slots. Actions:
+#   open_page      -> opens another page (set target-page)
+#   command        -> runs a command (set command)
+#   message        -> sends a message to the player (set message)
+#   close          -> closes the GUI
+#
+# Placeholders in name/lore: %player%, %player_world%, etc.
+# -------------------------------------------------------
+main-menu:
+  title: "&6%server_name% Help Menu"
+  size: 45
+
+  server-info:
+    slot: 4
+    icon: "NETHER_STAR"
+    name: "&l&6%server_name%"
+    lore:
+      - "%server_description%"
+      - "&8%server_link%"
+      - "&7Created by %server_author%"
+    action: "none"
+
   general:
-    name: "General Commands"
+    slot: 19
     icon: "BOOK"
-    type: "commands"
-    description: "All commands available to you"
+    name: "&eGeneral Commands"
+    lore:
+      - "&7All commands available to you"
+    action: "open_page"
+    target-page: "general"
 
   warps:
-    name: "Warps"
+    slot: 21
     icon: "ENDER_PEARL"
-    type: "warps"
-    description: "Teleport around the server"
+    name: "&dWarps"
+    lore:
+      - "&7Teleport around the server"
+    action: "open_page"
+    target-page: "warps"
 
   economy:
-    name: "Economy"
+    slot: 23
     icon: "GOLD_INGOT"
-    type: "economy"
-    description: "Player balances"
+    name: "&6Economy"
+    lore:
+      - "&7Player balances"
+    action: "open_page"
+    target-page: "economy"
 
   blocklog:
-    name: "Block Logging & Rollback"
+    slot: 25
     icon: "COMPASS"
-    type: "blocklog"
-    description: "Inspect and revert block changes"
-    commands:
-      - "/inspect - Toggle the inspect wand"
-      - "/lookup <player|*> [radius] [time] - Preview block changes"
-      - "/rollback <player|*> [radius] [time] [-y] - Revert block changes"
-      - "/lb prune <days> - Delete old log entries"
+    name: "&bBlock Logging & Rollback"
+    lore:
+      - "&7Inspect and revert block changes"
+    action: "open_page"
+    target-page: "blocklog"
+
+  player-info:
+    slot: 36
+    icon: "PLAYER_HEAD"
+    name: "&7&l%player%"
+    lore:
+      - "&7Your name"
+      - "&8World: &f%player_world%"
+    action: "none"
+
+  page-info:
+    slot: 40
+    icon: "MAP"
+    name: "&b&lPage &f{current_page}&b&l/&f{total_pages}"
+    lore:
+      - "&7Current page"
+    action: "none"
+
+  close:
+    slot: 44
+    icon: "BARRIER"
+    name: "&cClose"
+    lore: []
+    action: "close"
+
+  prev-page:
+    slot: 27
+    icon: "ARROW"
+    name: "&a&lPrevious Page"
+    lore:
+      - "&7Go to previous page"
+    action: "prev-page"
+
+  next-page:
+    slot: 35
+    icon: "ARROW"
+    name: "&a&lNext Page"
+    lore:
+      - "&7Go to next page"
+    action: "next-page"
+
+# -------------------------------------------------------
+# Pages / Categories
+# -------------------------------------------------------
+# Each page defines items with explicit slots and actions.
+# Dynamic loaders (load: warps / commands / economy) auto-populate
+# items into available slots starting from a start-slot.
+# Static items and dynamic items can coexist on the same page.
+#
+# Actions:
+#   command        -> runs a command (set command, optionally as-console)
+#   open_page      -> opens another page (set target-page)
+#   message        -> sends a message (set message)
+#   close          -> closes the GUI
+#   none           -> display only, no click action
+#
+# Pagination is automatic if a page has more dynamic items than fit.
+# Set start-slot and items-per-page to control dynamic item layout.
+# -------------------------------------------------------
+pages:
+  general:
+    title: "&6General Commands"
+    size: 54
+    # load: commands  <-- uncomment to auto-populate from plugin.yml
+    # start-slot: 10
+    # items-per-page: 28
+    items:
+      inspect:
+        slot: 10
+        icon: "STICK"
+        name: "&b/inspect"
+        lore:
+          - "&7Toggle the inspect wand"
+          - "&7Left-click a block for history"
+          - "&7Right-click to set inspect area"
+        action: "command"
+        command: "inspect"
+
+      lookup:
+        slot: 11
+        icon: "SPYGLASS"
+        name: "&b/lookup"
+        lore:
+          - "&7Preview block changes"
+          - "&7/lookup <player|*> [radius] [time]"
+        action: "command"
+        command: "lookup *"
+
+      rollback:
+        slot: 12
+        icon: "ARROW"
+        name: "&c/rollback"
+        lore:
+          - "&7Revert block changes"
+          - "&7/rollback <player|*> [radius] [time] [-y]"
+        action: "command"
+        command: "rollback *"
+
+      back:
+        slot: 45
+        icon: "ARROW"
+        name: "&aBack"
+        lore:
+          - "&7Return to main menu"
+        action: "open_page"
+        target-page: "_main"
+
+  warps:
+    title: "&dServer Warps"
+    size: 54
+    load: warps
+    start-slot: 10
+    items-per-page: 28
+    items:
+      back:
+        slot: 45
+        icon: "ARROW"
+        name: "&aBack"
+        lore:
+          - "&7Return to main menu"
+        action: "open_page"
+        target-page: "_main"
+
+  economy:
+    title: "&6Economy"
+    size: 54
+    load: economy
+    start-slot: 10
+    items-per-page: 28
+    items:
+      back:
+        slot: 45
+        icon: "ARROW"
+        name: "&aBack"
+        lore:
+          - "&7Return to main menu"
+        action: "open_page"
+        target-page: "_main"
+
+  blocklog:
+    title: "&bBlock Logging & Rollback"
+    size: 54
+    items:
+      inspect:
+        slot: 10
+        icon: "STICK"
+        name: "&b/inspect"
+        lore:
+          - "&7Toggle the inspect wand"
+        action: "command"
+        command: "inspect"
+
+      lookup:
+        slot: 12
+        icon: "SPYGLASS"
+        name: "&b/lookup"
+        lore:
+          - "&7Preview block changes"
+          - "&7/lookup <player|*> [radius] [time]"
+        action: "command"
+        command: "lookup *"
+
+      rollback:
+        slot: 14
+        icon: "RED_WOOL"
+        name: "&c/rollback"
+        lore:
+          - "&7Revert block changes"
+          - "&7/rollback <player|*> [radius] [time] [-y]"
+        action: "command"
+        command: "rollback *"
+
+      prune:
+        slot: 16
+        icon: "LAVA_BUCKET"
+        name: "&c/lb prune"
+        lore:
+          - "&7Delete old log entries"
+          - "&7/lb prune <days> [world] [player] [block]"
+        action: "command"
+        command: "lb prune"
+
+      back:
+        slot: 45
+        icon: "ARROW"
+        name: "&aBack"
+        lore:
+          - "&7Return to main menu"
+        action: "open_page"
+        target-page: "_main"

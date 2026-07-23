@@ -11,125 +11,59 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class HelpMainGUI extends BaseGUI {
 
     private final HelpManager manager;
-    private final List<String> categoryKeys = new ArrayList<>();
-    private final Map<Integer, String> slotToCategory = new HashMap<>();
-    private Pagination pagination;
-    private int currentPage = 1;
-    private static final int ITEMS_PER_PAGE = 7;
-    private static final TextColor[] COLORS = {
-            TextColor.color(255, 85, 85),
-            TextColor.color(85, 255, 85),
-            TextColor.color(85, 85, 255),
-            TextColor.color(255, 255, 85),
-            TextColor.color(255, 85, 255),
-            TextColor.color(85, 255, 255),
-            TextColor.color(255, 170, 0)
-    };
 
     public HelpMainGUI(Player player, HelpManager manager) {
-        super(player, 45, Component.text(manager.getServerName() + " Help Menu").color(NamedTextColor.GOLD));
+        super(player, manager.getMainMenuSize(),
+            Component.text(resolvePlaceholders(player,
+                manager.getMainMenuTitle(), manager))
+                .color(NamedTextColor.GOLD));
         this.manager = manager;
-        loadCategories();
 
         setClickCooldown(150);
         setFiller(ItemBuilder.glassPane(TextColor.color(30, 30, 30), " "));
-
         enableAnimation(10);
-    }
-
-    private void loadCategories() {
-        categoryKeys.clear();
-        ConfigurationSection categories = manager.getCategories();
-        if (categories != null) {
-            categoryKeys.addAll(categories.getKeys(false));
-        }
     }
 
     @Override
     public void build() {
-        slotToCategory.clear();
+        Map<Integer, ConfigurationSection> items = manager.getMainMenuItems();
 
-        pagination = paginate(categoryKeys, ITEMS_PER_PAGE, currentPage);
-        List<String> pageItems = new ArrayList<>();
-        for (Object item : pagination.getPageItems()) {
-            if (item instanceof String) {
-                pageItems.add((String) item);
-            }
+        for (Map.Entry<Integer, ConfigurationSection> entry : items.entrySet()) {
+            int slot = entry.getKey();
+            ConfigurationSection itemConfig = entry.getValue();
+            if (itemConfig == null) continue;
+            set(slot, buildItem(itemConfig));
+        }
+    }
+
+    private org.bukkit.inventory.ItemStack buildItem(ConfigurationSection itemConfig) {
+        String name = itemConfig.getString("name", "");
+        String icon = itemConfig.getString("icon", "PAPER");
+        List<String> loreLines = itemConfig.getStringList("lore");
+
+        name = resolvePlaceholders(player, manager.replacePlaceholders(name), manager);
+
+        List<String> processedLore = new ArrayList<>();
+        for (String line : loreLines) {
+            processedLore.add(resolvePlaceholders(player,
+                manager.replacePlaceholders(line), manager));
         }
 
-        int slot = 19;
-        for (int i = 0; i < pageItems.size(); i++) {
-            String key = pageItems.get(i);
-            ConfigurationSection cat = manager.getCategory(key);
+        Material mat = Material.matchMaterial(icon);
+        if (mat == null) mat = Material.PAPER;
 
-            if (cat == null) continue;
-
-            String name = cat.getString("name", key);
-            String desc = cat.getString("description", "");
-            Material icon = Material.matchMaterial(cat.getString("icon", "BOOK"));
-
-            TextColor color = COLORS[(pagination.getStartIndex() + i) % COLORS.length];
-
-            set(slot, ItemBuilder.builder(icon == null ? Material.BOOK : icon)
-                    .name(name, color)
-                    .lore(desc)
-                    .glowing(animationFrame % 20 < 10)
-                    .build());
-
-            slotToCategory.put(slot, key);
-
-            slot += 2;
-            if ((slot - 19) % 9 == 6) {
-                slot += 3;
-            }
+        ItemBuilder builder = ItemBuilder.builder(mat).name(name);
+        if (!processedLore.isEmpty()) {
+            builder.lore(processedLore);
         }
-
-        String serverDesc = manager.getServerDescription();
-        ItemBuilder serverInfoItem = ItemBuilder.builder(Material.NETHER_STAR)
-                .name("&l&6" + manager.getServerName());
-        if (!serverDesc.isEmpty()) {
-            serverInfoItem.addLore(serverDesc);
-        }
-        serverInfoItem
-                .addLore("&8" + manager.getServerLink())
-                .addLore("&7Created by " + manager.getServerAuthor());
-        set(4, serverInfoItem.build());
-
-        if (pagination.hasPrevious()) {
-            set(27, ItemBuilder.previousPageButton());
-        } else {
-            set(27, ItemBuilder.builder(Material.GRAY_STAINED_GLASS_PANE)
-                    .name("No Previous")
-                    .build());
-        }
-
-        if (pagination.hasNext()) {
-            set(35, ItemBuilder.nextPageButton());
-        } else {
-            set(35, ItemBuilder.builder(Material.GRAY_STAINED_GLASS_PANE)
-                    .name("No Next")
-                    .build());
-        }
-
-        set(36, ItemBuilder.builder(Material.PLAYER_HEAD)
-                .name("&7&l" + player.getName())
-                .addLore("&7Your name")
-                .addLore("&8World: &f" + player.getWorld().getName())
-                .build());
-
-        set(40, ItemBuilder.builder(Material.MAP)
-                .name("&b&lPage &f" + currentPage + "&b&l/&f" + pagination.getTotalPages())
-                .addLore("&7Current page")
-                .build());
-
-        set(44, ItemBuilder.closeButton());
+        builder.glowing(animationFrame % 20 < 10);
+        return builder.build();
     }
 
     @Override
@@ -140,40 +74,57 @@ public class HelpMainGUI extends BaseGUI {
     @Override
     public void onClick(InventoryClickEvent e) {
         if (e.getCurrentItem() == null) return;
-
         int slot = e.getRawSlot();
 
-        if (slot == 44) {
-            player.closeInventory();
-            playSuccessSound();
+        Map<Integer, ConfigurationSection> items = manager.getMainMenuItems();
+        ConfigurationSection itemConfig = items.get(slot);
+
+        if (itemConfig != null) {
+            String action = itemConfig.getString("action", "none");
+            if (!"none".equals(action)) {
+                executeAction(action, itemConfig);
+            }
             return;
         }
 
-        if (slot == 27 && pagination.hasPrevious()) {
-            currentPage--;
-            playClickSound();
-            update();
-            return;
-        }
+        // Check all config items for nav actions at this slot
+        ConfigurationSection mainMenu = manager.getMainMenuSection();
+        if (mainMenu == null) return;
+        ConfigurationSection menuItems = mainMenu.getConfigurationSection("items");
+        if (menuItems == null) return;
 
-        if (slot == 35 && pagination.hasNext()) {
-            currentPage++;
-            playClickSound();
-            update();
-            return;
+        for (String key : menuItems.getKeys(false)) {
+            ConfigurationSection navItem = menuItems.getConfigurationSection(key);
+            if (navItem != null && navItem.getInt("slot") == slot) {
+                String action = navItem.getString("action", "none");
+                if (!"none".equals(action)) {
+                    executeAction(action, navItem);
+                }
+                return;
+            }
         }
+    }
 
-        String categoryKey = slotToCategory.get(slot);
-        if (categoryKey != null) {
-            new HelpCategoryGUI(player, manager, categoryKey).open();
-            playSuccessSound();
-        }
+    private void executeAction(String action, ConfigurationSection itemConfig) {
+        HelpActionExecutor.execute(action, itemConfig, player, manager);
+    }
+
+    static String resolvePlaceholders(Player player, String text,
+                                       HelpManager manager) {
+        if (text == null) return "";
+        text = text.replace("%player%", player.getName())
+                   .replace("%player_name%", player.getName())
+                   .replace("%player_displayname%", player.getDisplayName())
+                   .replace("%player_world%", player.getWorld().getName())
+                   .replace("%server_name%", manager.getServerName())
+                   .replace("%server_link%", manager.getServerLink())
+                   .replace("%server_author%", manager.getServerAuthor())
+                   .replace("%server_description%", manager.getServerDescription());
+        return text;
     }
 
     @Override
     public void open() {
-        loadCategories();
-        currentPage = 1;
         super.open();
     }
 }
