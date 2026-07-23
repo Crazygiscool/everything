@@ -8,6 +8,7 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
+import org.bukkit.NamespacedKey;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,6 +18,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -35,8 +38,8 @@ public class InspectWand implements Listener {
     private final BlockLogDatabase database;
     private final RollbackManager rollbackManager;
     private final InspectAreaStorage areaStorage;
+    private final NamespacedKey wandKey;
 
-    private final Map<UUID, Boolean> inspectors = new ConcurrentHashMap<>();
     private final Map<UUID, InspectArea> areas = new ConcurrentHashMap<>();
     private ItemStack wandItem;
 
@@ -59,6 +62,7 @@ public class InspectWand implements Listener {
         this.database = database;
         this.rollbackManager = rollbackManager;
         this.areaStorage = new InspectAreaStorage(plugin);
+        this.wandKey = new NamespacedKey(plugin, "inspect_wand");
         buildWand();
     }
 
@@ -80,6 +84,9 @@ public class InspectWand implements Listener {
             .glowing()
             .unbreakable()
             .build();
+        ItemMeta meta = wandItem.getItemMeta();
+        meta.getPersistentDataContainer().set(wandKey, PersistentDataType.BYTE, (byte) 1);
+        wandItem.setItemMeta(meta);
     }
 
     public ItemStack getWandItem() {
@@ -87,21 +94,21 @@ public class InspectWand implements Listener {
     }
 
     public boolean isWand(ItemStack item) {
-        if (item == null || item.getType() != wandItem.getType()) return false;
-        return item.isSimilar(wandItem);
+        if (item == null || item.getType() == Material.AIR) return false;
+        if (!item.hasItemMeta()) return false;
+        return item.getItemMeta().getPersistentDataContainer()
+            .has(wandKey, PersistentDataType.BYTE);
     }
 
     public void toggle(Player player) {
         UUID uuid = player.getUniqueId();
-        if (inspectors.containsKey(uuid)) {
-            inspectors.remove(uuid);
+        if (hasWandInInventory(player)) {
             player.getInventory().removeItem(wandItem);
             clearArea(uuid);
             AdventureCompat.sendMessage(player,
                 Component.text("Inspect wand disabled.")
                     .color(NamedTextColor.GRAY));
         } else {
-            inspectors.put(uuid, true);
             player.getInventory().addItem(getWandItem());
             AdventureCompat.sendMessage(player,
                 Component.text("Inspect wand enabled! ")
@@ -112,8 +119,15 @@ public class InspectWand implements Listener {
         }
     }
 
+    private boolean hasWandInInventory(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (isWand(item)) return true;
+        }
+        return false;
+    }
+
     public boolean isInspecting(UUID uuid) {
-        return inspectors.containsKey(uuid);
+        return false;
     }
 
     // ---------------------------------------------------------
@@ -152,11 +166,9 @@ public class InspectWand implements Listener {
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
-        if (!inspectors.containsKey(player.getUniqueId())) return;
-        if (!isWand(player.getInventory().getItemInMainHand())
-            && !isWand(player.getInventory().getItemInOffHand())) {
-            return;
-        }
+        boolean mainHand = isWand(player.getInventory().getItemInMainHand());
+        boolean offHand = isWand(player.getInventory().getItemInOffHand());
+        if (!mainHand && !offHand) return;
         if (event.getAction() != Action.LEFT_CLICK_BLOCK
             && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
             return;
