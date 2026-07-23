@@ -258,6 +258,10 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             List<BlockChange> changes = database.query(
                 area.world, area.cx, area.cy, area.cz,
                 area.radius, null, null);
+
+            // Strict WorldEdit selection filter if active
+            changes = filterWorldEditSelection(sender, changes);
+
             if (sender instanceof Player p) {
                 lookupCache.store(p.getUniqueId(), changes, "near you");
             }
@@ -272,6 +276,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             params.radius, params.uuid, params.since);
 
         changes = filterChanges(changes, params);
+        changes = filterWorldEditSelection(sender, changes);
 
         if (sender instanceof Player p) {
             lookupCache.store(p.getUniqueId(), changes, params.describe());
@@ -348,6 +353,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             List<BlockChange> changes = database.query(
                 area.world, area.cx, area.cy, area.cz,
                 area.radius, null, null);
+
+            changes = filterWorldEditSelection(sender, changes);
             return doRollback(sender, changes, confirm);
         }
 
@@ -358,6 +365,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             params.radius, params.uuid, params.since);
 
         changes = filterChanges(changes, params);
+        changes = filterWorldEditSelection(sender, changes);
 
         return doRollback(sender, changes, confirm);
     }
@@ -385,6 +393,17 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             }
             return true;
         }).toList();
+    }
+
+    private List<BlockChange> filterWorldEditSelection(CommandSender sender, List<BlockChange> changes) {
+        if (!(sender instanceof Player player)) return changes;
+        WorldEditIntegration.SelectionBounds sel = WorldEditIntegration.getSelection(player);
+        if (sel == null) return changes;
+        return changes.stream().filter(c ->
+            c.getX() >= sel.minX() && c.getX() <= sel.maxX() &&
+            c.getY() >= sel.minY() && c.getY() <= sel.maxY() &&
+            c.getZ() >= sel.minZ() && c.getZ() <= sel.maxZ()
+        ).toList();
     }
 
     private boolean doRollback(CommandSender sender,

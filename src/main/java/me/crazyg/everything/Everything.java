@@ -7,6 +7,7 @@ import me.crazyg.everything.blocklog.BlockLogDatabase;
 import me.crazyg.everything.blocklog.BlockLogListener;
 import me.crazyg.everything.blocklog.InspectWand;
 import me.crazyg.everything.blocklog.RollbackManager;
+import me.crazyg.everything.blocklog.WorldEditIntegration;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
@@ -287,6 +288,12 @@ public final class Everything extends JavaPlugin {
             getLogger().info("Block logging & rollback disabled in config.yml");
         }
 
+        // --- WorldEdit Selection Particle Visualizer ---
+        if (WorldEditIntegration.isAvailable()) {
+            Bukkit.getScheduler().runTaskTimer(this, WorldEditIntegration::spawnSelectionParticles, 0L, 10L);
+            getLogger().info("WorldEdit integration & selection particle visualizer enabled.");
+        }
+
         // --- Listeners ---
         // Pass 'this' (the plugin instance) to the listeners if they need access to config etc.
         getServer()
@@ -325,7 +332,7 @@ public final class Everything extends JavaPlugin {
         applyUpdate();
 
         Component goodbyeArt = Component.text(
-            "\n░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗\n██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝\n██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░\n██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░\n╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗\n░╚═════╝░░╚════╝░░╚════╝░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝"
+            "\n░██████╗░░█████╗░░█████╗░██████╗░██████╗░██╗░░░██╗███████╗██╔════╝░██╔══██╗██╔══██╗██╔══██╗██╔══██╗╚██╗░██╔╝██╔════╝██║░░██╗░██║░░██║██║░░██║██║░░██║██████╦╝░╚████╔╝░█████╗░░██║░░╚██╗██║░░██║██║░░██║██║░░██║██╔══██╗░░╚██╔╝░░██╔══╝░░╚██████╔╝╚█████╔╝╚█████╔╝██████╔╝██████╦╝░░░██║░░░███████╗░╚═════╝░░╚════╝░░╚════╝░░╚═════╝░╚═════╝░░░░╚═╝░░░╚══════╝"
         ).color(NamedTextColor.RED);
 
         AdventureCompat.sendMessage(Bukkit.getConsoleSender(), goodbyeArt);
@@ -365,7 +372,7 @@ public final class Everything extends JavaPlugin {
                     "Applied update: " +
                         update.getName() +
                         ". Restart or reload to activate."
-                );
+                    );
             }
 
             // Clean up backup files

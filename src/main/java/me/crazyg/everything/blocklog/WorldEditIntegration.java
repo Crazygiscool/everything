@@ -1,6 +1,8 @@
 package me.crazyg.everything.blocklog;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 
@@ -101,6 +103,55 @@ public class WorldEditIntegration {
             return getPlugin.invoke(pm, "FastAsyncWorldEdit");
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    public static void spawnSelectionParticles() {
+        if (!isAvailable()) return;
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            SelectionBounds bounds = getSelection(player);
+            if (bounds == null) continue;
+            if (bounds.world == null || !player.getWorld().equals(bounds.world)) continue;
+            if (player.getLocation().distanceSquared(new Location(bounds.world, bounds.getCenterX(), bounds.getCenterY(), bounds.getCenterZ())) > 128 * 128) {
+                continue;
+            }
+            spawnCuboidParticles(player, bounds);
+        }
+    }
+
+    private static void spawnCuboidParticles(Player player, SelectionBounds b) {
+        World world = b.world;
+        double minX = b.minX;
+        double maxX = b.maxX + 1.0;
+        double minY = b.minY;
+        double maxY = b.maxY + 1.0;
+        double minZ = b.minZ;
+        double maxZ = b.maxZ + 1.0;
+
+        drawLine(player, world, minX, minY, minZ, maxX, minY, minZ);
+        drawLine(player, world, maxX, minY, minZ, maxX, minY, maxZ);
+        drawLine(player, world, maxX, minY, maxZ, minX, minY, maxZ);
+        drawLine(player, world, minX, minY, maxZ, minX, minY, minZ);
+
+        drawLine(player, world, minX, maxY, minZ, maxX, maxY, minZ);
+        drawLine(player, world, maxX, maxY, minZ, maxX, maxY, maxZ);
+        drawLine(player, world, maxX, maxY, maxZ, minX, maxY, maxZ);
+        drawLine(player, world, minX, maxY, maxZ, minX, maxY, minZ);
+
+        drawLine(player, world, minX, minY, minZ, minX, maxY, minZ);
+        drawLine(player, world, maxX, minY, minZ, maxX, maxY, minZ);
+        drawLine(player, world, maxX, minY, maxZ, maxX, maxY, maxZ);
+        drawLine(player, world, minX, minY, maxZ, minX, maxY, maxZ);
+    }
+
+    private static void drawLine(Player player, World world, double x1, double y1, double z1, double x2, double y2, double z2) {
+        double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
+        double step = 0.5;
+        for (double d = 0; d <= distance; d += step) {
+            double x = x1 + (x2 - x1) * (d / distance);
+            double y = y1 + (y2 - y1) * (d / distance);
+            double z = z1 + (z2 - z1) * (d / distance);
+            player.spawnParticle(Particle.VILLAGER_HAPPY, new Location(world, x, y, z), 1, 0, 0, 0, 0);
         }
     }
 
