@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides the inspect wand. Left-click shows a block's history in chat;
- * right-click opens the inspect settings and command menu.
+ * right-click opens the inspect settings and command menu (supports right-click air or block).
  */
 public class InspectWand implements Listener {
 
@@ -85,7 +85,7 @@ public class InspectWand implements Listener {
         this.wandItem = ItemBuilder.builder(mat)
             .name("&bInspect Wand")
             .lore("&7Left-click a block to view its history.",
-                "&7Right-click a block to open inspect menu.")
+                "&7Right-click a block or air to open inspect menu.")
             .glowing()
             .unbreakable()
             .build();
@@ -208,7 +208,7 @@ public class InspectWand implements Listener {
 
     private void drawLine(Player player, org.bukkit.World world, double x1, double y1, double z1, double x2, double y2, double z2) {
         double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
-        double step = 0.5; // denser points for better visibility
+        double step = 0.5;
         for (double d = 0; d <= distance; d += step) {
             double x = x1 + (x2 - x1) * (d / distance);
             double y = y1 + (y2 - y1) * (d / distance);
@@ -223,20 +223,27 @@ public class InspectWand implements Listener {
         boolean mainHand = isWand(player.getInventory().getItemInMainHand());
         boolean offHand = isWand(player.getInventory().getItemInOffHand());
         if (!mainHand && !offHand) return;
-        if (event.getAction() != Action.LEFT_CLICK_BLOCK
-            && event.getAction() != Action.RIGHT_CLICK_BLOCK) {
+
+        Action action = event.getAction();
+        if (action != Action.LEFT_CLICK_BLOCK
+            && action != Action.RIGHT_CLICK_BLOCK
+            && action != Action.RIGHT_CLICK_AIR) {
             return;
         }
-        Block block = event.getClickedBlock();
-        if (block == null) return;
+
         event.setCancelled(true);
 
-        if (event.getAction() == Action.LEFT_CLICK_BLOCK) {
-            showHistory(player, block.getLocation());
+        if (action == Action.LEFT_CLICK_BLOCK) {
+            Block block = event.getClickedBlock();
+            if (block != null) {
+                showHistory(player, block.getLocation());
+            }
         } else {
+            Block block = event.getClickedBlock();
+            Location center = block != null ? block.getLocation() : player.getLocation().getBlock().getLocation();
             InspectArea current = areas.get(player.getUniqueId());
             int initial = current == null ? 10 : current.size;
-            Location initialCenter = current == null ? block.getLocation() : current.center;
+            Location initialCenter = current == null ? center : current.center;
             InspectAreaGUI gui = new InspectAreaGUI(
                 player, this, initialCenter, initial);
             gui.open();

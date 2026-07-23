@@ -24,7 +24,9 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Handles /rollback, /lookup, /inspect and /lb.
@@ -36,6 +38,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     private final RollbackManager rollbackManager;
     private final InspectWand inspectWand;
     private final LookupResultCache lookupCache = new LookupResultCache();
+    private final Map<UUID, List<BlockChange>> pendingRollbacks = new ConcurrentHashMap<>();
 
     private static final int PAGE_SIZE = 25;
 
@@ -208,6 +211,31 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
+        if (args.length >= 1 && args[0].equalsIgnoreCase("page")) {
+            if (!(sender instanceof Player player)) {
+                AdventureCompat.sendMessage(sender,
+                    Component.text("Page can only be used by a player.")
+                        .color(NamedTextColor.RED));
+                return true;
+            }
+            int page = 1;
+            if (args.length >= 2) {
+                try {
+                    page = Integer.parseInt(args[1]);
+                } catch (NumberFormatException ignored) {}
+            }
+            List<BlockChange> cached = lookupCache.get(player.getUniqueId());
+            String scope = lookupCache.getScope(player.getUniqueId());
+            if (cached == null || cached.isEmpty()) {
+                AdventureCompat.sendMessage(sender,
+                    Component.text("Lookup cache expired or empty. Please run /lookup again.")
+                        .color(NamedTextColor.YELLOW));
+                return true;
+            }
+            printLookupPaginated(sender, cached, scope, page);
+            return true;
+        }
+
         int page = 1;
         String[] cmdArgs = args;
         if (args.length > 0) {
@@ -300,6 +328,15 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }
         args = cleaned.toArray(new String[0]);
 
+        if (confirm && args.length == 0) {
+            if (sender instanceof Player player) {
+                List<BlockChange> pending = pendingRollbacks.remove(player.getUniqueId());
+                if (pending != null && !pending.isEmpty()) {
+                    return doRollback(sender, pending, true);
+                }
+            }
+        }
+
         if (args.length >= 1 && args[0].equalsIgnoreCase("here")) {
             if (!(sender instanceof Player player)) {
                 AdventureCompat.sendMessage(sender,
@@ -362,6 +399,9 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return true;
         }
         if (!confirm) {
+            if (sender instanceof Player player) {
+                pendingRollbacks.put(player.getUniqueId(), changes);
+            }
             Component msg = Component.text("Found " + changes.size()
                 + " changes. Click to confirm rollback.")
                 .color(NamedTextColor.YELLOW);
@@ -439,7 +479,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                     Component.text("<< Prev ")
                         .color(NamedTextColor.GREEN)
                         .clickEvent(ClickEvent.runCommand(
-                            "/lookup " + scope + " " + (page - 1)))
+                            "/lookup page " + (page - 1)))
                         .hoverEvent(HoverEvent.showText(
                             Component.text("Page " + (page - 1))
                                 .color(NamedTextColor.GREEN))));
@@ -452,7 +492,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                     Component.text(" Next >>")
                         .color(NamedTextColor.GREEN)
                         .clickEvent(ClickEvent.runCommand(
-                            "/lookup " + scope + " " + (page + 1)))
+                            "/lookup page " + (page + 1)))
                         .hoverEvent(HoverEvent.showText(
                             Component.text("Page " + (page + 1))
                                 .color(NamedTextColor.GREEN))));
@@ -672,7 +712,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }
 
         if (args.length == 1) {
-            List<String> opts = new ArrayList<>(List.of("*", "here"));
+            List<String> opts = new ArrayList<>(List.of("*", "here", "page"));
             for (Player p : Bukkit.getOnlinePlayers()) {
                 opts.add(p.getName());
             }
