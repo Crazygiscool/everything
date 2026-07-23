@@ -9,8 +9,10 @@ import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
 
 import org.bukkit.NamespacedKey;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -30,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Provides the inspect wand. Left-click shows a block's history in chat;
- * right-click rolls back just that one block.
+ * right-click opens the inspect settings and command menu.
  */
 public class InspectWand implements Listener {
 
@@ -64,6 +66,9 @@ public class InspectWand implements Listener {
         this.areaStorage = new InspectAreaStorage(plugin);
         this.wandKey = new NamespacedKey(plugin, "inspect_wand");
         buildWand();
+
+        // Spawn particle task for selected inspect areas
+        Bukkit.getScheduler().runTaskTimer(plugin, this::spawnAreaParticles, 0L, 20L);
     }
 
     private void buildWand() {
@@ -80,7 +85,7 @@ public class InspectWand implements Listener {
         this.wandItem = ItemBuilder.builder(mat)
             .name("&bInspect Wand")
             .lore("&7Left-click a block to view its history.",
-                "&7Right-click a block to set the inspect area.")
+                "&7Right-click a block to open inspect menu.")
             .glowing()
             .unbreakable()
             .build();
@@ -114,7 +119,7 @@ public class InspectWand implements Listener {
                 Component.text("Inspect wand enabled! ")
                     .color(NamedTextColor.GREEN)
                     .append(Component.text(
-                        "Left-click a block for history, right-click to set the inspect area.")
+                        "Left-click a block for history, right-click to open inspect menu.")
                         .color(NamedTextColor.GRAY)));
         }
     }
@@ -163,6 +168,55 @@ public class InspectWand implements Listener {
         }
     }
 
+    private void spawnAreaParticles() {
+        for (Map.Entry<UUID, InspectArea> entry : areas.entrySet()) {
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player == null || !player.isOnline()) continue;
+            InspectArea area = entry.getValue();
+            if (area.center.getWorld() == null || !player.getWorld().equals(area.center.getWorld())) continue;
+            if (player.getLocation().distanceSquared(area.center) > 64 * 64) continue;
+            spawnCubeParticles(player, area.center, area.size);
+        }
+    }
+
+    private void spawnCubeParticles(Player player, Location center, int size) {
+        int half = size / 2;
+        org.bukkit.World world = center.getWorld();
+        if (world == null) return;
+        double minX = center.getBlockX() - half;
+        double maxX = center.getBlockX() + half + 1;
+        double minY = center.getBlockY() - half;
+        double maxY = center.getBlockY() + half + 1;
+        double minZ = center.getBlockZ() - half;
+        double maxZ = center.getBlockZ() + half + 1;
+
+        drawLine(player, world, minX, minY, minZ, maxX, minY, minZ);
+        drawLine(player, world, maxX, minY, minZ, maxX, minY, maxZ);
+        drawLine(player, world, maxX, minY, maxZ, minX, minY, maxZ);
+        drawLine(player, world, minX, minY, maxZ, minX, minY, minZ);
+
+        drawLine(player, world, minX, maxY, minZ, maxX, maxY, minZ);
+        drawLine(player, world, maxX, maxY, minZ, maxX, maxY, maxZ);
+        drawLine(player, world, maxX, maxY, maxZ, minX, maxY, maxZ);
+        drawLine(player, world, minX, maxY, maxZ, minX, maxY, minZ);
+
+        drawLine(player, world, minX, minY, minZ, minX, maxY, minZ);
+        drawLine(player, world, maxX, minY, minZ, maxX, maxY, minZ);
+        drawLine(player, world, maxX, minY, maxZ, maxX, maxY, maxZ);
+        drawLine(player, world, minX, minY, maxZ, minX, maxY, maxZ);
+    }
+
+    private void drawLine(Player player, org.bukkit.World world, double x1, double y1, double z1, double x2, double y2, double z2) {
+        double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
+        double step = 1.0;
+        for (double d = 0; d <= distance; d += step) {
+            double x = x1 + (x2 - x1) * (d / distance);
+            double y = y1 + (y2 - y1) * (d / distance);
+            double z = z1 + (z2 - z1) * (d / distance);
+            player.spawnParticle(Particle.END_ROD, new Location(world, x, y, z), 1, 0, 0, 0, 0);
+        }
+    }
+
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -182,8 +236,9 @@ public class InspectWand implements Listener {
         } else {
             InspectArea current = areas.get(player.getUniqueId());
             int initial = current == null ? 10 : current.size;
+            Location initialCenter = current == null ? block.getLocation() : current.center;
             InspectAreaGUI gui = new InspectAreaGUI(
-                player, this, block.getLocation(), initial);
+                player, this, initialCenter, initial);
             gui.open();
         }
     }

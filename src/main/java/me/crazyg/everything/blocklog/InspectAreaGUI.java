@@ -16,9 +16,7 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Settings GUI opened by right-clicking with the inspect wand. Lets the player
- * choose a uniform cube size (3-100) centered on the clicked block. Configure-
- * only: the selection is stored on the player and consumed by /lookup here and
- * /rollback here.
+ * choose block log commands, adjust cube size (3-100) and Y offset, and confirm area.
  */
 public class InspectAreaGUI extends BaseGUI {
 
@@ -32,7 +30,7 @@ public class InspectAreaGUI extends BaseGUI {
     public InspectAreaGUI(Player player, InspectWand wand,
                            Location center, int initialSize) {
         super(player, 27,
-            Component.text("Inspect Area Settings")
+            Component.text("Inspector Wand Menu")
                 .color(NamedTextColor.AQUA)
                 .decorate(TextDecoration.BOLD));
         this.wand = wand;
@@ -42,18 +40,58 @@ public class InspectAreaGUI extends BaseGUI {
 
     @Override
     public void build() {
+        // Block Log Commands (slots 0-3)
+        ItemStack inspectCmd = ItemBuilder.builder(Material.COMPASS)
+            .name("&b/inspect")
+            .lore(
+                "&7Toggle the inspect wand.",
+                "",
+                "&eClick to execute &b/inspect")
+            .build();
+        set(0, inspectCmd);
+
+        ItemStack lookupCmd = ItemBuilder.builder(Material.BOOK)
+            .name("&b/lookup")
+            .lore(
+                "&7Look up block changes near you.",
+                "",
+                "&eClick to execute &b/lookup here")
+            .build();
+        set(1, lookupCmd);
+
+        ItemStack rollbackCmd = ItemBuilder.builder(Material.CLOCK)
+            .name("&c/rollback")
+            .lore(
+                "&7Roll back block changes near you.",
+                "",
+                "&eClick to execute &c/rollback here")
+            .build();
+        set(2, rollbackCmd);
+
+        ItemStack lbCmd = ItemBuilder.builder(Material.WRITABLE_BOOK)
+            .name("&e/lb")
+            .lore(
+                "&7Block log utility (prune logs).",
+                "",
+                "&eClick to execute &e/lb")
+            .build();
+        set(3, lbCmd);
+
+        // Area Center (slot 4)
         ItemStack centerInfo = ItemBuilder.builder(Material.PAPER)
-            .name("&bArea Center")
+            .name("&bArea Center &7(Y-Offset)")
             .lore(
                 "&7World: &f" + center.getWorld().getName(),
                 "&7X: &f" + center.getBlockX(),
                 "&7Y: &f" + center.getBlockY(),
                 "&7Z: &f" + center.getBlockZ(),
                 "",
-                "&7Cube is centered here.")
+                "&eLeft-click: &fBring Y down by 10",
+                "&eRight-click: &fBring Y up by 10")
             .build();
         set(4, centerInfo);
 
+        // Size controls & display
         ItemStack sizeItem = ItemBuilder.builder(Material.SLIME_BALL)
             .name("&aCube Size: &f" + size + "x" + size + "x" + size)
             .lore(
@@ -99,10 +137,37 @@ public class InspectAreaGUI extends BaseGUI {
     public void onClick(InventoryClickEvent e) {
         int slot = e.getSlot();
         switch (slot) {
-            case 10 -> size = Math.max(MIN_SIZE, size - 5);
-            case 11 -> size = Math.max(MIN_SIZE, size - 1);
-            case 15 -> size = Math.min(MAX_SIZE, size + 5);
-            case 16 -> size = Math.min(MAX_SIZE, size + 1);
+            case 0 -> {
+                player.closeInventory();
+                player.performCommand("inspect");
+            }
+            case 1 -> {
+                player.closeInventory();
+                player.performCommand("lookup here");
+            }
+            case 2 -> {
+                player.closeInventory();
+                player.performCommand("rollback here");
+            }
+            case 3 -> {
+                player.closeInventory();
+                player.performCommand("lb");
+            }
+            case 4 -> {
+                if (e.isLeftClick()) {
+                    center.add(0, -10, 0);
+                    playClickSound();
+                    update();
+                } else if (e.isRightClick()) {
+                    center.add(0, 10, 0);
+                    playClickSound();
+                    update();
+                }
+            }
+            case 10 -> { size = Math.max(MIN_SIZE, size - 5); update(); }
+            case 11 -> { size = Math.max(MIN_SIZE, size - 1); update(); }
+            case 15 -> { size = Math.min(MAX_SIZE, size + 5); update(); }
+            case 16 -> { size = Math.min(MAX_SIZE, size + 1); update(); }
             case 13 -> { /* display only */ }
             case 22 -> {
                 wand.setArea(player.getUniqueId(), center, size);
@@ -132,10 +197,6 @@ public class InspectAreaGUI extends BaseGUI {
                 return;
             }
             default -> { /* filler / ignored */ }
-        }
-        // Refresh size display for size-changing clicks.
-        if (slot == 10 || slot == 11 || slot == 15 || slot == 16) {
-            update();
         }
     }
 }

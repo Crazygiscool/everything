@@ -67,7 +67,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // /inspect
+    // /inspect [area <size>|clear]
     // ---------------------------------------------------------
     private boolean handleInspect(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
@@ -82,7 +82,49 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                     .color(NamedTextColor.RED));
             return true;
         }
-        inspectWand.toggle(player);
+
+        if (args.length == 0) {
+            inspectWand.toggle(player);
+            return true;
+        }
+
+        String sub = args[0].toLowerCase();
+        switch (sub) {
+            case "clear" -> {
+                inspectWand.clearArea(player.getUniqueId());
+                AdventureCompat.sendMessage(player,
+                    Component.text("Inspect area cleared.")
+                        .color(NamedTextColor.YELLOW));
+            }
+            case "area" -> {
+                if (args.length < 2) {
+                    AdventureCompat.sendMessage(player,
+                        Component.text("Usage: /inspect area <size>")
+                            .color(NamedTextColor.YELLOW));
+                    return true;
+                }
+                int size;
+                try {
+                    size = Integer.parseInt(args[1]);
+                } catch (NumberFormatException e) {
+                    AdventureCompat.sendMessage(player,
+                        Component.text("Invalid size number.")
+                            .color(NamedTextColor.RED));
+                    return true;
+                }
+                size = Math.max(3, Math.min(100, size));
+                inspectWand.setArea(player.getUniqueId(), player.getLocation(), size);
+                AdventureCompat.sendMessage(player,
+                    Component.text("Inspect area set to " + size + "x" + size + "x" + size
+                        + " centered at your location.")
+                        .color(NamedTextColor.GREEN));
+            }
+            default -> {
+                AdventureCompat.sendMessage(player,
+                    Component.text("Usage: /inspect [area <size>|clear]")
+                        .color(NamedTextColor.YELLOW));
+            }
+        }
         return true;
     }
 
@@ -122,12 +164,10 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         String blockType = null;
         for (int i = 2; i < args.length; i++) {
             String a = args[i];
-            // Check if it's a world name
             if (Bukkit.getWorld(a) != null) {
                 world = a;
                 continue;
             }
-            // Check if it's a player name
             OfflinePlayer op = Bukkit.getOfflinePlayer(a);
             if (op.hasPlayedBefore() || op.isOnline()) {
                 player = op.getUniqueId();
@@ -138,7 +178,6 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                 player = online.getUniqueId();
                 continue;
             }
-            // Otherwise treat as block type
             blockType = a;
         }
         int removed = database.pruneOlderThan(days, world, player, blockType);
@@ -159,8 +198,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // /lookup <player|*> [radius] [time] [page]
-    // /lookup here [page]
+    // /lookup
     // ---------------------------------------------------------
     private boolean handleLookup(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.lookup")) {
@@ -170,7 +208,6 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // Check if last arg is a page number
         int page = 1;
         String[] cmdArgs = args;
         if (args.length > 0) {
@@ -205,6 +242,9 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         List<BlockChange> changes = database.query(
             params.world, params.cx, params.cy, params.cz,
             params.radius, params.uuid, params.since);
+
+        changes = filterChanges(changes, params);
+
         if (sender instanceof Player p) {
             lookupCache.store(p.getUniqueId(), changes, params.describe());
         }
@@ -213,9 +253,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // /rollback <player|*> [radius] [time] [-y]
-    // /rollback here [-y]
-    // /rollback undo
+    // /rollback
     // ---------------------------------------------------------
     private boolean handleRollback(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.rollback")) {
@@ -225,7 +263,6 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return true;
         }
 
-        // /rollback undo
         if (args.length >= 1 && args[0].equalsIgnoreCase("undo")) {
             if (!(sender instanceof Player player)) {
                 AdventureCompat.sendMessage(sender,
@@ -282,11 +319,39 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         List<BlockChange> changes = database.query(
             params.world, params.cx, params.cy, params.cz,
             params.radius, params.uuid, params.since);
+
+        changes = filterChanges(changes, params);
+
         return doRollback(sender, changes, confirm);
     }
 
+    private List<BlockChange> filterChanges(List<BlockChange> changes, QueryParams params) {
+        if (params.blockTypeFilter == null && params.actionFilter == null && params.excludePlayer == null) {
+            return changes;
+        }
+        return changes.stream().filter(c -> {
+            if (params.blockTypeFilter != null
+                && !c.getBlockType().equalsIgnoreCase(params.blockTypeFilter)
+                && !c.getNewMaterial().equalsIgnoreCase(params.blockTypeFilter)) {
+                return false;
+            }
+            if (params.actionFilter != null && c.getAction() != params.actionFilter) {
+                return false;
+            }
+            if (params.excludePlayer != null) {
+                if (c.getPlayerName() != null && c.getPlayerName().equalsIgnoreCase(params.excludePlayer)) {
+                    return false;
+                }
+                if (c.getBlockType().equalsIgnoreCase(params.excludePlayer)) {
+                    return false;
+                }
+            }
+            return true;
+        }).toList();
+    }
+
     private boolean doRollback(CommandSender sender,
-                               List<BlockChange> changes, boolean confirm) {
+                                List<BlockChange> changes, boolean confirm) {
         int max = plugin.getConfig().getInt("blocklog.max-rollback-blocks", 10000);
         int maxPerWorld = plugin.getConfig().getInt(
             "blocklog.max-rollback-blocks-per-world", 10000);
@@ -328,8 +393,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     // Lookup printing (paginated)
     // ---------------------------------------------------------
     private void printLookupPaginated(CommandSender sender,
-                                      List<BlockChange> changes,
-                                      String scope, int page) {
+                                       List<BlockChange> changes,
+                                       String scope, int page) {
         if (changes.isEmpty()) {
             AdventureCompat.sendMessage(sender,
                 Component.text("No logged changes " + scope + ".")
@@ -409,46 +474,25 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         int radius = -1;
         UUID uuid = null;
         LocalDateTime since = null;
+        String excludePlayer = null;
+        String blockTypeFilter = null;
+        BlockChange.Action actionFilter = null;
+
         String describe() {
             StringBuilder sb = new StringBuilder();
-            if (uuid != null) sb.append("by ").append(uuid);
+            if (uuid != null) sb.append("by player ");
             if (radius >= 0) sb.append(" within ").append(radius).append(" blocks");
-            if (since != null) sb.append(" since ").append(since);
-            return sb.length() == 0 ? "" : sb.toString();
+            if (since != null) sb.append(" since time");
+            if (blockTypeFilter != null) sb.append(" block=").append(blockTypeFilter);
+            if (actionFilter != null) sb.append(" action=").append(actionFilter);
+            if (excludePlayer != null) sb.append(" excluding ").append(excludePlayer);
+            return sb.length() == 0 ? "near you" : sb.toString();
         }
     }
 
     private QueryParams parseArgs(CommandSender sender, String[] args) {
         QueryParams p = new QueryParams();
-        if (args.length == 0) {
-            AdventureCompat.sendMessage(sender,
-                Component.text("Usage: /lookup|<rollback> <player|*> [radius] [time]")
-                    .color(NamedTextColor.YELLOW));
-            return null;
-        }
 
-        // First arg: player or *
-        String target = args[0];
-        if (!target.equals("*")) {
-            OfflinePlayer op = Bukkit.getOfflinePlayer(target);
-            if (op.hasPlayedBefore() || op.isOnline()) {
-                p.uuid = op.getUniqueId();
-            } else {
-                // tolerate online player name lookup
-                Player online = Bukkit.getPlayerExact(target);
-                if (online != null) {
-                    p.uuid = online.getUniqueId();
-                } else {
-                    AdventureCompat.sendMessage(sender,
-                        Component.text("Unknown player: " + target)
-                            .color(NamedTextColor.RED));
-                    return null;
-                }
-            }
-        }
-
-        // Center: executor location, or world spawn if console.
-        // If WorldEdit selection exists and no explicit radius, use it.
         WorldEditIntegration.SelectionBounds weSelection = null;
         if (sender instanceof Player player) {
             weSelection = WorldEditIntegration.getSelection(player);
@@ -472,25 +516,74 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             p.cz = p.world.getSpawnLocation().getBlockZ();
         }
 
-        // Remaining args: radius and/or time
-        for (int i = 1; i < args.length; i++) {
-            String a = args[i];
+        boolean playerParsed = false;
+        for (String a : args) {
+            if (a.contains(":")) {
+                int idx = a.indexOf(':');
+                String key = a.substring(0, idx).toLowerCase();
+                String val = a.substring(idx + 1);
+                switch (key) {
+                    case "player", "p" -> {
+                        if (!val.equals("*")) {
+                            OfflinePlayer op = Bukkit.getOfflinePlayer(val);
+                            if (op.hasPlayedBefore() || op.isOnline()) {
+                                p.uuid = op.getUniqueId();
+                            } else {
+                                Player online = Bukkit.getPlayerExact(val);
+                                if (online != null) p.uuid = online.getUniqueId();
+                            }
+                        }
+                    }
+                    case "radius", "r" -> {
+                        Integer r = tryRadius(val);
+                        if (r != null) p.radius = r;
+                    }
+                    case "time", "since", "t" -> {
+                        LocalDateTime dt = tryTime(val);
+                        if (dt != null) p.since = dt;
+                    }
+                    case "exclude", "ex", "e" -> {
+                        p.excludePlayer = val;
+                    }
+                    case "action", "a" -> {
+                        p.actionFilter = BlockChange.Action.fromString(val);
+                    }
+                    case "block", "b" -> {
+                        p.blockTypeFilter = val.toUpperCase(java.util.Locale.ROOT);
+                    }
+                }
+                continue;
+            }
+
+            if (!playerParsed && (a.equals("*") || Bukkit.getOfflinePlayer(a).hasPlayedBefore() || Bukkit.getOfflinePlayer(a).isOnline() || Bukkit.getPlayerExact(a) != null)) {
+                if (!a.equals("*")) {
+                    OfflinePlayer op = Bukkit.getOfflinePlayer(a);
+                    if (op.hasPlayedBefore() || op.isOnline()) {
+                        p.uuid = op.getUniqueId();
+                    } else {
+                        Player online = Bukkit.getPlayerExact(a);
+                        if (online != null) p.uuid = online.getUniqueId();
+                    }
+                }
+                playerParsed = true;
+                continue;
+            }
+
             Integer r = tryRadius(a);
-            if (r != null) {
+            if (r != null && p.radius < 0) {
                 p.radius = r;
                 continue;
             }
-            LocalDateTime since = tryTime(a);
-            if (since != null) {
-                p.since = since;
+
+            LocalDateTime dt = tryTime(a);
+            if (dt != null && p.since == null) {
+                p.since = dt;
                 continue;
             }
-            AdventureCompat.sendMessage(sender,
-                Component.text("Unrecognized argument: " + a
-                    + " (expected radius like 20 or time like 1h/2d/10m)")
-                    .color(NamedTextColor.RED));
-            return null;
+
+            p.blockTypeFilter = a.toUpperCase(java.util.Locale.ROOT);
         }
+
         return p;
     }
 
@@ -498,7 +591,6 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     // "here" area resolution (uses the wand's configured inspect area)
     // ---------------------------------------------------------
 
-    /** Resolved center + radius for the `here` subcommands. */
     private record Area(org.bukkit.World world, int cx, int cy, int cz,
                         int radius) {}
 
@@ -511,7 +603,6 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return new Area(c.getWorld(), c.getBlockX(), c.getBlockY(),
                 c.getBlockZ(), half);
         }
-        // Default: 10-block radius around the player.
         Location loc = player.getLocation();
         return new Area(player.getWorld(), loc.getBlockX(),
             loc.getBlockY(), loc.getBlockZ(), 10);
@@ -527,13 +618,11 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     private LocalDateTime tryTime(String s) {
-        // Supports compound formats: 10m, 2h, 5d, 30s, 1h30m, 2d5h, 10m30s
         if (s.length() < 2) return null;
         LocalDateTime now = LocalDateTime.now();
         long totalSeconds = 0;
         int i = 0;
         while (i < s.length()) {
-            // Parse digits
             int start = i;
             while (i < s.length() && Character.isDigit(s.charAt(i))) {
                 i++;
@@ -565,7 +654,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     // ---------------------------------------------------------
     @Override
     public List<String> onTabComplete(CommandSender sender, Command command,
-                                      String alias, String[] args) {
+                                       String alias, String[] args) {
         String name = command.getName().toLowerCase();
         if (name.equals("lb")) {
             if (args.length == 1) return List.of("prune");
@@ -574,11 +663,16 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             }
             return List.of();
         }
-        if (name.equals("inspect")) return List.of();
+        if (name.equals("inspect")) {
+            if (args.length == 1) return List.of("area", "clear");
+            if (args.length == 2 && args[0].equalsIgnoreCase("area")) {
+                return List.of("10", "20", "50", "100");
+            }
+            return List.of();
+        }
 
-        // /lookup and /rollback share the player|* [radius] [time] shape
         if (args.length == 1) {
-            List<String> opts = new ArrayList<>(List.of("*"));
+            List<String> opts = new ArrayList<>(List.of("*", "here"));
             for (Player p : Bukkit.getOnlinePlayers()) {
                 opts.add(p.getName());
             }
@@ -589,12 +683,12 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }
         if (args.length == 2) {
             String input = args[1].toLowerCase();
-            return List.of("10", "20", "50", "100").stream()
+            return List.of("10", "20", "50", "100", "radius:", "time:").stream()
                 .filter(o -> o.startsWith(input)).toList();
         }
         if (args.length == 3) {
             String input = args[2].toLowerCase();
-            return List.of("10m", "1h", "6h", "1d", "7d").stream()
+            return List.of("10m", "1h", "6h", "1d", "7d", "exclude:").stream()
                 .filter(o -> o.startsWith(input)).toList();
         }
         return List.of();
