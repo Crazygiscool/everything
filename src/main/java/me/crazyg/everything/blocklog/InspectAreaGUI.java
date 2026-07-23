@@ -16,7 +16,7 @@ import org.bukkit.inventory.ItemStack;
 
 /**
  * Settings GUI opened by right-clicking with the inspect wand. Lets the player
- * choose block log commands, adjust cube size (3-100) and Y offset, and confirm area.
+ * choose block log commands, adjust cube size (3-100) via left/right click, and confirm area.
  */
 public class InspectAreaGUI extends BaseGUI {
 
@@ -79,50 +79,28 @@ public class InspectAreaGUI extends BaseGUI {
 
         // Area Center (slot 4)
         ItemStack centerInfo = ItemBuilder.builder(Material.PAPER)
-            .name("&bArea Center &7(Y-Offset)")
+            .name("&bArea Center")
             .lore(
                 "&7World: &f" + center.getWorld().getName(),
                 "&7X: &f" + center.getBlockX(),
                 "&7Y: &f" + center.getBlockY(),
                 "&7Z: &f" + center.getBlockZ(),
                 "",
-                "&eLeft-click: &fBring Y down by 10",
-                "&eRight-click: &fBring Y up by 10")
+                "&7Cube is centered here.")
             .build();
         set(4, centerInfo);
 
-        // Size controls & display
+        // Size item (slot 13) - adjusted via left/right click
         ItemStack sizeItem = ItemBuilder.builder(Material.SLIME_BALL)
             .name("&aCube Size: &f" + size + "x" + size + "x" + size)
             .lore(
                 "&7Half-extent: &f" + (size / 2) + " blocks",
-                "&7Range: &f" + MIN_SIZE + " - " + MAX_SIZE)
+                "&7Range: &f" + MIN_SIZE + " - " + MAX_SIZE,
+                "",
+                "&eLeft-click: &fDecrease size by 1",
+                "&eRight-click: &fIncrease size by 1")
             .build();
         set(13, sizeItem);
-
-        ItemStack minus5 = ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE)
-            .name("&c-5")
-            .lore("&7Decrease cube size (min " + MIN_SIZE + ")")
-            .build();
-        set(10, minus5);
-
-        ItemStack minus = ItemBuilder.builder(Material.RED_STAINED_GLASS_PANE)
-            .name("&c-1")
-            .lore("&7Fine decrease by 1 (min " + MIN_SIZE + ")")
-            .build();
-        set(11, minus);
-
-        ItemStack plus = ItemBuilder.builder(Material.GREEN_STAINED_GLASS_PANE)
-            .name("&a+5")
-            .lore("&7Increase cube size (max " + MAX_SIZE + ")")
-            .build();
-        set(15, plus);
-
-        ItemStack finePlus = ItemBuilder.builder(Material.LIME_STAINED_GLASS_PANE)
-            .name("&a+1")
-            .lore("&7Fine increase by 1")
-            .build();
-        set(16, finePlus);
 
         ItemStack confirm = ItemBuilder.builder(Material.EMERALD_BLOCK)
             .name("&aConfirm Area")
@@ -153,22 +131,18 @@ public class InspectAreaGUI extends BaseGUI {
                 player.closeInventory();
                 player.performCommand("lb");
             }
-            case 4 -> {
+            case 4 -> { /* display only */ }
+            case 13 -> {
                 if (e.isLeftClick()) {
-                    center.add(0, -10, 0);
+                    size = Math.max(MIN_SIZE, size - 1);
                     playClickSound();
                     update();
                 } else if (e.isRightClick()) {
-                    center.add(0, 10, 0);
+                    size = Math.min(MAX_SIZE, size + 1);
                     playClickSound();
                     update();
                 }
             }
-            case 10 -> { size = Math.max(MIN_SIZE, size - 5); update(); }
-            case 11 -> { size = Math.max(MIN_SIZE, size - 1); update(); }
-            case 15 -> { size = Math.min(MAX_SIZE, size + 5); update(); }
-            case 16 -> { size = Math.min(MAX_SIZE, size + 1); update(); }
-            case 13 -> { /* display only */ }
             case 22 -> {
                 wand.setArea(player.getUniqueId(), center, size);
                 playSuccessSound();

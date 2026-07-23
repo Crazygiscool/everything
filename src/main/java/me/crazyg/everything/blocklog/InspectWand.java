@@ -67,8 +67,8 @@ public class InspectWand implements Listener {
         this.wandKey = new NamespacedKey(plugin, "inspect_wand");
         buildWand();
 
-        // Spawn particle task for selected inspect areas
-        Bukkit.getScheduler().runTaskTimer(plugin, this::spawnAreaParticles, 0L, 20L);
+        // Spawn particle task every 10 ticks (0.5s) for selected inspect areas
+        Bukkit.getScheduler().runTaskTimer(plugin, this::spawnAreaParticles, 0L, 10L);
     }
 
     private void buildWand() {
@@ -174,7 +174,7 @@ public class InspectWand implements Listener {
             if (player == null || !player.isOnline()) continue;
             InspectArea area = entry.getValue();
             if (area.center.getWorld() == null || !player.getWorld().equals(area.center.getWorld())) continue;
-            if (player.getLocation().distanceSquared(area.center) > 64 * 64) continue;
+            if (player.getLocation().distanceSquared(area.center) > 128 * 128) continue;
             spawnCubeParticles(player, area.center, area.size);
         }
     }
@@ -208,12 +208,12 @@ public class InspectWand implements Listener {
 
     private void drawLine(Player player, org.bukkit.World world, double x1, double y1, double z1, double x2, double y2, double z2) {
         double distance = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2) + Math.pow(z2 - z1, 2));
-        double step = 1.0;
+        double step = 0.5; // denser points for better visibility
         for (double d = 0; d <= distance; d += step) {
             double x = x1 + (x2 - x1) * (d / distance);
             double y = y1 + (y2 - y1) * (d / distance);
             double z = z1 + (z2 - z1) * (d / distance);
-            player.spawnParticle(Particle.END_ROD, new Location(world, x, y, z), 1, 0, 0, 0, 0);
+            player.spawnParticle(Particle.FIREWORKS_SPARK, new Location(world, x, y, z), 1, 0, 0, 0, 0);
         }
     }
 
