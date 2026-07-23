@@ -44,34 +44,40 @@ public class WorldEditIntegration {
             Object wePlugin = getWorldEditPlugin();
             if (wePlugin == null) return null;
 
-            Method wrapPlayer = wePlugin.getClass().getMethod(
-                "wrapPlayer", Player.class);
+            Class<?> weClass = Class.forName("com.sk89q.worldedit.WorldEdit");
+            Method getInstance = weClass.getMethod("getInstance");
+            Object worldEdit = getInstance.invoke(null);
+
+            Method getSessionManager = worldEdit.getClass().getMethod("getSessionManager");
+            Object sessionManager = getSessionManager.invoke(worldEdit);
+
+            Method wrapPlayer = wePlugin.getClass().getMethod("wrapPlayer", Player.class);
             Object wePlayer = wrapPlayer.invoke(wePlugin, player);
             if (wePlayer == null) return null;
 
-            Method getSessionManager = wePlugin.getClass().getMethod(
-                "getSessionManager");
-            Object sessionManager = getSessionManager.invoke(wePlugin);
-
-            Method getSession = sessionManager.getClass().getMethod(
-                "get", wePlayer.getClass());
+            Method getSession = sessionManager.getClass().getMethod("get", wePlayer.getClass());
             Object session = getSession.invoke(sessionManager, wePlayer);
             if (session == null) return null;
 
-            Method hasSelection = session.getClass().getMethod(
-                "hasSelection");
-            Boolean hasSel = (Boolean) hasSelection.invoke(session);
-            if (hasSel == null || !hasSel) return null;
+            Object region = null;
+            try {
+                Class<?> weWorldClass = Class.forName("com.sk89q.worldedit.world.World");
+                Class<?> bukkitAdapter = Class.forName("com.sk89q.worldedit.bukkit.BukkitAdapter");
+                Method adaptWorld = bukkitAdapter.getMethod("adapt", World.class);
+                Object weWorld = adaptWorld.invoke(null, player.getWorld());
+                Method getSelectionWithWorld = session.getClass().getMethod("getSelection", weWorldClass);
+                region = getSelectionWithWorld.invoke(session, weWorld);
+            } catch (Exception e1) {
+                try {
+                    Method getSelection = session.getClass().getMethod("getSelection");
+                    region = getSelection.invoke(session);
+                } catch (Exception ignored) {}
+            }
 
-            Method getSelection = session.getClass().getMethod(
-                "getSelection");
-            Object region = getSelection.invoke(session);
             if (region == null) return null;
 
-            Method getMin = region.getClass().getMethod(
-                "getMinimumPoint");
-            Method getMax = region.getClass().getMethod(
-                "getMaximumPoint");
+            Method getMin = region.getClass().getMethod("getMinimumPoint");
+            Method getMax = region.getClass().getMethod("getMaximumPoint");
             Object min = getMin.invoke(region);
             Object max = getMax.invoke(region);
 

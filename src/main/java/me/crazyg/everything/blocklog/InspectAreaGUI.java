@@ -42,11 +42,11 @@ public class InspectAreaGUI extends BaseGUI {
     public void build() {
         // Block Log Commands (slots 0-3)
         ItemStack inspectCmd = ItemBuilder.builder(Material.COMPASS)
-            .name("&b/inspect")
+            .name("&b/everything inspect")
             .lore(
                 "&7Toggle the inspect wand.",
                 "",
-                "&eClick to execute &b/inspect")
+                "&eClick to execute &b/everything inspect")
             .build();
         set(0, inspectCmd);
 
@@ -117,7 +117,7 @@ public class InspectAreaGUI extends BaseGUI {
         switch (slot) {
             case 0 -> {
                 player.closeInventory();
-                player.performCommand("inspect");
+                player.performCommand("everything inspect");
             }
             case 1 -> {
                 player.closeInventory();

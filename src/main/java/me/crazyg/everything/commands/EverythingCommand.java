@@ -99,6 +99,22 @@ public class EverythingCommand implements CommandExecutor {
                 Everything.sendFancy(sender, Component.text("Plugin configuration reloaded successfully!").color(NamedTextColor.GREEN));
                 return true;
 
+            case "inspect":
+                if (!(sender instanceof org.bukkit.entity.Player player)) {
+                    Everything.sendFancy(sender, Component.text("This command can only be used by a player.").color(NamedTextColor.RED));
+                    return true;
+                }
+                if (!player.hasPermission("everything.blocklog.inspect")) {
+                    Everything.sendFancy(sender, Component.text("You do not have permission to use the inspect wand.").color(NamedTextColor.RED));
+                    return true;
+                }
+                if (plugin.getInspectWand() != null) {
+                    plugin.getInspectWand().toggle(player);
+                } else {
+                    Everything.sendFancy(sender, Component.text("Block log / inspect wand is disabled in config.").color(NamedTextColor.RED));
+                }
+                return true;
+
             case "info": {
                 String version = plugin.getDescription().getVersion();
                 String githubUrl = "https://github.com/Crazygiscool/everything/releases";
@@ -240,22 +256,14 @@ public class EverythingCommand implements CommandExecutor {
                 Everything.sendFancy(sender, Component.text("[TEST] Simulating config reload...").color(NamedTextColor.LIGHT_PURPLE));
                 try {
                     plugin.reloadConfig();
-                    Everything.sendFancy(sender, Component.text("[TEST] Config reload simulated successfully.").color(NamedTextColor.GREEN));
+                    Everything.sendFancy(sender, Component.text("[TEST] Simulating config reload...").color(NamedTextColor.GREEN));
                 } catch (Exception e) {
                     Everything.sendFancy(sender, Component.text("[TEST] Config reload failed: " + e.getMessage()).color(NamedTextColor.RED));
                 }
-
-                // --- Simulate permission check ---
-                Everything.sendFancy(sender, Component.text("[TEST] Permission check for 'everything.admin': ")
-                    .color(NamedTextColor.LIGHT_PURPLE)
-                    .append(Component.text(sender.hasPermission("everything.admin") ? "GRANTED" : "DENIED").color(sender.hasPermission("everything.admin") ? NamedTextColor.GREEN : NamedTextColor.RED))
-                );
-
-                Everything.sendFancy(sender, Component.text("[TEST] End of diagnostics.").color(NamedTextColor.AQUA));
                 return true;
 
             default:
-                Everything.sendFancy(sender, Component.text("Unknown sub-command. Use /everything for help.").color(NamedTextColor.RED));
+                Everything.sendFancy(sender, Component.text("Unknown subcommand. Use /everything for help.").color(NamedTextColor.RED));
                 return true;
         }
     }
