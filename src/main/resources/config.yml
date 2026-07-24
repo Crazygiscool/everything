@@ -84,3 +84,104 @@ blocklog:
   max-rollback-blocks-per-world: 10000
   # Enable WorldEdit/FAWE selection integration for lookups and rollbacks.
   worldedit-integration: true
+
+# ===========================
+# Particle Effects
+# ===========================
+particles:
+  # Master switch — disable all particles globally
+  enabled: true
+  # Per-command toggles
+  commands:
+    tp: true
+    tpa: true
+    tpaccept: true
+    tpdeny: true
+    home: true
+    sethome: true
+    spawn: true
+    setspawn: true
+    warp: true
+    rtp: true
+    pay: true
+    balance: true
+    eco: true
+    gmc: true
+    gms: true
+    gmsp: true
+    gma: true
+    god: true
+    kill: true
+    msg: true
+    reply: true
+    report: true
+    namecolor: true
+    stats: true
+    maintenance: true
+    everything: true
+
+# ===========================
+# Teleport Settings
+# ===========================
+teleport:
+  # Warmup delay (seconds) before teleport completes. 0 = instant.
+  warmup-seconds:
+    home: 3
+    sethome: 0
+    spawn: 0
+    setspawn: 0
+    warp: 2
+    rtp: 0
+    tp: 0
+    tpa: 0
+    tpaccept: 0
+
+  # Cooldown (seconds) after teleport before it can be used again. 0 = no cooldown.
+  cooldown-seconds:
+    home: 0
+    sethome: 0
+    spawn: 0
+    setspawn: 0
+    warp: 0
+    rtp: 60
+    tp: 0
+    tpa: 0
+    tpaccept: 0
+
+  # Cancel warmup if player moves (even 1 block). Only applies when warmup > 0.
+  cancel-on-move:
+    home: true
+    sethome: false
+    spawn: false
+    setspawn: false
+    warp: true
+    rtp: false
+    tp: false
+    tpa: false
+    tpaccept: false
+
+  # Verify destination is safe (not inside block, not in lava). Only applies to non-random teleports.
+  check-safety:
+    home: true
+    sethome: false
+    spawn: true
+    setspawn: false
+    warp: true
+    tp: false
+    tpa: false
+    tpaccept: false
+    rtp: false
+
+  # TPA request timeout (seconds). Requests older than this are auto-denied.
+  tpa-timeout-seconds: 60
+
+  # Warmup messages — supports placeholders: %time%, %destination%, %player%
+  messages:
+    warmup-start: "<yellow>Teleporting in <gold>%time%<yellow> seconds... Don't move!"
+    warmup-tick: "<yellow>Teleporting in <gold>%time%<yellow> seconds..."
+    warmup-cancel: "<red>Teleport cancelled — you moved!"
+    warmup-complete: "<green>Teleported!"
+    cooldown: "<red>You must wait <gold>%time%<red> seconds before using this again."
+    safety-failed: "<red>Destination is not safe (inside block or hazard). Try again."
+    tpa-expired: "<red>Your TPA request to <gold>%player%<red> has expired."
+    tpa-expired-target: "<red>TPA request from <gold>%player%<red> has expired."

@@ -50,6 +50,10 @@ public class NameColorCommand implements CommandExecutor, TabCompleter {
         plugin.getConfig().set("namecolors." + player.getUniqueId(), colorName);
         plugin.saveConfig();
 
+        if (plugin.getParticleManager().isEnabled("namecolor")) {
+            plugin.getParticleManager().playNameColorEffect(player, colorName);
+        }
+
         AdventureCompat.sendMessage(player,
             Component.text("Your name color has been set to ")
                 .append(Component.text(colorName).color(color).decorate(TextDecoration.BOLD))

@@ -42,6 +42,9 @@ public class TPCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             p.teleport(target.getLocation());
+            if (plugin.getParticleManager().isEnabled("tp")) {
+                plugin.getParticleManager().playEffect(p, me.crazyg.everything.utils.particle.ParticleEffect.TP);
+            }
             AdventureCompat.sendMessage(p, Component.text("Teleported to ")
                     .color(NamedTextColor.GREEN)
                     .append(Component.text(target.getName()).color(NamedTextColor.YELLOW)));
@@ -57,6 +60,9 @@ public class TPCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             player1.teleport(player2.getLocation());
+            if (plugin.getParticleManager().isEnabled("tp")) {
+                plugin.getParticleManager().playEffect(player1, me.crazyg.everything.utils.particle.ParticleEffect.TP);
+            }
             AdventureCompat.sendMessage(player1, Component.text("Teleported to ")
                     .color(NamedTextColor.GREEN)
                     .append(Component.text(player2.getName()).color(NamedTextColor.YELLOW)));
@@ -74,6 +80,9 @@ public class TPCommand implements CommandExecutor, TabCompleter {
                 double y = Double.parseDouble(args[1]);
                 double z = Double.parseDouble(args[2]);
                 p.teleport(new Location(p.getWorld(), x, y, z, p.getLocation().getYaw(), p.getLocation().getPitch()));
+                if (plugin.getParticleManager().isEnabled("tp")) {
+                    plugin.getParticleManager().playEffect(p, me.crazyg.everything.utils.particle.ParticleEffect.TP);
+                }
                 AdventureCompat.sendMessage(p, Component.text("Teleported to coordinates.")
                         .color(NamedTextColor.GREEN));
             } catch (NumberFormatException e) {
@@ -95,6 +104,9 @@ public class TPCommand implements CommandExecutor, TabCompleter {
                 double y = Double.parseDouble(args[2]);
                 double z = Double.parseDouble(args[3]);
                 target.teleport(new Location(target.getWorld(), x, y, z, target.getLocation().getYaw(), target.getLocation().getPitch()));
+                if (plugin.getParticleManager().isEnabled("tp")) {
+                    plugin.getParticleManager().playEffect(target, me.crazyg.everything.utils.particle.ParticleEffect.TP);
+                }
                 AdventureCompat.sendMessage(target, Component.text("Teleported to coordinates.")
                         .color(NamedTextColor.GREEN));
                 AdventureCompat.sendMessage(p, Component.text("Teleported ")

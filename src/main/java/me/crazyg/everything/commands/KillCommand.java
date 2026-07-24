@@ -1,5 +1,7 @@
 package me.crazyg.everything.commands;
 
+import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.particle.ParticleEffect;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -11,6 +13,11 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class KillCommand implements CommandExecutor, TabCompleter {
+    private final Everything plugin;
+
+    public KillCommand(Everything plugin) {
+        this.plugin = plugin;
+    }
 
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
@@ -19,6 +26,9 @@ public class KillCommand implements CommandExecutor, TabCompleter {
 
             // /kill
             if (args.length == 0) {
+                if (plugin.getParticleManager().isEnabled("kill")) {
+                    plugin.getParticleManager().playEffect(p, ParticleEffect.KILL);
+                }
                 p.setHealth(0);
                 me.crazyg.everything.Everything.sendFancy(
                         p,
@@ -48,6 +58,9 @@ public class KillCommand implements CommandExecutor, TabCompleter {
 
                 for (var entity : entities) {
                     if (entity instanceof Player target) {
+                        if (plugin.getParticleManager().isEnabled("kill")) {
+                            plugin.getParticleManager().playEffect(target, ParticleEffect.KILL);
+                        }
                         target.setHealth(0);
                         me.crazyg.everything.Everything.sendFancy(
                                 target,
@@ -80,6 +93,9 @@ public class KillCommand implements CommandExecutor, TabCompleter {
                                     .color(NamedTextColor.RED)
                     );
                 } else {
+                    if (plugin.getParticleManager().isEnabled("kill")) {
+                        plugin.getParticleManager().playEffect(target, ParticleEffect.KILL);
+                    }
                     target.setHealth(0);
                     me.crazyg.everything.Everything.sendFancy(
                             target,

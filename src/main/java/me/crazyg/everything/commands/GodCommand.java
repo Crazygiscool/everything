@@ -1,6 +1,8 @@
 package me.crazyg.everything.commands;
 
+import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
+import me.crazyg.everything.utils.particle.ParticleEffect;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.TextDecoration;
@@ -9,16 +11,28 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 public class GodCommand implements CommandExecutor {
+    private final Everything plugin;
+
+    public GodCommand(Everything plugin) {
+        this.plugin = plugin;
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (sender instanceof Player p) {
             if (args.length == 0) {
                 if (p.isInvulnerable()) {
                     p.setInvulnerable(false);
+                    if (plugin.getParticleManager().isEnabled("god")) {
+                        plugin.getParticleManager().playEffect(p, ParticleEffect.GOD_DISABLE);
+                    }
                     AdventureCompat.sendMessage(p, Component.text("GOD MODE disabled")
                             .color(NamedTextColor.DARK_RED));
                 } else {
                     p.setInvulnerable(true);
+                    if (plugin.getParticleManager().isEnabled("god")) {
+                        plugin.getParticleManager().playEffect(p, ParticleEffect.GOD_ENABLE);
+                    }
                     AdventureCompat.sendMessage(p, Component.text("GOD MODE Enabled")
                             .color(NamedTextColor.GOLD));
                 }
@@ -32,6 +46,9 @@ public class GodCommand implements CommandExecutor {
                 } else {
                     if (p.isInvulnerable()) {
                         target.setInvulnerable(false);
+                        if (plugin.getParticleManager().isEnabled("god")) {
+                            plugin.getParticleManager().playEffect(target, ParticleEffect.GOD_DISABLE);
+                        }
                         AdventureCompat.sendMessage(target, Component.text("")
                                 .append(Component.text("GOD MODE disabled by ").color(NamedTextColor.DARK_RED))
                                 .append(Component.text(p.getDisplayName()).color(NamedTextColor.DARK_RED)));
@@ -39,6 +56,9 @@ public class GodCommand implements CommandExecutor {
                                 .color(NamedTextColor.BLUE));
                     } else {
                         target.setInvulnerable(true);
+                        if (plugin.getParticleManager().isEnabled("god")) {
+                            plugin.getParticleManager().playEffect(target, ParticleEffect.GOD_ENABLE);
+                        }
                         AdventureCompat.sendMessage(target, Component.text("")
                                 .append(Component.text("GOD MODE Enabled by ").color(NamedTextColor.GOLD))
                                 .append(Component.text(p.getDisplayName()).color(NamedTextColor.GOLD)));

@@ -118,6 +118,9 @@ public class WarpCommand extends YamlRepository
         config.set(name.toLowerCase() + ".pitch", loc.getPitch());
         saveWarps();
 
+        if (plugin.getParticleManager().isEnabled("warp")) {
+            plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.WARP_SET);
+        }
         AdventureCompat.sendMessage(player, Component.text("Warp '" + name + "' has been set!")
                 .color(NamedTextColor.GREEN));
         return true;
@@ -166,10 +169,8 @@ public class WarpCommand extends YamlRepository
         float pitch = (float) config.getDouble(name.toLowerCase() + ".pitch");
 
         Location loc = new Location(Bukkit.getWorld(worldName), x, y, z, yaw, pitch);
-        player.teleport(loc);
+        plugin.getTeleportManager().teleport(player, loc, "warp");
 
-        AdventureCompat.sendMessage(player, Component.text("Teleported to warp '" + name + "'!")
-                .color(NamedTextColor.GREEN));
         return true;
     }
 

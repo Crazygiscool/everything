@@ -15,6 +15,7 @@ import me.crazyg.everything.utils.chat.ChatStorage;
 import me.crazyg.everything.utils.chat.EverythingChat;
 import me.crazyg.everything.utils.economy.EcoProvider;
 import me.crazyg.everything.utils.economy.EcoStorage;
+import me.crazyg.everything.utils.particle.ParticleManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.milkbowl.vault.chat.Chat;
@@ -64,6 +65,9 @@ public final class Everything extends JavaPlugin {
     private InspectWand inspectWand;
     private RollbackManager rollbackManager;
     private BlockLogCommand blockLogCommand;
+
+    private ParticleManager particleManager;
+    private TeleportManager teleportManager;
 
     @Override
     public void onEnable() {
@@ -177,6 +181,10 @@ public final class Everything extends JavaPlugin {
             );
         }
 
+        // --- Particle & Teleport Managers ---
+        this.particleManager = new ParticleManager(this);
+        this.teleportManager = new TeleportManager(this, particleManager);
+
         // --- Command Manager ---
         CommandManager commandManager = new CommandManager();
         getCommand("tp").setExecutor(commandManager);
@@ -219,15 +227,16 @@ public final class Everything extends JavaPlugin {
             "tpdeny",
             new TPDenyCommand(this, tpaCommand)
         );
-        commandManager.registerCommand("kill", new KillCommand());
-        commandManager.registerCommand("god", new GodCommand());
+        commandManager.registerCommand("kill", new KillCommand(this));
+        commandManager.registerCommand("god", new GodCommand(this));
         commandManager.registerCommand("report", new ReportCommand(this));
         commandManager.registerCommand(
             "everything",
             new EverythingCommand(this)
         );
-        commandManager.registerCommand("home", new HomeCommand(this));
-        commandManager.registerCommand("sethome", new HomeCommand(this));
+        HomeCommand homeCommand = new HomeCommand(this);
+        commandManager.registerCommand("home", homeCommand);
+        commandManager.registerCommand("sethome", homeCommand);
         commandManager.registerCommand("msg", new MessageCommand(this));
         commandManager.registerCommand("reply", new MessageCommand(this));
         commandManager.registerCommand(
@@ -247,7 +256,7 @@ public final class Everything extends JavaPlugin {
         commandManager.registerCommand("help", new HelpCommand(this));
         commandManager.registerCommand("rtp", new RTPCommand(this));
 
-        GamemodeCommand gamemodeExecutor = new GamemodeCommand();
+        GamemodeCommand gamemodeExecutor = new GamemodeCommand(this);
         commandManager.registerCommand("gmc", gamemodeExecutor);
         commandManager.registerCommand("gms", gamemodeExecutor);
         commandManager.registerCommand("gmsp", gamemodeExecutor);
@@ -466,5 +475,13 @@ public final class Everything extends JavaPlugin {
 
     public BlockLogListener getBlockLogListener() {
         return blockLogListener;
+    }
+
+    public ParticleManager getParticleManager() {
+        return particleManager;
+    }
+
+    public TeleportManager getTeleportManager() {
+        return teleportManager;
     }
 }

@@ -95,6 +95,9 @@ public class SetSpawnCommand implements CommandExecutor {
 
             world.setSpawnLocation(x, y, z);
 
+            if (plugin.getParticleManager().isEnabled("setspawn")) {
+                plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.SPAWN_SET);
+            }
             AdventureCompat.sendMessage(player, Component.text("Spawn location set!")
                     .color(NamedTextColor.GREEN));
             return true;
@@ -123,9 +126,7 @@ public class SetSpawnCommand implements CommandExecutor {
                     (float) locationsConfig.getDouble("spawn.pitch")
             );
 
-            player.teleport(spawnLoc);
-            AdventureCompat.sendMessage(player, Component.text("Teleported to spawn!")
-                    .color(NamedTextColor.GREEN));
+            plugin.getTeleportManager().teleport(player, spawnLoc, "spawn");
             return true;
         }
 

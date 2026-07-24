@@ -21,7 +21,7 @@ public final class Permissions {
     public static final String TELEPORT_OTHER = "everything.teleport.other";
     public static final String TPA = "everything.tpa";
     public static final String TPACCEPT = "everything.tpaccept";
-    public static final String TPENY = "everything.tpdeny";
+    public static final String TPDENY = "everything.tpdeny";
     public static final String RTP = "everything.rtp";
     public static final String RTP_BYPASS_COOLDOWN = "everything.rtp.bypasscooldown";
 

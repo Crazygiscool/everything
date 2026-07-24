@@ -101,6 +101,9 @@ public class HomeCommand extends YamlRepository
             playerHomes.put(uuid, loc);
             saveAllHomes();
 
+            if (plugin.getParticleManager().isEnabled("sethome")) {
+                plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.HOME_SET);
+            }
             AdventureCompat.sendMessage(player, Component.text("Home set!").color(NamedTextColor.GREEN));
             return true;
         }
@@ -113,9 +116,7 @@ public class HomeCommand extends YamlRepository
                 return true;
             }
 
-            player.teleport(playerHomes.get(uuid));
-            AdventureCompat.sendMessage(player, Component.text("Teleported to home!")
-                    .color(NamedTextColor.GREEN));
+            plugin.getTeleportManager().teleport(player, playerHomes.get(uuid), "home");
             return true;
         }
 

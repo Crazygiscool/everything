@@ -152,6 +152,11 @@ public class StatsCommand implements CommandExecutor {
         }
 
         showStats(viewer, target);
+
+        if (plugin.getParticleManager().isEnabled("stats")) {
+            plugin.getParticleManager().playEffect(viewer, me.crazyg.everything.utils.particle.ParticleEffect.STATS);
+        }
+
         return true;
     }
 

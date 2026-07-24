@@ -16,9 +16,10 @@ import org.bukkit.entity.Player;
 public class MessageCommand implements CommandExecutor, TabCompleter {
 
     private static final HashMap<UUID, UUID> lastMessage = new HashMap<>();
+    private final Everything plugin;
 
     public MessageCommand(Everything plugin) {
-        // Empty constructor or remove if unused
+        this.plugin = plugin;
     }
 
     @Override
@@ -49,6 +50,11 @@ AdventureCompat.sendMessage(player, Component.text("Usage: /msg <player> <messag
             }
 
             String message = String.join(" ", java.util.Arrays.copyOfRange(args, 1, args.length));
+
+            if (plugin.getParticleManager().isEnabled("msg")) {
+                plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.MSG_SENT);
+                plugin.getParticleManager().playEffect(target, me.crazyg.everything.utils.particle.ParticleEffect.MSG_RECEIVE);
+            }
 
             AdventureCompat.sendMessage(player,
                 Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY)
@@ -90,6 +96,11 @@ AdventureCompat.sendMessage(player, Component.text("Usage: /msg <player> <messag
             }
 
             String message = String.join(" ", args);
+
+            if (plugin.getParticleManager().isEnabled("reply")) {
+                plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.MSG_SENT);
+                plugin.getParticleManager().playEffect(target, me.crazyg.everything.utils.particle.ParticleEffect.MSG_RECEIVE);
+            }
 
             AdventureCompat.sendMessage(player,
                 Component.text("To " + target.getName() + ": ").color(NamedTextColor.GRAY)

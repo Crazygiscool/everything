@@ -81,6 +81,10 @@ public class RTPCommand implements CommandExecutor {
         player.teleport(safeLocation);
         cooldownManager.setCooldown("rtp", player.getUniqueId(), cooldownSeconds);
 
+        if (plugin.getParticleManager().isEnabled("rtp")) {
+            plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.RTP);
+        }
+
         AdventureCompat.sendMessage(player, Component.text("Teleported to random location: ")
                 .color(NamedTextColor.GREEN)
                 .append(Component.text(safeLocation.getBlockX() + ", " + safeLocation.getBlockZ())

@@ -134,6 +134,10 @@ public class MaintenanceCommand implements CommandExecutor, Listener, TabComplet
         plugin.getConfig().set("maintenance-mode", true);
         plugin.saveConfig();
 
+        if (sender instanceof Player player && plugin.getParticleManager().isEnabled("maintenance")) {
+            plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.MAINTENANCE_ON);
+        }
+
         for (Player player : Bukkit.getOnlinePlayers()) {
             if (!player.hasPermission("everything.maintenance.bypass")
                     && !allowedPlayers.contains(player.getUniqueId())) {
@@ -150,6 +154,10 @@ public class MaintenanceCommand implements CommandExecutor, Listener, TabComplet
         maintenanceMode = false;
         plugin.getConfig().set("maintenance-mode", false);
         plugin.saveConfig();
+
+        if (sender instanceof Player player && plugin.getParticleManager().isEnabled("maintenance")) {
+            plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.MAINTENANCE_OFF);
+        }
 
         Bukkit.broadcastMessage(LegacyComponentSerializer.legacySection().serialize(
                 Component.text("Server Maintenance mode disabled!")

@@ -63,6 +63,9 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "reset":
                 econ.withdrawPlayer(target, econ.getBalance(target));
+                if (plugin.getParticleManager().isEnabled("eco")) {
+                    plugin.getParticleManager().playEffect((Player) sender, me.crazyg.everything.utils.particle.ParticleEffect.ECO_SET);
+                }
                 AdventureCompat.sendMessage(sender,
                     Component.text("Reset balance for ").color(NamedTextColor.GREEN)
                         .append(Component.text(target.getName()).color(NamedTextColor.AQUA))
@@ -122,6 +125,9 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
         switch (action) {
             case "give":
                 econ.depositPlayer(target, amount);
+                if (plugin.getParticleManager().isEnabled("eco")) {
+                    plugin.getParticleManager().playEffect((Player) sender, me.crazyg.everything.utils.particle.ParticleEffect.ECO_GIVE);
+                }
                 AdventureCompat.sendMessage(sender,
                         Component.text("Gave ").color(NamedTextColor.GREEN)
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
@@ -132,6 +138,9 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
 
             case "take":
                 econ.withdrawPlayer(target, amount);
+                if (plugin.getParticleManager().isEnabled("eco")) {
+                    plugin.getParticleManager().playEffect((Player) sender, me.crazyg.everything.utils.particle.ParticleEffect.ECO_TAKE);
+                }
                 AdventureCompat.sendMessage(sender,
                         Component.text("Took ").color(NamedTextColor.RED)
                             .append(Component.text(amount).color(NamedTextColor.YELLOW))
@@ -148,6 +157,9 @@ public class EcoCommand implements CommandExecutor, TabCompleter {
                     econ.depositPlayer(target, amount - current);
                 }
 
+                if (plugin.getParticleManager().isEnabled("eco")) {
+                    plugin.getParticleManager().playEffect((Player) sender, me.crazyg.everything.utils.particle.ParticleEffect.ECO_SET);
+                }
                 AdventureCompat.sendMessage(sender,
                         Component.text("Set ").color(NamedTextColor.GREEN)
                             .append(Component.text(target.getName()).color(NamedTextColor.AQUA))

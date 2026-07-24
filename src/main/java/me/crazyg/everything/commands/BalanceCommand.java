@@ -30,6 +30,9 @@ public class BalanceCommand implements CommandExecutor {
 
         Player player = (Player) sender;
         double balance = Everything.getEconomy().getBalance(player);
+        if (plugin.getParticleManager().isEnabled("balance")) {
+            plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.BALANCE);
+        }
         AdventureCompat.sendMessage(player, Component.text("Your balance: ", NamedTextColor.GREEN)
                 .append(Component.text(Everything.getEconomy().format(balance), NamedTextColor.GOLD)));
         return true;

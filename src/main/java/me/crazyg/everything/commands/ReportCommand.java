@@ -224,6 +224,10 @@ public class ReportCommand extends me.crazyg.everything.utils.storage.YamlReposi
 
             addReportToConfig(p.getName(), target.getName(), reason);
 
+            if (plugin.getParticleManager().isEnabled("report")) {
+                plugin.getParticleManager().playEffect(p, me.crazyg.everything.utils.particle.ParticleEffect.REPORT);
+            }
+
             // Console log
             AdventureCompat.sendMessage(Bukkit.getConsoleSender(), 
                     Component.text("Report sent for player: ").color(NamedTextColor.GREEN)

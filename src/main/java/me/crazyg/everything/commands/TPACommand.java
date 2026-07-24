@@ -39,6 +39,9 @@ public class TPACommand implements CommandExecutor {
                 return true;
             }
             tpaRequests.put(target.getUniqueId(), p.getUniqueId());
+            if (plugin.getParticleManager().isEnabled("tpa")) {
+                plugin.getParticleManager().playEffect(p, me.crazyg.everything.utils.particle.ParticleEffect.TPA_SEND);
+            }
             AdventureCompat.sendMessage(target, Component.text(p.getName() + " has requested to teleport to you. Type /tpaccept or /tpdeny.").color(NamedTextColor.AQUA));
             AdventureCompat.sendMessage(p, Component.text("TPA request sent to " + target.getName()).color(NamedTextColor.GREEN));
             return true;
@@ -61,6 +64,9 @@ public class TPACommand implements CommandExecutor {
             return true;
         }
         requester.teleport(target.getLocation());
+        if (plugin.getParticleManager().isEnabled("tpaccept")) {
+            plugin.getParticleManager().playEffect(requester, me.crazyg.everything.utils.particle.ParticleEffect.TPA_ACCEPT);
+        }
         AdventureCompat.sendMessage(requester, Component.text("Teleported to " + target.getName()).color(NamedTextColor.GREEN));
         AdventureCompat.sendMessage(target, Component.text(requester.getName() + " has teleported to you.").color(NamedTextColor.GREEN));
         return true;
@@ -74,6 +80,9 @@ public class TPACommand implements CommandExecutor {
         }
         Player requester = Bukkit.getPlayer(requesterId);
         if (requester != null && requester.isOnline()) {
+            if (plugin.getParticleManager().isEnabled("tpdeny")) {
+                plugin.getParticleManager().playEffect(requester, me.crazyg.everything.utils.particle.ParticleEffect.TP_DENY);
+            }
             AdventureCompat.sendMessage(requester, Component.text(target.getName() + " denied your TPA request.").color(NamedTextColor.RED));
         }
         AdventureCompat.sendMessage(target, Component.text("TPA request denied.").color(NamedTextColor.RED));

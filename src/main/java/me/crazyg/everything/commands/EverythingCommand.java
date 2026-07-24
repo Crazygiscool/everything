@@ -2,6 +2,7 @@ package me.crazyg.everything.commands;
 import java.util.*;
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.Updater;
+import me.crazyg.everything.utils.particle.ParticleEffect;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.command.Command;
@@ -96,6 +97,9 @@ public class EverythingCommand implements CommandExecutor {
                 if (plugin.getBlockLogListener() != null) {
                     plugin.getBlockLogListener().reloadConfig();
                 }
+                if (sender instanceof org.bukkit.entity.Player player && plugin.getParticleManager().isEnabled("everything")) {
+                    plugin.getParticleManager().playEffect(player, ParticleEffect.EVERYTHING_RELOAD);
+                }
                 Everything.sendFancy(sender, Component.text("Plugin configuration reloaded successfully!").color(NamedTextColor.GREEN));
                 return true;
 
@@ -120,6 +124,10 @@ public class EverythingCommand implements CommandExecutor {
                 String githubUrl = "https://github.com/Crazygiscool/everything/releases";
                 List<String> authors = plugin.getDescription().getAuthors();
                 String description = plugin.getDescription().getDescription();
+
+                if (sender instanceof org.bukkit.entity.Player player && plugin.getParticleManager().isEnabled("everything")) {
+                    plugin.getParticleManager().playEffect(player, ParticleEffect.EVERYTHING_INFO);
+                }
 
                 Everything.sendFancy(sender, Component.text("")
                     .append(Component.text("ℹ️ Plugin Info\n").color(NamedTextColor.GOLD).decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
@@ -159,6 +167,9 @@ public class EverythingCommand implements CommandExecutor {
                     Everything.sendFancy(sender, Component.text("You don't have permission to check for updates!").color(NamedTextColor.RED));
                     return true;
                 }
+                if (sender instanceof org.bukkit.entity.Player player && plugin.getParticleManager().isEnabled("everything")) {
+                    plugin.getParticleManager().playEffect(player, ParticleEffect.EVERYTHING_CHECKUPDATE);
+                }
                 if (updater.isUpdateAvailable()) {
                     Everything.sendFancy(sender, Component.text("")
                         .append(Component.text("A new version is available! ").color(NamedTextColor.GREEN))
@@ -173,6 +184,9 @@ public class EverythingCommand implements CommandExecutor {
 
 
             case "test":
+                if (sender instanceof org.bukkit.entity.Player player && plugin.getParticleManager().isEnabled("everything")) {
+                    plugin.getParticleManager().playEffect(player, ParticleEffect.EVERYTHING_TEST);
+                }
                 Everything.sendFancy(sender, Component.text("[TEST] Listing and attempting to run all commands:").color(NamedTextColor.AQUA));
                 List<String> testCommands = getPluginCommands();
                 for (String cmd : testCommands) {

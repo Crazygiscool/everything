@@ -1,5 +1,6 @@
 package me.crazyg.everything.commands;
 
+import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -11,6 +12,12 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 public class GamemodeCommand implements CommandExecutor {
+
+    private final Everything plugin;
+
+    public GamemodeCommand(Everything plugin) {
+        this.plugin = plugin;
+    }
 
     // Constants for messages using Adventure API
     private static final Component PLAYER_NOT_FOUND = Component.text("Player not found or not online.")
@@ -116,6 +123,18 @@ public class GamemodeCommand implements CommandExecutor {
 
         // --- Apply Gamemode ---
         targetPlayer.setGameMode(targetMode);
+
+        // --- Particles ---
+        if (plugin.getParticleManager().isEnabled(commandName.toLowerCase())) {
+            me.crazyg.everything.utils.particle.ParticleEffect effect;
+            switch (targetMode) {
+                case CREATIVE -> effect = me.crazyg.everything.utils.particle.ParticleEffect.GAMEMODE_CREATIVE;
+                case SURVIVAL -> effect = me.crazyg.everything.utils.particle.ParticleEffect.GAMEMODE_SURVIVAL;
+                case SPECTATOR -> effect = me.crazyg.everything.utils.particle.ParticleEffect.GAMEMODE_SPECTATOR;
+                default -> effect = me.crazyg.everything.utils.particle.ParticleEffect.GAMEMODE_ADVENTURE;
+            }
+            plugin.getParticleManager().playEffect(targetPlayer, effect);
+        }
 
         // --- Feedback Messages ---
         if (targetingSelf) {

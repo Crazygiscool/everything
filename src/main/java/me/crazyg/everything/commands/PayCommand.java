@@ -72,6 +72,11 @@ public class PayCommand implements CommandExecutor, TabCompleter {
         Everything.getEconomy().withdrawPlayer(player, amount);
         Everything.getEconomy().depositPlayer(target, amount);
 
+        if (plugin.getParticleManager().isEnabled("pay")) {
+            plugin.getParticleManager().playEffect(player, me.crazyg.everything.utils.particle.ParticleEffect.PAY_SEND);
+            plugin.getParticleManager().playEffect(target, me.crazyg.everything.utils.particle.ParticleEffect.PAY_RECEIVE);
+        }
+
         AdventureCompat.sendMessage(player, Component.text("")
                 .append(Component.text("You paid ").color(NamedTextColor.GREEN))
                 .append(Component.text(Everything.getEconomy().format(amount)).color(NamedTextColor.GOLD))

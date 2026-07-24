@@ -2,6 +2,7 @@ package me.crazyg.everything.utils;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -18,6 +19,10 @@ public final class AdventureCompat {
 
     public static void sendMessage(CommandSender sender, Component component) {
         sender.sendMessage(SERIALIZER.serialize(component));
+    }
+
+    public static Component deserialize(String miniMessage) {
+        return MiniMessage.miniMessage().deserialize(miniMessage);
     }
 
     /**
