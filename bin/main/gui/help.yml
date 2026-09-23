@@ -132,12 +132,11 @@ pages:
     items:
       inspect:
         slot: 10
-        icon: "STICK"
+        icon: "ENDER_EYE"
         name: "&b/inspect"
         lore:
-          - "&7Toggle the inspect wand"
-          - "&7Left-click a block for history"
-          - "&7Right-click to set inspect area"
+          - "&7Toggle block inspect mode"
+          - "&7Break or place to view its logged history"
         action: "command"
         command: "inspect"
 
@@ -208,10 +207,10 @@ pages:
     items:
       inspect:
         slot: 10
-        icon: "STICK"
+        icon: "ENDER_EYE"
         name: "&b/inspect"
         lore:
-          - "&7Toggle the inspect wand"
+          - "&7Toggle block inspect mode"
         action: "command"
         command: "inspect"
 
