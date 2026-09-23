@@ -1,19 +1,18 @@
 name: ${name}
 version: ${version}
 main: me.crazyg.everything.Everything
-api-version: "1.20"
+api-version: '1.20'
 author: crazygiscool
 description: Does everything!
 website: crazyg.is-a.dev
-depend: [PlaceholderAPI]
-softdepend: [Vault, LuckPerms]
+softdepend: [Vault, LuckPerms, FastAsyncWorldEdit, WorldEdit]
 
 commands:
   eco:
     description: Economy admin command
     usage: /eco <give|take|set|reset|player> <player> [amount]
     aliases: ["economy"]
-    permission: everything.eco, everything.eco.others, everything.eco.set
+    permission: [everything.eco, everything.eco.others, everything.eco.set, everything.eco.set.others]
     permission-message: You do not have permission to use the eco command.
   help:
     description: Custom help menu
@@ -110,20 +109,24 @@ commands:
     usage: /msg <player> <message>
     aliases: [tell, w, whisper]
     permission: everything.msg
+    permission-message: You do not have permission to send private messages.
   reply:
     description: Reply to the last received message
     usage: /reply <message>
     aliases: [r]
     permission: everything.reply
+    permission-message: You do not have permission to reply to messages.
   balance:
     description: Check your balance
     usage: /balance
     aliases: [bal, money]
     permission: everything.balance
+    permission-message: You do not have permission to check your balance.
   pay:
     description: Pay another player
     usage: /pay <player> <amount>
     permission: everything.pay
+    permission-message: You do not have permission to pay players.
   kill:
     description: Kill a player or entity (supports selectors)
     usage: /kill [player|@selector]
@@ -153,6 +156,36 @@ commands:
     usage: /tpdeny
     permission: everything.tpdeny
     permission-message: You do not have permission to deny tpa requests.
+  rtp:
+    description: Randomly teleport to a random location.
+    usage: /rtp
+    permission: everything.rtp
+    permission-message: You do not have permission to random teleport.
+  rollback:
+    description: Roll back block changes by player, area, or time.
+    usage: |
+      /rollback <player|*> [radius] [time] [-y]
+      /rollback here [-y]
+    permission: everything.blocklog.rollback
+    permission-message: You do not have permission to rollback blocks.
+  lookup:
+    description: Look up (preview) logged block changes.
+    usage: |
+      /lookup <player|*> [radius] [time]
+      /lookup here
+    permission: everything.blocklog.lookup
+    permission-message: You do not have permission to lookup block changes.
+  inspect:
+    description: Toggle the block inspect wand.
+    usage: /inspect
+    permission: everything.blocklog.inspect
+    permission-message: You do not have permission to use the inspect wand.
+  lb:
+    description: Block log utility (prune logs, etc).
+    usage: |
+      /lb prune <days>
+    permission: everything.blocklog.prune
+    permission-message: You do not have permission to manage block logs.
 
 permissions:
   everything.eco:
@@ -259,4 +292,25 @@ permissions:
     default: op
   everything.pay:
     description: Allows using the /pay command.
+    default: op
+  everything.rtp:
+    description: Allows using the /rtp command.
+    default: true
+  everything.rtp.bypasscooldown:
+    description: Bypasses the RTP cooldown.
+    default: op
+  everything.blocklog.rollback:
+    description: Allows rolling back block changes.
+    default: op
+  everything.blocklog.rollback.undo:
+    description: Allows undoing rollbacks.
+    default: op
+  everything.blocklog.lookup:
+    description: Allows looking up logged block changes.
+    default: op
+  everything.blocklog.inspect:
+    description: Allows using the inspect wand.
+    default: op
+  everything.blocklog.prune:
+    description: Allows pruning/cleaning the block log database.
     default: op
