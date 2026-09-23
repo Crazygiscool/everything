@@ -34,7 +34,6 @@ public class KillCommand implements CommandExecutor, TabCompleter {
                         p,
                         Component.text("You Have Opted To DIEEEE!")
                                 .color(NamedTextColor.DARK_RED)
-                                .decorate(TextDecoration.BOLD)
                 );
                 return true;
             }
@@ -64,9 +63,8 @@ public class KillCommand implements CommandExecutor, TabCompleter {
                         target.setHealth(0);
                         me.crazyg.everything.Everything.sendFancy(
                                 target,
-                                Component.text("You have been killed by " + p.getName())
-                                        .color(NamedTextColor.DARK_RED)
-                                        .decorate(TextDecoration.BOLD)
+                                Component.text("You have been killed by ")
+                                        .color(NamedTextColor.DARK_RED).append(Component.text(p.getName()).color(NamedTextColor.DARK_RED).decorate(TextDecoration.BOLD))
                         );
                         killed++;
                     } else {
@@ -79,7 +77,6 @@ public class KillCommand implements CommandExecutor, TabCompleter {
                         p,
                         Component.text("Killed " + killed + " target(s) for selector: " + selector)
                                 .color(NamedTextColor.DARK_RED)
-                                .decorate(TextDecoration.BOLD)
                 );
 
             } catch (IllegalArgumentException ex) {
@@ -101,13 +98,11 @@ public class KillCommand implements CommandExecutor, TabCompleter {
                             target,
                             Component.text("You have been killed by " + p.getName())
                                     .color(NamedTextColor.DARK_RED)
-                                    .decorate(TextDecoration.BOLD)
                     );
                     me.crazyg.everything.Everything.sendFancy(
                             p,
                             Component.text("Killed player: " + target.getName())
                                     .color(NamedTextColor.DARK_RED)
-                                    .decorate(TextDecoration.BOLD)
                     );
                 }
             }
@@ -115,7 +110,7 @@ public class KillCommand implements CommandExecutor, TabCompleter {
         } else if (sender instanceof ConsoleCommandSender p) {
             me.crazyg.everything.Everything.sendFancy(
                     p,
-                    Component.text("Command cannot be run by console, Silly")
+                    Component.text("This Command cannot be run by console, Silly")
                             .color(NamedTextColor.DARK_RED)
                             .decorate(TextDecoration.BOLD)
             );
@@ -123,7 +118,7 @@ public class KillCommand implements CommandExecutor, TabCompleter {
         } else if (sender instanceof BlockCommandSender p) {
             me.crazyg.everything.Everything.sendFancy(
                     p,
-                    Component.text("Command cannot be run by command block, L")
+                    Component.text("This Command cannot be run by command block, L")
                             .color(NamedTextColor.DARK_RED)
                             .decorate(TextDecoration.BOLD)
             );

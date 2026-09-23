@@ -34,7 +34,7 @@ public class GodCommand implements CommandExecutor {
                         plugin.getParticleManager().playEffect(p, ParticleEffect.GOD_ENABLE);
                     }
                     AdventureCompat.sendMessage(p, Component.text("GOD MODE Enabled")
-                            .color(NamedTextColor.GOLD));
+                            .color(NamedTextColor.GOLD).decorate(TextDecoration.BOLD));
                 }
             } else {
                 String playername = args[0];

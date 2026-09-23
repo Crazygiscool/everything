@@ -6,6 +6,7 @@ import me.crazyg.everything.utils.AdventureCompat;
 import me.crazyg.everything.utils.CooldownManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -88,7 +89,7 @@ public class RTPCommand implements CommandExecutor {
         AdventureCompat.sendMessage(player, Component.text("Teleported to random location: ")
                 .color(NamedTextColor.GREEN)
                 .append(Component.text(safeLocation.getBlockX() + ", " + safeLocation.getBlockZ())
-                        .color(NamedTextColor.YELLOW)));
+                        .color(NamedTextColor.YELLOW).decorate(TextDecoration.BOLD)));
 
         return true;
     }
