@@ -5,9 +5,10 @@ import me.crazyg.everything.blocklog.BlockLogCommand;
 import me.crazyg.everything.blocklog.BlockLogConfig;
 import me.crazyg.everything.blocklog.BlockLogDatabase;
 import me.crazyg.everything.blocklog.BlockLogListener;
-import me.crazyg.everything.blocklog.InspectWand;
+import me.crazyg.everything.blocklog.InspectManager;
 import me.crazyg.everything.blocklog.RollbackManager;
-import me.crazyg.everything.blocklog.WorldEditIntegration;
+import me.crazyg.everything.blocklog.SelectionCommand;
+import me.crazyg.everything.blocklog.SelectionManager;
 import me.crazyg.everything.commands.*;
 import me.crazyg.everything.listeners.*;
 import me.crazyg.everything.utils.*;
@@ -60,11 +61,13 @@ public final class Everything extends JavaPlugin {
     private EcoStorage ecoStorage;
     private ChatStorage chatStorage;
 
-    private BlockLogDatabase blockLogDatabase;
+private BlockLogDatabase blockLogDatabase;
     private BlockLogListener blockLogListener;
-    private InspectWand inspectWand;
-    private RollbackManager rollbackManager;
+    private SelectionManager selectionManager;
+    private InspectManager inspectManager;
     private BlockLogCommand blockLogCommand;
+    private SelectionCommand selectionCommand;
+    private RollbackManager rollbackManager;
 
     private ParticleManager particleManager;
     private TeleportManager teleportManager;
@@ -275,32 +278,43 @@ public final class Everything extends JavaPlugin {
                     + " old block-log entries on startup.");
             }
             this.rollbackManager = new RollbackManager(this, blockLogDatabase);
-            this.inspectWand =
-                new InspectWand(this, blockLogDatabase, rollbackManager);
+            this.selectionManager = new SelectionManager(this);
+            this.inspectManager = new InspectManager(this, blockLogDatabase);
             this.blockLogListener =
                 new BlockLogListener(this, blockLogDatabase);
             this.blockLogCommand = new BlockLogCommand(
-                this, blockLogDatabase, rollbackManager, inspectWand);
+                this, blockLogDatabase, rollbackManager,
+                selectionManager, inspectManager);
+            this.selectionCommand = new SelectionCommand(
+                this, selectionManager);
 
             getServer().getPluginManager().registerEvents(
                 blockLogListener, this);
             getServer().getPluginManager().registerEvents(
-                inspectWand, this);
+                inspectManager, this);
+            getServer().getPluginManager().registerEvents(
+                selectionManager, this);
 
             getCommand("rollback").setExecutor(blockLogCommand);
             getCommand("lookup").setExecutor(blockLogCommand);
             getCommand("inspect").setExecutor(blockLogCommand);
             getCommand("lb").setExecutor(blockLogCommand);
 
+            // Selection commands (getCommand("//x") resolves via plugin.yml keys)
+            for (String selCmd : new String[] {
+                    "//wand", "//pos1", "//pos2", "//hpos1", "//hpos2",
+                    "//expand", "//contract", "//outset", "//inset", "//shift",
+                    "//sel", "//desel", "//size", "//count"}) {
+                org.bukkit.command.PluginCommand pc = getCommand(selCmd);
+                if (pc != null) {
+                    pc.setExecutor(selectionCommand);
+                    pc.setTabCompleter(selectionCommand);
+                }
+            }
+
             getLogger().info("Block logging & rollback enabled.");
         } else {
             getLogger().info("Block logging & rollback disabled in config.yml");
-        }
-
-        // --- WorldEdit Selection Particle Visualizer ---
-        if (WorldEditIntegration.isAvailable()) {
-            Bukkit.getScheduler().runTaskTimer(this, WorldEditIntegration::spawnSelectionParticles, 0L, 10L);
-            getLogger().info("WorldEdit integration & selection particle visualizer enabled.");
         }
 
         // --- Listeners ---
@@ -464,8 +478,12 @@ public final class Everything extends JavaPlugin {
         return blockLogDatabase;
     }
 
-    public InspectWand getInspectWand() {
-        return inspectWand;
+    public SelectionManager getSelectionManager() {
+        return selectionManager;
+    }
+
+    public InspectManager getInspectManager() {
+        return inspectManager;
     }
 
     public RollbackManager getRollbackManager() {

@@ -5,7 +5,7 @@ api-version: '1.20'
 author: crazygiscool
 description: Does everything!
 website: crazyg.is-a.dev
-softdepend: [Vault, LuckPerms, FastAsyncWorldEdit, WorldEdit]
+softdepend: [Vault, LuckPerms]
 
 commands:
   eco:
@@ -176,16 +176,86 @@ commands:
     permission: everything.blocklog.lookup
     permission-message: You do not have permission to lookup block changes.
   inspect:
-    description: Toggle the block inspect wand.
-    usage: /inspect
+    description: Toggle block inspect mode (tried changes are shown as logs instead of applied).
+    usage: /inspect [on|off]
     permission: everything.blocklog.inspect
-    permission-message: You do not have permission to use the inspect wand.
+    permission-message: You do not have permission to use inspect mode.
   lb:
     description: Block log utility (prune logs, etc).
     usage: |
       /lb prune <days>
     permission: everything.blocklog.prune
     permission-message: You do not have permission to manage block logs.
+  "//wand":
+    description: Give or toggle the selection wand.
+    usage: //wand
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//pos1":
+    description: Set the first selection point to your location or coordinates.
+    usage: //pos1 [x y z]
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//pos2":
+    description: Set the second selection point to your location or coordinates.
+    usage: //pos2 [x y z]
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//hpos1":
+    description: Set the first selection point at the block you are looking at.
+    usage: //hpos1
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//hpos2":
+    description: Set the second selection point at the block you are looking at.
+    usage: //hpos2
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//expand":
+    description: Expand the selection in a direction.
+    usage: //expand <amount> [direction|vert]
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//contract":
+    description: Contract the selection in a direction.
+    usage: //contract <amount> [direction]
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//outset":
+    description: Expand the selection outward on all sides.
+    usage: //outset <amount>
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//inset":
+    description: Contract the selection inward on all sides.
+    usage: //inset <amount>
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//shift":
+    description: Move the selection without changing its size.
+    usage: //shift <amount> [direction]
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//sel":
+    description: Clear the current selection.
+    usage: //sel
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//desel":
+    description: Clear the current selection.
+    usage: //desel
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//size":
+    description: Show the dimensions of the current selection.
+    usage: //size
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
+  "//count":
+    description: Count blocks of a given type in the selection.
+    usage: //count [block]
+    permission: everything.blocklog.select
+    permission-message: You do not have permission to use selection tools.
 
 permissions:
   everything.eco:
@@ -309,7 +379,10 @@ permissions:
     description: Allows looking up logged block changes.
     default: op
   everything.blocklog.inspect:
-    description: Allows using the inspect wand.
+    description: Allows using inspect mode.
+    default: op
+  everything.blocklog.select:
+    description: Allows using the selection wand and // selection commands.
     default: op
   everything.blocklog.prune:
     description: Allows pruning/cleaning the block log database.

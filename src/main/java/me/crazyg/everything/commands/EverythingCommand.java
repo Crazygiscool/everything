@@ -109,13 +109,24 @@ public class EverythingCommand implements CommandExecutor {
                     return true;
                 }
                 if (!player.hasPermission("everything.blocklog.inspect")) {
-                    Everything.sendFancy(sender, Component.text("You do not have permission to use the inspect wand.").color(NamedTextColor.RED));
+                    Everything.sendFancy(sender, Component.text("You do not have permission to use inspect mode.").color(NamedTextColor.RED));
                     return true;
                 }
-                if (plugin.getInspectWand() != null) {
-                    plugin.getInspectWand().toggle(player);
+                if (plugin.getInspectManager() == null) {
+                    Everything.sendFancy(sender, Component.text("Block logging is disabled in config.").color(NamedTextColor.RED));
+                    return true;
+                }
+                if (args.length >= 2) {
+                    String sub = args[1].toLowerCase();
+                    if (sub.equals("on")) {
+                        plugin.getInspectManager().setEnabled(player, true);
+                    } else if (sub.equals("off")) {
+                        plugin.getInspectManager().setEnabled(player, false);
+                    } else {
+                        Everything.sendFancy(sender, Component.text("Usage: /everything inspect [on|off]").color(NamedTextColor.YELLOW));
+                    }
                 } else {
-                    Everything.sendFancy(sender, Component.text("Block log / inspect wand is disabled in config.").color(NamedTextColor.RED));
+                    plugin.getInspectManager().toggle(player);
                 }
                 return true;
 

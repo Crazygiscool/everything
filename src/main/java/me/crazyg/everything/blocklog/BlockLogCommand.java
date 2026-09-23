@@ -36,7 +36,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     private final Everything plugin;
     private final BlockLogDatabase database;
     private final RollbackManager rollbackManager;
-    private final InspectWand inspectWand;
+    private final SelectionManager selectionManager;
+    private final InspectManager inspectManager;
     private final LookupResultCache lookupCache = new LookupResultCache();
     private final Map<UUID, List<BlockChange>> pendingRollbacks = new ConcurrentHashMap<>();
 
@@ -44,11 +45,13 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
     public BlockLogCommand(Everything plugin, BlockLogDatabase database,
                            RollbackManager rollbackManager,
-                           InspectWand inspectWand) {
+                           SelectionManager selectionManager,
+                           InspectManager inspectManager) {
         this.plugin = plugin;
         this.database = database;
         this.rollbackManager = rollbackManager;
-        this.inspectWand = inspectWand;
+        this.selectionManager = selectionManager;
+        this.inspectManager = inspectManager;
     }
 
     @Override
@@ -70,63 +73,34 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // /inspect [area <size>|clear]
+    // /inspect [on|off]  (inspect mode: intercept break/place, show history)
     // ---------------------------------------------------------
     private boolean handleInspect(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("This command can only be used by a player.")
                     .color(NamedTextColor.RED));
             return true;
         }
         if (!player.hasPermission("everything.blocklog.inspect")) {
-            AdventureCompat.sendMessage(sender,
-                Component.text("You do not have permission to use the inspect wand.")
+            Everything.sendFancy(sender,
+                Component.text("You do not have permission to use inspect mode.")
                     .color(NamedTextColor.RED));
             return true;
         }
 
         if (args.length == 0) {
-            inspectWand.toggle(player);
+            inspectManager.toggle(player);
             return true;
         }
 
         String sub = args[0].toLowerCase();
         switch (sub) {
-            case "clear" -> {
-                inspectWand.clearArea(player.getUniqueId());
-                AdventureCompat.sendMessage(player,
-                    Component.text("Inspect area cleared.")
-                        .color(NamedTextColor.YELLOW));
-            }
-            case "area" -> {
-                if (args.length < 2) {
-                    AdventureCompat.sendMessage(player,
-                        Component.text("Usage: /inspect area <size>")
-                            .color(NamedTextColor.YELLOW));
-                    return true;
-                }
-                int size;
-                try {
-                    size = Integer.parseInt(args[1]);
-                } catch (NumberFormatException e) {
-                    AdventureCompat.sendMessage(player,
-                        Component.text("Invalid size number.")
-                            .color(NamedTextColor.RED));
-                    return true;
-                }
-                size = Math.max(3, Math.min(100, size));
-                inspectWand.setArea(player.getUniqueId(), player.getLocation(), size);
-                AdventureCompat.sendMessage(player,
-                    Component.text("Inspect area set to " + size + "x" + size + "x" + size
-                        + " centered at your location.")
-                        .color(NamedTextColor.GREEN));
-            }
-            default -> {
-                AdventureCompat.sendMessage(player,
-                    Component.text("Usage: /inspect [area <size>|clear]")
-                        .color(NamedTextColor.YELLOW));
-            }
+            case "on" -> inspectManager.setEnabled(player, true);
+            case "off" -> inspectManager.setEnabled(player, false);
+            default -> Everything.sendFancy(player,
+                Component.text("Usage: /inspect [on|off]")
+                    .color(NamedTextColor.YELLOW));
         }
         return true;
     }
@@ -136,19 +110,19 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     // ---------------------------------------------------------
     private boolean handleLb(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.prune")) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("You do not have permission to manage block logs.")
                     .color(NamedTextColor.RED));
             return true;
         }
         if (args.length < 1 || !args[0].equalsIgnoreCase("prune")) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("Usage: /lb prune <days> [world] [player] [blocktype]")
                     .color(NamedTextColor.YELLOW));
             return true;
         }
         if (args.length < 2) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("Specify how many days of logs to keep.")
                     .color(NamedTextColor.YELLOW));
             return true;
@@ -157,7 +131,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         try {
             days = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("Invalid number of days.")
                     .color(NamedTextColor.RED));
             return true;
@@ -195,7 +169,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             msg.append(")");
         }
         msg.append(".");
-        AdventureCompat.sendMessage(sender,
+        Everything.sendFancy(sender,
             Component.text(msg.toString()).color(NamedTextColor.GREEN));
         return true;
     }
@@ -205,7 +179,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     // ---------------------------------------------------------
     private boolean handleLookup(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.lookup")) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("You do not have permission to lookup block changes.")
                     .color(NamedTextColor.RED));
             return true;
@@ -213,7 +187,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
         if (args.length >= 1 && args[0].equalsIgnoreCase("page")) {
             if (!(sender instanceof Player player)) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("Page can only be used by a player.")
                         .color(NamedTextColor.RED));
                 return true;
@@ -227,7 +201,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             List<BlockChange> cached = lookupCache.get(player.getUniqueId());
             String scope = lookupCache.getScope(player.getUniqueId());
             if (cached == null || cached.isEmpty()) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("Lookup cache expired or empty. Please run /lookup again.")
                         .color(NamedTextColor.YELLOW));
                 return true;
@@ -249,7 +223,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
         if (cmdArgs.length >= 1 && cmdArgs[0].equalsIgnoreCase("here")) {
             if (!(sender instanceof Player player)) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("'here' can only be used by a player.")
                         .color(NamedTextColor.RED));
                 return true;
@@ -259,8 +233,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                 area.world, area.cx, area.cy, area.cz,
                 area.radius, null, null);
 
-            // Strict WorldEdit selection filter if active
-            changes = filterWorldEditSelection(sender, changes);
+            // Strict selection filter if active
+            changes = filterSelection(sender, changes);
 
             if (sender instanceof Player p) {
                 lookupCache.store(p.getUniqueId(), changes, "near you");
@@ -276,7 +250,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             params.radius, params.uuid, params.since);
 
         changes = filterChanges(changes, params);
-        changes = filterWorldEditSelection(sender, changes);
+        changes = filterSelection(sender, changes);
 
         if (sender instanceof Player p) {
             lookupCache.store(p.getUniqueId(), changes, params.describe());
@@ -290,7 +264,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     // ---------------------------------------------------------
     private boolean handleRollback(CommandSender sender, String[] args) {
         if (!sender.hasPermission("everything.blocklog.rollback")) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("You do not have permission to rollback blocks.")
                     .color(NamedTextColor.RED));
             return true;
@@ -298,24 +272,24 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
         if (args.length >= 1 && args[0].equalsIgnoreCase("undo")) {
             if (!(sender instanceof Player player)) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("Undo can only be used by a player.")
                         .color(NamedTextColor.RED));
                 return true;
             }
             if (!player.hasPermission("everything.blocklog.rollback.undo")) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("You do not have permission to undo rollbacks.")
                         .color(NamedTextColor.RED));
                 return true;
             }
             int undone = rollbackManager.undoLastRollback(player.getUniqueId());
             if (undone == 0) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("Nothing to undo (no recent rollback within 10 minutes).")
                         .color(NamedTextColor.YELLOW));
             } else {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("Undid rollback of " + undone + " blocks.")
                         .color(NamedTextColor.GREEN));
             }
@@ -344,7 +318,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
         if (args.length >= 1 && args[0].equalsIgnoreCase("here")) {
             if (!(sender instanceof Player player)) {
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender,
                     Component.text("'here' can only be used by a player.")
                         .color(NamedTextColor.RED));
                 return true;
@@ -354,7 +328,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                 area.world, area.cx, area.cy, area.cz,
                 area.radius, null, null);
 
-            changes = filterWorldEditSelection(sender, changes);
+            changes = filterSelection(sender, changes);
             return doRollback(sender, changes, confirm);
         }
 
@@ -365,7 +339,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             params.radius, params.uuid, params.since);
 
         changes = filterChanges(changes, params);
-        changes = filterWorldEditSelection(sender, changes);
+        changes = filterSelection(sender, changes);
 
         return doRollback(sender, changes, confirm);
     }
@@ -395,9 +369,9 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }).toList();
     }
 
-    private List<BlockChange> filterWorldEditSelection(CommandSender sender, List<BlockChange> changes) {
+    private List<BlockChange> filterSelection(CommandSender sender, List<BlockChange> changes) {
         if (!(sender instanceof Player player)) return changes;
-        WorldEditIntegration.SelectionBounds sel = WorldEditIntegration.getSelection(player);
+        SelectionManager.Selection sel = selectionManager.getSelection(player);
         if (sel == null) return changes;
         return changes.stream().filter(c ->
             c.getX() >= sel.minX() && c.getX() <= sel.maxX() &&
@@ -412,7 +386,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         int maxPerWorld = plugin.getConfig().getInt(
             "blocklog.max-rollback-blocks-per-world", 10000);
         if (changes.isEmpty()) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("No matching block changes to roll back.")
                     .color(NamedTextColor.YELLOW));
             return true;
@@ -434,15 +408,15 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                             .color(NamedTextColor.GOLD)));
                 AdventureCompat.sendInteractiveMessage(player, clickable);
             } else {
-                AdventureCompat.sendMessage(sender, msg);
-                AdventureCompat.sendMessage(sender,
+                Everything.sendFancy(sender, msg);
+                Everything.sendFancy(sender,
                     Component.text("Run again with -y to confirm.")
                         .color(NamedTextColor.GRAY));
             }
             return true;
         }
         int queued = rollbackManager.rollback(changes, max, maxPerWorld);
-        AdventureCompat.sendMessage(sender,
+        Everything.sendFancy(sender,
             Component.text("Queued rollback of " + queued + " blocks...")
                 .color(NamedTextColor.GREEN));
         return true;
@@ -455,7 +429,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                                        List<BlockChange> changes,
                                        String scope, int page) {
         if (changes.isEmpty()) {
-            AdventureCompat.sendMessage(sender,
+            Everything.sendFancy(sender,
                 Component.text("No logged changes " + scope + ".")
                     .color(NamedTextColor.YELLOW));
             return;
@@ -465,7 +439,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         int start = (page - 1) * PAGE_SIZE;
         int end = Math.min(start + PAGE_SIZE, changes.size());
 
-        AdventureCompat.sendMessage(sender,
+        Everything.sendFancy(sender,
             Component.text("----- Block Log (" + changes.size()
                 + " found " + scope + ") -----")
                 .color(NamedTextColor.GOLD)
@@ -488,7 +462,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                 .append(Component.text(" | " + c.getTimestamp()
                     .format(java.time.format.DateTimeFormatter
                         .ofPattern("MM-dd HH:mm"))).color(NamedTextColor.YELLOW));
-            AdventureCompat.sendMessage(sender, line);
+            Everything.sendFancy(sender, line);
         }
 
         if (totalPages > 1) {
@@ -519,7 +493,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             if (sender instanceof Player player) {
                 AdventureCompat.sendInteractiveMessage(player, nav);
             } else {
-                AdventureCompat.sendMessage(sender, nav);
+                Everything.sendFancy(sender, nav);
             }
         }
     }
@@ -552,17 +526,17 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     private QueryParams parseArgs(CommandSender sender, String[] args) {
         QueryParams p = new QueryParams();
 
-        WorldEditIntegration.SelectionBounds weSelection = null;
+        SelectionManager.Selection selection = null;
         if (sender instanceof Player player) {
-            weSelection = WorldEditIntegration.getSelection(player);
+            selection = selectionManager.getSelection(player);
         }
-        if (weSelection != null) {
-            p.world = weSelection.world();
-            p.cx = weSelection.getCenterX();
-            p.cy = weSelection.getCenterY();
-            p.cz = weSelection.getCenterZ();
-            p.radius = Math.max(weSelection.getRadiusX(),
-                Math.max(weSelection.getRadiusY(), weSelection.getRadiusZ()));
+        if (selection != null) {
+            p.world = selection.world();
+            p.cx = selection.getCenterX();
+            p.cy = selection.getCenterY();
+            p.cz = selection.getCenterZ();
+            p.radius = Math.max(selection.getRadiusX(),
+                Math.max(selection.getRadiusY(), selection.getRadiusZ()));
         } else if (sender instanceof Player player) {
             p.world = player.getWorld();
             p.cx = player.getLocation().getBlockX();
@@ -647,20 +621,18 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     }
 
     // ---------------------------------------------------------
-    // "here" area resolution (uses the wand's configured inspect area)
+    // "here" area resolution (uses the player's selection, else a 10-block radius)
     // ---------------------------------------------------------
 
     private record Area(org.bukkit.World world, int cx, int cy, int cz,
                         int radius) {}
 
     private Area resolveHereArea(Player player) {
-        InspectWand.InspectArea configured =
-            inspectWand.getArea(player.getUniqueId());
-        if (configured != null) {
-            Location c = configured.center;
-            int half = configured.size / 2;
-            return new Area(c.getWorld(), c.getBlockX(), c.getBlockY(),
-                c.getBlockZ(), half);
+        SelectionManager.Selection sel = selectionManager.getSelection(player);
+        if (sel != null) {
+            return new Area(sel.world(), sel.getCenterX(), sel.getCenterY(),
+                sel.getCenterZ(), Math.max(sel.getRadiusX(),
+                    Math.max(sel.getRadiusY(), sel.getRadiusZ())));
         }
         Location loc = player.getLocation();
         return new Area(player.getWorld(), loc.getBlockX(),
@@ -723,10 +695,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             return List.of();
         }
         if (name.equals("inspect")) {
-            if (args.length == 1) return List.of("area", "clear");
-            if (args.length == 2 && args[0].equalsIgnoreCase("area")) {
-                return List.of("10", "20", "50", "100");
-            }
+            if (args.length == 1) return List.of("on", "off");
             return List.of();
         }
 

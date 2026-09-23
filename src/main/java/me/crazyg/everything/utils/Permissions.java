@@ -66,6 +66,7 @@ public final class Permissions {
 
     // Block log
     public static final String BLOCKLOG_INSPECT = "everything.blocklog.inspect";
+    public static final String BLOCKLOG_SELECT = "everything.blocklog.select";
     public static final String BLOCKLOG_LOOKUP = "everything.blocklog.lookup";
     public static final String BLOCKLOG_ROLLBACK = "everything.blocklog.rollback";
     public static final String BLOCKLOG_PRUNE = "everything.blocklog.prune";

@@ -18,7 +18,8 @@ public final class BlockLogConfig {
     public static final String MAX_RETENTION_DAYS = "blocklog.max-retention-days";
     public static final String PRUNE_ON_STARTUP = "blocklog.prune-on-startup";
     public static final String ASYNC = "blocklog.async";
-    public static final String WAND_MATERIAL = "blocklog.inspect-wand-material";
+    public static final String SELECTION_WAND_MATERIAL = "blocklog.selection-wand-material";
+    public static final String SELECTION_MAX_SIZE = "blocklog.selection-max-size";
     public static final String MAX_HISTORY_PER_BLOCK = "blocklog.max-history-per-block";
     public static final String MAX_ROLLBACK_BLOCKS = "blocklog.max-rollback-blocks";
     public static final String WORLDS_MODE = "blocklog.worlds.mode";
@@ -30,8 +31,6 @@ public final class BlockLogConfig {
     public static final String LOG_ENTITY_DEATH = "blocklog.log-entity-death";
     public static final String MAX_ROLLBACK_BLOCKS_PER_WORLD =
         "blocklog.max-rollback-blocks-per-world";
-    public static final String WORLDEDIT_INTEGRATION =
-        "blocklog.worldedit-integration";
 
     public static boolean isEnabled(FileConfiguration config) {
         return config.getBoolean(ENABLED, true);
@@ -55,6 +54,14 @@ public final class BlockLogConfig {
 
     public static int maxRetentionDays(FileConfiguration config) {
         return config.getInt(MAX_RETENTION_DAYS, 30);
+    }
+
+    public static String selectionWandMaterial(FileConfiguration config) {
+        return config.getString(SELECTION_WAND_MATERIAL, "WOODEN_AXE");
+    }
+
+    public static int selectionMaxSize(FileConfiguration config) {
+        return config.getInt(SELECTION_MAX_SIZE, 5000);
     }
 
     public static int maxHistoryPerBlock(FileConfiguration config) {
@@ -100,9 +107,5 @@ public final class BlockLogConfig {
 
     public static int maxRollbackBlocksPerWorld(FileConfiguration config) {
         return config.getInt(MAX_ROLLBACK_BLOCKS_PER_WORLD, 10000);
-    }
-
-    public static boolean worldEditIntegration(FileConfiguration config) {
-        return config.getBoolean(WORLDEDIT_INTEGRATION, true);
     }
 }

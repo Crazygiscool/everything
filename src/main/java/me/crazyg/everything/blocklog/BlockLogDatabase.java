@@ -548,13 +548,27 @@ public class BlockLogDatabase {
     public List<BlockChange> query(World world, int cx, int cy, int cz,
                                     int radius, UUID playerUuid,
                                     LocalDateTime since) {
+        if (radius < 0) {
+            radius = Integer.MAX_VALUE / 2;
+        }
+        return query(world, cx - radius, cy - radius, cz - radius,
+            cx + radius, cy + radius, cz + radius, playerUuid, since);
+    }
+
+    /**
+     * Query changes inside an exact cuboid bounds (typically a player's
+     * selection), optionally filtered by player and/or a cutoff time.
+     * Most recent first.
+     */
+    public List<BlockChange> query(World world,
+                                    int minX, int minY, int minZ,
+                                    int maxX, int maxY, int maxZ,
+                                    UUID playerUuid, LocalDateTime since) {
         List<BlockChange> result = new ArrayList<>();
         if (connection == null) return result;
         StringBuilder sql = new StringBuilder(
             "SELECT * FROM block_log WHERE world = ? AND rolled_back = 0 ");
-        if (radius >= 0) {
-            sql.append("AND x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? ");
-        }
+        sql.append("AND x BETWEEN ? AND ? AND y BETWEEN ? AND ? AND z BETWEEN ? AND ? ");
         if (playerUuid != null) {
             sql.append("AND player_uuid = ? ");
         }
@@ -568,14 +582,12 @@ public class BlockLogDatabase {
                      connection.prepareStatement(sql.toString())) {
                 int idx = 1;
                 ps.setString(idx++, world == null ? "world" : world.getName());
-                if (radius >= 0) {
-                    ps.setInt(idx++, cx - radius);
-                    ps.setInt(idx++, cx + radius);
-                    ps.setInt(idx++, cy - radius);
-                    ps.setInt(idx++, cy + radius);
-                    ps.setInt(idx++, cz - radius);
-                    ps.setInt(idx++, cz + radius);
-                }
+                ps.setInt(idx++, minX);
+                ps.setInt(idx++, maxX);
+                ps.setInt(idx++, minY);
+                ps.setInt(idx++, maxY);
+                ps.setInt(idx++, minZ);
+                ps.setInt(idx++, maxZ);
                 if (playerUuid != null) {
                     ps.setString(idx++, playerUuid.toString());
                 }
