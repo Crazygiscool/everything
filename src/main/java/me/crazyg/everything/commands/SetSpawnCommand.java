@@ -111,20 +111,25 @@ public class SetSpawnCommand implements CommandExecutor {
             }
 
             String worldName = locationsConfig.getString("spawn.world");
-            if (worldName == null) {
-                AdventureCompat.sendMessage(player, Component.text("Spawn location is not set.")
-                        .color(NamedTextColor.RED));
-                return true;
+            Location spawnLoc;
+            if (worldName != null && Bukkit.getWorld(worldName) != null) {
+                org.bukkit.World spawnWorld = Bukkit.getWorld(worldName);
+                spawnLoc = new Location(
+                        spawnWorld,
+                        locationsConfig.getDouble("spawn.x"),
+                        locationsConfig.getDouble("spawn.y"),
+                        locationsConfig.getDouble("spawn.z"),
+                        (float) locationsConfig.getDouble("spawn.yaw"),
+                        (float) locationsConfig.getDouble("spawn.pitch")
+                );
+            } else {
+                World fallbackWorld = Bukkit.getWorlds().isEmpty()
+                    ? player.getWorld() : Bukkit.getWorlds().get(0);
+                spawnLoc = fallbackWorld.getSpawnLocation().clone();
+                AdventureCompat.sendMessage(player, Component.text(
+                    "No custom spawn is set; using the world spawn.")
+                    .color(NamedTextColor.YELLOW));
             }
-
-            Location spawnLoc = new Location(
-                    Bukkit.getWorld(worldName),
-                    locationsConfig.getDouble("spawn.x"),
-                    locationsConfig.getDouble("spawn.y"),
-                    locationsConfig.getDouble("spawn.z"),
-                    (float) locationsConfig.getDouble("spawn.yaw"),
-                    (float) locationsConfig.getDouble("spawn.pitch")
-            );
 
             plugin.getTeleportManager().teleport(player, spawnLoc, "spawn");
             return true;

@@ -20,6 +20,26 @@ public class TPCommand implements CommandExecutor, TabCompleter {
         this.plugin = plugin;
     }
 
+
+    private static double parseCoordinate(String value, double base)
+            throws NumberFormatException {
+        if (value == null) {
+            throw new NumberFormatException("null");
+        }
+        String input = value.trim();
+        if (input.equals("~")) {
+            return base;
+        }
+        if (input.startsWith("~")) {
+            String offset = input.substring(1).trim();
+            if (offset.isEmpty()) {
+                return base;
+            }
+            return base + Double.parseDouble(offset);
+        }
+        return Double.parseDouble(input);
+    }
+
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
@@ -76,9 +96,9 @@ public class TPCommand implements CommandExecutor, TabCompleter {
 
         if (args.length == 3) {
             try {
-                double x = Double.parseDouble(args[0]);
-                double y = Double.parseDouble(args[1]);
-                double z = Double.parseDouble(args[2]);
+                double x = parseCoordinate(args[0], p.getLocation().getX());
+                double y = parseCoordinate(args[1], p.getLocation().getY());
+                double z = parseCoordinate(args[2], p.getLocation().getZ());
                 p.teleport(new Location(p.getWorld(), x, y, z, p.getLocation().getYaw(), p.getLocation().getPitch()));
                 if (plugin.getParticleManager().isEnabled("tp")) {
                     plugin.getParticleManager().playEffect(p, me.crazyg.everything.utils.particle.ParticleEffect.TP);
@@ -86,7 +106,7 @@ public class TPCommand implements CommandExecutor, TabCompleter {
                 AdventureCompat.sendMessage(p, Component.text("Teleported to coordinates.")
                         .color(NamedTextColor.GREEN));
             } catch (NumberFormatException e) {
-                AdventureCompat.sendMessage(p, Component.text("Invalid coordinates.")
+                AdventureCompat.sendMessage(p, Component.text("Invalid coordinates. Use numbers or ~ relative values.")
                         .color(NamedTextColor.RED));
             }
             return true;
@@ -100,9 +120,9 @@ public class TPCommand implements CommandExecutor, TabCompleter {
                 return true;
             }
             try {
-                double x = Double.parseDouble(args[1]);
-                double y = Double.parseDouble(args[2]);
-                double z = Double.parseDouble(args[3]);
+                double x = parseCoordinate(args[1], target.getLocation().getX());
+                double y = parseCoordinate(args[2], target.getLocation().getY());
+                double z = parseCoordinate(args[3], target.getLocation().getZ());
                 target.teleport(new Location(target.getWorld(), x, y, z, target.getLocation().getYaw(), target.getLocation().getPitch()));
                 if (plugin.getParticleManager().isEnabled("tp")) {
                     plugin.getParticleManager().playEffect(target, me.crazyg.everything.utils.particle.ParticleEffect.TP);
