@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.utils.FeatureManager;
 import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.Particle;
@@ -22,13 +23,20 @@ public class ParticleManager {
     }
 
     public void loadConfig() {
-        masterEnabled = plugin.getConfig().getBoolean("particles.enabled", true);
+        FeatureManager features = plugin.getFeatureManager();
+        masterEnabled = features != null
+            ? features.getBoolean("particles.master",
+                    plugin.getConfig().getBoolean("particles.enabled", true))
+            : plugin.getConfig().getBoolean("particles.enabled", true);
         disabledCommands.clear();
 
         ConfigurationSection commands = plugin.getConfig().getConfigurationSection("particles.commands");
         if (commands != null) {
             for (String key : commands.getKeys(false)) {
-                if (!commands.getBoolean(key, true)) {
+                if (!commands.getBoolean(key, true)
+                        || (features != null
+                            && features.getConfig().getConfigurationSection("particles.commands") != null
+                            && !features.getConfig().getConfigurationSection("particles.commands").getBoolean(key, true))) {
                     disabledCommands.add(key.toLowerCase(Locale.ROOT));
                 }
             }

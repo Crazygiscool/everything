@@ -24,6 +24,7 @@ repositories {
         content { includeGroup("net.luckperms") }
     }
     maven("https://jitpack.io")
+    maven("https://maven.enginehub.org/repo/")
 }
 
 dependencies {
@@ -34,6 +35,17 @@ dependencies {
     implementation("net.kyori:adventure-text-minimessage:4.17.0")
     implementation("net.kyori:adventure-text-serializer-legacy:4.17.0")
     implementation("org.xerial:sqlite-jdbc:3.46.0.0")
+    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.3.0")
+
+    testImplementation("org.junit.jupiter:junit-jupiter:5.10.2")
+    testImplementation("com.github.seeseemelk:MockBukkit-v1.20:3.83.0")
+    testImplementation("com.github.MilkBowl:VaultAPI:1.7.1")
+    testImplementation("net.luckperms:api:5.4")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
 
 tasks.withType<JavaCompile> {

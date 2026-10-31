@@ -22,6 +22,11 @@ public class onJoinleaveListener implements Listener {
     @EventHandler
     public void onLeave(PlayerQuitEvent event) {
         Player player = event.getPlayer();
+        if (!plugin.getFeatureManager().getBoolean("cosmetics.join-messages", true)) {
+            event.setQuitMessage("");
+            return;
+        }
+
         String format = plugin.getConfig().getString("messages.leave", "");
 
         if (format.isEmpty()) {
@@ -36,6 +41,11 @@ public class onJoinleaveListener implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         String format;
+
+        if (!plugin.getFeatureManager().getBoolean("cosmetics.join-messages", true)) {
+            event.setJoinMessage("");
+            return;
+        }
 
         if (player.hasPlayedBefore()) {
             format = plugin.getConfig().getString("messages.join", "");

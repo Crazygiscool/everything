@@ -137,6 +137,30 @@ public class SelectionManager implements Listener {
     // ---------------------------------------------------------
 
     public Selection getSelection(Player player) {
+        if (player == null) {
+            return null;
+        }
+
+        String backend = plugin.getConfig().getString("blocklog.selection-backend", "auto");
+        boolean preferWorldEdit = "worldedit".equalsIgnoreCase(backend)
+            || "auto".equalsIgnoreCase(backend);
+        if (preferWorldEdit) {
+            try {
+                Class<?> bridge = Class.forName(
+                    "me.crazyg.everything.blocklog.WorldEditSelectionBridge");
+                Object available = bridge.getMethod("isAvailable").invoke(null);
+                if (Boolean.TRUE.equals(available)) {
+                    Object selection = bridge.getMethod("fromWorldEdit",
+                            org.bukkit.entity.Player.class)
+                        .invoke(null, player);
+                    if (selection instanceof Selection worldEditSelection) {
+                        return worldEditSelection;
+                    }
+                }
+            } catch (Throwable e) {
+                plugin.getLogger().fine("WorldEdit selection unavailable; using built-in selection.");
+            }
+        }
         return computeSelection(player.getUniqueId());
     }
 

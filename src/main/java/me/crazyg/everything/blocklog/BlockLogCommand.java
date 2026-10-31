@@ -2,6 +2,7 @@ package me.crazyg.everything.blocklog;
 
 import me.crazyg.everything.Everything;
 import me.crazyg.everything.utils.AdventureCompat;
+import me.crazyg.everything.gui.blocklog.BlockLogLookupGUI;
 
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -228,6 +229,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                         .color(NamedTextColor.RED));
                 return true;
             }
+            database.flushQueuedWrites();
             Area area = resolveHereArea(player);
             List<BlockChange> changes = database.query(
                 area.world, area.cx, area.cy, area.cz,
@@ -238,6 +240,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
             if (sender instanceof Player p) {
                 lookupCache.store(p.getUniqueId(), changes, "near you");
+                new BlockLogLookupGUI(p, plugin, changes, "near you", page).open();
+                return true;
             }
             printLookupPaginated(sender, changes, "near you", page);
             return true;
@@ -245,6 +249,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
         QueryParams params = parseArgs(sender, cmdArgs);
         if (params == null) return true;
+        database.flushQueuedWrites();
         List<BlockChange> changes = database.query(
             params.world, params.cx, params.cy, params.cz,
             params.radius, params.uuid, params.since);
@@ -254,6 +259,8 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
 
         if (sender instanceof Player p) {
             lookupCache.store(p.getUniqueId(), changes, params.describe());
+            new BlockLogLookupGUI(p, plugin, changes, params.describe(), page).open();
+            return true;
         }
         printLookupPaginated(sender, changes, params.describe(), page);
         return true;
@@ -395,22 +402,16 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
             if (sender instanceof Player player) {
                 pendingRollbacks.put(player.getUniqueId(), changes);
             }
-            Component msg = Component.text("Found " + changes.size()
-                + " changes. Click to confirm rollback.")
-                .color(NamedTextColor.YELLOW);
-            if (sender instanceof Player player) {
-                Component clickable = msg.clickEvent(
-                    ClickEvent.runCommand("/rollback -y"));
-                clickable = clickable.hoverEvent(
-                    HoverEvent.showText(
-                        Component.text("Click to confirm rollback of "
-                            + changes.size() + " blocks")
-                            .color(NamedTextColor.GOLD)));
-                AdventureCompat.sendInteractiveMessage(player, clickable);
-            } else {
-                Everything.sendFancy(sender, msg);
+            String confirmation = "To confirm this rollback, run /rollback -y.";
+            Everything.sendFancy(sender,
+                Component.text("Found " + changes.size()
+                    + " changes. " + confirmation)
+                    .color(NamedTextColor.YELLOW)
+                    .append(Component.text(" Preview only; no blocks changed.")
+                        .color(NamedTextColor.GRAY)));
+            if (!(sender instanceof Player)) {
                 Everything.sendFancy(sender,
-                    Component.text("Run again with -y to confirm.")
+                    Component.text("Run /rollback -y from console to confirm.")
                         .color(NamedTextColor.GRAY));
             }
             return true;
@@ -430,7 +431,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
                                        String scope, int page) {
         if (changes.isEmpty()) {
             Everything.sendFancy(sender,
-                Component.text("No logged changes " + scope + ".")
+                Component.text("No matching logged changes found " + scope + ".")
                     .color(NamedTextColor.YELLOW));
             return;
         }
@@ -466,35 +467,17 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
         }
 
         if (totalPages > 1) {
-            Component nav = Component.text("");
+            Component nav = Component.text("[Page " + page + "/" + totalPages + "]")
+                    .color(NamedTextColor.GOLD);
             if (page > 1) {
-                nav = nav.append(
-                    Component.text("<< Prev ")
-                        .color(NamedTextColor.GREEN)
-                        .clickEvent(ClickEvent.runCommand(
-                            "/lookup page " + (page - 1)))
-                        .hoverEvent(HoverEvent.showText(
-                            Component.text("Page " + (page - 1))
-                                .color(NamedTextColor.GREEN))));
+                nav = nav.append(Component.text(" | Previous: /lookup page " + (page - 1))
+                        .color(NamedTextColor.GREEN));
             }
-            nav = nav.append(
-                Component.text("[Page " + page + "/" + totalPages + "]")
-                    .color(NamedTextColor.GOLD));
             if (page < totalPages) {
-                nav = nav.append(
-                    Component.text(" Next >>")
-                        .color(NamedTextColor.GREEN)
-                        .clickEvent(ClickEvent.runCommand(
-                            "/lookup page " + (page + 1)))
-                        .hoverEvent(HoverEvent.showText(
-                            Component.text("Page " + (page + 1))
-                                .color(NamedTextColor.GREEN))));
+                nav = nav.append(Component.text(" | Next: /lookup page " + (page + 1))
+                        .color(NamedTextColor.GREEN));
             }
-            if (sender instanceof Player player) {
-                AdventureCompat.sendInteractiveMessage(player, nav);
-            } else {
-                Everything.sendFancy(sender, nav);
-            }
+            Everything.sendFancy(sender, nav);
         }
     }
 
@@ -504,7 +487,7 @@ public class BlockLogCommand implements CommandExecutor, TabCompleter {
     private static class QueryParams {
         World world;
         int cx, cy, cz;
-        int radius = -1;
+        int radius = 10;
         UUID uuid = null;
         LocalDateTime since = null;
         String excludePlayer = null;

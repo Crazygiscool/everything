@@ -16,17 +16,17 @@ import me.crazyg.everything.utils.chat.ChatStorage;
 import me.crazyg.everything.utils.chat.EverythingChat;
 import me.crazyg.everything.utils.economy.EcoProvider;
 import me.crazyg.everything.utils.economy.EcoStorage;
+import me.crazyg.everything.utils.FeatureManager;
+import me.crazyg.everything.utils.PlayerSettingsManager;
 import me.crazyg.everything.utils.particle.ParticleManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.milkbowl.vault.chat.Chat;
-import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
-import org.bukkit.plugin.RegisteredServiceProvider;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class Everything extends JavaPlugin {
+public class Everything extends JavaPlugin {
 
     private static Everything instance;
 
@@ -47,11 +47,53 @@ public final class Everything extends JavaPlugin {
 
     // Utility for sending a fancy message with prefix
     public static void sendFancy(CommandSender sender, Component message) {
-        AdventureCompat.sendMessage(sender, PLUGIN_PREFIX.append(message));
+        Component fancy = PLUGIN_PREFIX.append(message);
+        if (!(sender instanceof Player player)) {
+            AdventureCompat.sendMessage(sender, fancy);
+            return;
+        }
+
+        if (AdventureCompat.supportsInteractive(player)
+                && AdventureCompat.tryNativeSend(player, fancy)) {
+            return;
+        }
+
+        Component fallback = fancy;
+        java.util.Set<String> commands = collectRunCommands(fancy);
+        if (!commands.isEmpty()) {
+            fallback = fancy.append(
+                net.kyori.adventure.text.Component.text(
+                    " (Run: " + String.join(", ", commands) + ")")
+                    .color(net.kyori.adventure.text.format.NamedTextColor.GRAY));
+        }
+        AdventureCompat.sendMessage(sender, fallback);
     }
 
-    private static Economy econ = null;
-    private static net.milkbowl.vault.chat.Chat chat = null;
+    private static java.util.Set<String> collectRunCommands(
+            net.kyori.adventure.text.Component component) {
+        java.util.LinkedHashSet<String> commands = new java.util.LinkedHashSet<>();
+        collectRunCommands(component, commands);
+        return commands;
+    }
+
+    private static void collectRunCommands(
+            net.kyori.adventure.text.Component component,
+            java.util.LinkedHashSet<String> commands) {
+        net.kyori.adventure.text.event.ClickEvent click =
+            component.clickEvent();
+        if (click != null
+                && click.action() == net.kyori.adventure.text.event.ClickEvent.Action.RUN_COMMAND
+                && click.value() != null && !click.value().trim().isEmpty()) {
+            commands.add(click.value().trim());
+        }
+
+        for (net.kyori.adventure.text.Component child : component.children()) {
+            collectRunCommands(child, commands);
+        }
+    }
+
+    private static EcoProvider econ = null;
+    private Object externalChatProvider;
     private boolean economyEnabled = false;
     private boolean vaultChatEnabled = false;
 
@@ -71,6 +113,8 @@ private BlockLogDatabase blockLogDatabase;
 
     private ParticleManager particleManager;
     private TeleportManager teleportManager;
+    private PlayerSettingsManager playerSettingsManager;
+    private FeatureManager featureManager;
 
     @Override
     public void onEnable() {
@@ -131,62 +175,65 @@ private BlockLogDatabase blockLogDatabase;
 
         AdventureCompat.sendMessage(Bukkit.getConsoleSender(), asciiArt);
 
-        // --- Economy & Vault Setup ---
+        // --- Economy setup (internal first) ---
+        // Everything keeps its own economy and appearance preferences even
+        // when Vault is not installed. Vault is used only as an optional
+        // compatibility service, and the plugin never requires its classes on
+        // the classpath.
+        this.ecoStorage = new EcoStorage(this);
+        this.econ = new EcoProvider(this.ecoStorage);
+        this.economyEnabled = true;
+
+        this.chatStorage = new ChatStorage(this);
+        this.vaultChatEnabled = false;
+        this.externalChatProvider = null;
+
         if (getServer().getPluginManager().getPlugin("Vault") != null) {
-            // Register EverythingEconomy
-            EcoStorage storage = new EcoStorage(this);
-            this.ecoStorage = storage;
-            EcoProvider ecoProvider = new EcoProvider(storage);
-
-            Bukkit.getServicesManager().register(
-                Economy.class,
-                ecoProvider,
-                this,
-                org.bukkit.plugin.ServicePriority.Highest
-            );
-
-            getLogger().info("EverythingEconomy registered as Vault provider.");
-
-            // Register EverythingChat
-            ChatStorage chatStore = new ChatStorage(this);
-            this.chatStorage = chatStore;
-            EverythingChat chatProvider = new EverythingChat(this, chatStore);
-            Bukkit.getServicesManager().register(
-                Chat.class,
-                chatProvider,
-                this,
-                org.bukkit.plugin.ServicePriority.Highest
-            );
-            getLogger().info("EverythingChat registered as Vault chat provider.");
-
-            // Hook economy
-            if (setupEconomy()) {
-                getLogger().info("Vault economy hooked successfully!");
-                economyEnabled = true;
-            } else {
-                getLogger().warning(
-                    "Vault found but no economy provider detected!\n(Not sure how this happened, there is a Econ lib for everything, unless you modified to code, or I messed something up real bad)"
-                );
+            try {
+                Class<?> economyType = Class.forName("net.milkbowl.vault.economy.Economy");
+                Class<?> bridgeType = Class.forName("me.crazyg.everything.utils.economy.VaultEconomyBridge");
+                Object bridge = bridgeType.getDeclaredConstructor(
+                    me.crazyg.everything.utils.economy.EcoProvider.class)
+                    .newInstance(this.econ);
+                java.lang.reflect.Method register = Bukkit.getServicesManager().getClass()
+                    .getMethod("register", Class.class, Object.class,
+                               org.bukkit.plugin.Plugin.class,
+                               org.bukkit.plugin.ServicePriority.class);
+                register.invoke(Bukkit.getServicesManager(), economyType, bridge,
+                    this, org.bukkit.plugin.ServicePriority.Highest);
+            } catch (Exception e) {
+                getLogger().warning("Vault economy compatibility could not be registered: " + e.getMessage());
             }
 
-            // Hook chat
-            if (setupChat()) {
-                getLogger().info("Vault chat hooked successfully!");
-                vaultChatEnabled = true;
-            } else {
-                getLogger().warning(
-                    "Vault found but no chat provider detected!(LuckPerms)"
-                );
+            try {
+                Class<?> chatType = Class.forName("net.milkbowl.vault.chat.Chat");
+                Class<?> providerType = Class.forName("me.crazyg.everything.utils.chat.EverythingChat");
+                Object provider = providerType.getDeclaredConstructor(Everything.class, ChatStorage.class)
+                    .newInstance(this, this.chatStorage);
+                java.lang.reflect.Method register = Bukkit.getServicesManager().getClass()
+                    .getMethod("register", Class.class, Object.class,
+                               org.bukkit.plugin.Plugin.class,
+                               org.bukkit.plugin.ServicePriority.class);
+                register.invoke(Bukkit.getServicesManager(), chatType, provider, this,
+                    org.bukkit.plugin.ServicePriority.Highest);
+                this.externalChatProvider = provider;
+                this.vaultChatEnabled = true;
+                if (setupChat()) {
+                    getLogger().info("Vault chat compatibility is available.");
+                }
+            } catch (Exception e) {
+                getLogger().warning("Vault chat compatibility could not be enabled: " + e.getMessage());
             }
+            getLogger().info("Vault compatibility is active; Everything continues to use its internal economy provider.");
         } else {
-            getLogger().warning(
-                "Vault not found! Economy and chat features will be disabled."
-            );
+            getLogger().info("Vault is not installed; Everything is using its internal economy and chat provider.");
         }
 
         // --- Particle & Teleport Managers ---
+        this.featureManager = new FeatureManager(this);
         this.particleManager = new ParticleManager(this);
         this.teleportManager = new TeleportManager(this, particleManager);
+        this.playerSettingsManager = new PlayerSettingsManager(this);
 
         // --- Command Manager ---
         CommandManager commandManager = new CommandManager();
@@ -273,7 +320,8 @@ private BlockLogDatabase blockLogDatabase;
             this.blockLogDatabase.init();
             if (BlockLogConfig.pruneOnStartup(getConfig())) {
                 int removed = this.blockLogDatabase.pruneOlderThan(
-                    BlockLogConfig.maxRetentionDays(getConfig()));
+                    BlockLogConfig.maxRetentionDays(getConfig()),
+                    null, null, null, true);
                 getLogger().info("Pruned " + removed
                     + " old block-log entries on startup.");
             }
@@ -294,6 +342,10 @@ private BlockLogDatabase blockLogDatabase;
                 inspectManager, this);
             getServer().getPluginManager().registerEvents(
                 selectionManager, this);
+            getServer().getPluginManager().registerEvents(
+                new SlashPrefixListener(this, selectionCommand), this);
+            getServer().getPluginManager().registerEvents(
+                new SlashPrefixTabCompleteListener(this, selectionCommand), this);
 
             getCommand("rollback").setExecutor(blockLogCommand);
             getCommand("lookup").setExecutor(blockLogCommand);
@@ -302,9 +354,9 @@ private BlockLogDatabase blockLogDatabase;
 
             // Selection commands (getCommand("//x") resolves via plugin.yml keys)
             for (String selCmd : new String[] {
-                    "//wand", "//pos1", "//pos2", "//hpos1", "//hpos2",
-                    "//expand", "//contract", "//outset", "//inset", "//shift",
-                    "//sel", "//desel", "//size", "//count"}) {
+                    "wand", "pos1", "pos2", "hpos1", "hpos2",
+                    "expand", "contract", "outset", "inset", "shift",
+                    "sel", "desel", "size", "count"}) {
                 org.bukkit.command.PluginCommand pc = getCommand(selCmd);
                 if (pc != null) {
                     pc.setExecutor(selectionCommand);
@@ -333,7 +385,10 @@ private BlockLogDatabase blockLogDatabase;
             .registerEvents(serverListListener, this);
 
         // Initialize updater
-        boolean autoUpdate = getConfig().getBoolean("auto-update", true);
+        boolean autoUpdate = getFeatureManager() != null
+            ? getFeatureManager().getBoolean("auto-update",
+                getConfig().getBoolean("auto-update", true))
+            : getConfig().getBoolean("auto-update", true);
 
         if (autoUpdate) {
             getServer()
@@ -412,42 +467,27 @@ private BlockLogDatabase blockLogDatabase;
     }
 
     private boolean setupEconomy() {
-        if (getServer().getPluginManager().getPlugin("Vault") == null) {
-            return false;
-        }
-        RegisteredServiceProvider<Economy> rsp = getServer()
-            .getServicesManager()
-            .getRegistration(Economy.class);
-        if (rsp == null) {
-            return false;
-        }
-        econ = rsp.getProvider();
-        return econ != null;
+        return getServer().getPluginManager().getPlugin("Vault") != null;
     }
 
     private boolean setupChat() {
-        RegisteredServiceProvider<net.milkbowl.vault.chat.Chat> rsp =
-            getServer()
-                .getServicesManager()
-                .getRegistration(net.milkbowl.vault.chat.Chat.class);
-        if (rsp == null) {
-            return false;
-        }
-        chat = rsp.getProvider();
-        return chat != null;
+        return externalChatProvider != null;
     }
 
     public boolean isEconomyEnabled() {
         return economyEnabled;
     }
 
-    // Add getter for economy
-    public static Economy getEconomy() {
-        return econ;
+    public static Object getChatProvider() {
+        return getInstance() == null ? null : getInstance().externalChatProvider;
     }
 
-    public static net.milkbowl.vault.chat.Chat getChat() {
-        return chat;
+    public Object getExternalChatProvider() {
+        return externalChatProvider;
+    }
+
+    public static EcoProvider getEconomy() {
+        return getInstance() == null ? null : getInstance().econ;
     }
 
     public boolean isVaultChatEnabled() {
@@ -500,5 +540,78 @@ private BlockLogDatabase blockLogDatabase;
 
     public TeleportManager getTeleportManager() {
         return teleportManager;
+    }
+
+    public PlayerSettingsManager getPlayerSettingsManager() {
+        return playerSettingsManager;
+    }
+
+    public FeatureManager getFeatureManager() {
+        return featureManager;
+    }
+
+    /**
+     * Persists and applies a config-driven feature toggle. Returns what the
+     * caller can expect after the method returns.
+     */
+    public FeatureManager.FeatureApplyOutcome applyFeatureToggle(String path,
+                                                                boolean value) {
+        if (path == null || path.trim().isEmpty()
+                || getFeatureManager() == null) {
+            return FeatureManager.FeatureApplyOutcome.INVALID_PATH;
+        }
+        String cleanPath = path.trim();
+        if (!isSupportedFeaturePath(cleanPath)) {
+            getLogger().warning("Rejected unknown feature toggle: " + cleanPath);
+            return FeatureManager.FeatureApplyOutcome.INVALID_PATH;
+        }
+
+        if (!getFeatureManager().setBooleanSilently(cleanPath, value)) {
+            return FeatureManager.FeatureApplyOutcome.NOT_APPLIED;
+        }
+
+        if (cleanPath.startsWith("particles.")) {
+            getParticleManager().loadConfig();
+            return FeatureManager.FeatureApplyOutcome.LIVE;
+        }
+
+        if (cleanPath.startsWith("blocklog.log-")
+                || cleanPath.equals("blocklog.log-natural")
+                || cleanPath.equals("blocklog.log-fluid")) {
+            if (getBlockLogListener() != null) {
+                getBlockLogListener().reloadConfig();
+            }
+            return FeatureManager.FeatureApplyOutcome.LIVE;
+        }
+
+        if (cleanPath.equals("blocklog.enabled")) {
+            if (getBlockLogListener() != null) {
+                getBlockLogListener().reloadConfig();
+            }
+            return FeatureManager.FeatureApplyOutcome.RESTART_REQUIRED;
+        }
+
+        if (cleanPath.equals("cosmetics.join-messages")) {
+            return FeatureManager.FeatureApplyOutcome.LIVE;
+        }
+
+        if (cleanPath.equals("auto-update")
+                || cleanPath.equals("automation.update")
+                || cleanPath.startsWith("automation.")) {
+            return FeatureManager.FeatureApplyOutcome.RESTART_REQUIRED;
+        }
+
+        return FeatureManager.FeatureApplyOutcome.LIVE;
+    }
+
+    private boolean isSupportedFeaturePath(String path) {
+        return path.equals("particles.master")
+            || path.startsWith("particles.commands.")
+            || path.equals("blocklog.enabled")
+            || path.startsWith("blocklog.log-")
+            || path.equals("cosmetics.join-messages")
+            || path.equals("auto-update")
+            || path.equals("automation.update")
+            || path.startsWith("automation.");
     }
 }

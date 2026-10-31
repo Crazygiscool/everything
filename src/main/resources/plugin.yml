@@ -5,14 +5,14 @@ api-version: '1.20'
 author: crazygiscool
 description: Does everything!
 website: crazyg.is-a.dev
-softdepend: [Vault, LuckPerms]
+softdepend: [Vault, LuckPerms, WorldEdit]
 
 commands:
   eco:
     description: Economy admin command
     usage: /eco <give|take|set|reset|player> <player> [amount]
     aliases: ["economy"]
-    permission: [everything.eco, everything.eco.others, everything.eco.set, everything.eco.set.others]
+    permission: everything.eco
     permission-message: You do not have permission to use the eco command.
   help:
     description: Custom help menu
@@ -137,8 +137,8 @@ commands:
     usage: /warp [set|delete|list] <name>
     permission: everything.warp
   tp:
-    description: Teleport to another player
-    usage: /tp <player>
+    description: Teleport to another player or coordinates.
+    usage: /tp <player> | /tp <x> <y> <z> | /tp <player> <x> <y> <z> (use ~ for relative
     permission: everything.teleport
     permission-message: You do not have permission to teleport.
   tpa:
@@ -186,74 +186,87 @@ commands:
       /lb prune <days>
     permission: everything.blocklog.prune
     permission-message: You do not have permission to manage block logs.
-  "//wand":
+  wand:
     description: Give or toggle the selection wand.
     usage: //wand
+    aliases: ["//wand"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//pos1":
+  pos1:
     description: Set the first selection point to your location or coordinates.
     usage: //pos1 [x y z]
+    aliases: ["//pos1"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//pos2":
+  pos2:
     description: Set the second selection point to your location or coordinates.
     usage: //pos2 [x y z]
+    aliases: ["//pos2"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//hpos1":
+  hpos1:
     description: Set the first selection point at the block you are looking at.
     usage: //hpos1
+    aliases: ["//hpos1"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//hpos2":
+  hpos2:
     description: Set the second selection point at the block you are looking at.
     usage: //hpos2
+    aliases: ["//hpos2"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//expand":
+  expand:
     description: Expand the selection in a direction.
     usage: //expand <amount> [direction|vert]
+    aliases: ["//expand"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//contract":
+  contract:
     description: Contract the selection in a direction.
     usage: //contract <amount> [direction]
+    aliases: ["//contract"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//outset":
+  outset:
     description: Expand the selection outward on all sides.
     usage: //outset <amount>
+    aliases: ["//outset"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//inset":
+  inset:
     description: Contract the selection inward on all sides.
     usage: //inset <amount>
+    aliases: ["//inset"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//shift":
+  shift:
     description: Move the selection without changing its size.
     usage: //shift <amount> [direction]
+    aliases: ["//shift"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//sel":
+  sel:
     description: Clear the current selection.
     usage: //sel
+    aliases: ["//sel", "//desel"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//desel":
+  desel:
     description: Clear the current selection.
     usage: //desel
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//size":
+  size:
     description: Show the dimensions of the current selection.
     usage: //size
+    aliases: ["//size"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
-  "//count":
+  count:
     description: Count blocks of a given type in the selection.
     usage: //count [block]
+    aliases: ["//count"]
     permission: everything.blocklog.select
     permission-message: You do not have permission to use selection tools.
 
@@ -303,6 +316,18 @@ permissions:
   everything.everything:
     description: Allows using the main command and all subcommands.
     default: op
+  everything.menu:
+    description: Allows opening the primary Everything menu.
+    default: true
+  everything.menu.admin:
+    description: Allows opening the admin tools page.
+    default: op
+  everything.settings.self:
+    description: Allows players to change their own Everything settings.
+    default: true
+  everything.settings.help:
+    description: Allows players to change their /help behavior.
+    default: true
   everything.reload:
     description: Allows reloading the plugin.
     default: op

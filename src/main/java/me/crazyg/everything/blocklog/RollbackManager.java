@@ -170,13 +170,9 @@ public class RollbackManager {
             if (newMat == null) return false;
             block.setType(newMat, false);
             applyBlockData(block, BlockChange.blockDataOf(newData));
-            if (change.hasNewTile()) {
-                BlockState newState = tileSerializer.deserialize(
-                    change.getNewTile());
-                if (newState != null) {
-                    BlockState relocated = newState.copy(loc);
-                    relocated.update(true, true);
-                }
+            String newTile = change.getNewTile();
+            if (newTile != null && !newTile.isEmpty()) {
+                tileSerializer.restore(loc, newTile);
             }
             return true;
         } catch (Exception e) {
@@ -231,13 +227,9 @@ public class RollbackManager {
 
             // Restore tile-entity data (sign text, skull owner, chest
             // inventory, etc.) when available.
-            if (change.hasOldTile()) {
-                BlockState oldState = tileSerializer.deserialize(
-                    change.getOldTile());
-                if (oldState != null) {
-                    BlockState relocated = oldState.copy(loc);
-                    relocated.update(true, true);
-                }
+            String oldTile = change.getOldTile();
+            if (oldTile != null && !oldTile.isEmpty()) {
+                tileSerializer.restore(loc, oldTile);
             }
             return true;
         } catch (Exception e) {

@@ -32,24 +32,41 @@ public final class BlockLogConfig {
     public static final String MAX_ROLLBACK_BLOCKS_PER_WORLD =
         "blocklog.max-rollback-blocks-per-world";
 
+
+    private static Everything plugin() {
+        return Everything.getInstance();
+    }
+
+    private static boolean featureOrConfig(String featurePath,
+                                            FileConfiguration config,
+                                            String configPath,
+                                            boolean fallback) {
+        boolean configValue = config.getBoolean(configPath, fallback);
+        Everything instance = plugin();
+        if (instance == null || instance.getFeatureManager() == null) {
+            return configValue;
+        }
+        return instance.getFeatureManager()
+            .getBoolean(featurePath, configValue);
+    }
     public static boolean isEnabled(FileConfiguration config) {
-        return config.getBoolean(ENABLED, true);
+        return featureOrConfig(ENABLED, config, ENABLED, true);
     }
 
     public static boolean logNatural(FileConfiguration config) {
-        return config.getBoolean(LOG_NATURAL, true);
+        return featureOrConfig(LOG_NATURAL, config, LOG_NATURAL, true);
     }
 
     public static boolean logFluid(FileConfiguration config) {
-        return config.getBoolean(LOG_FLUID, false);
+        return featureOrConfig(LOG_FLUID, config, LOG_FLUID, false);
     }
 
     public static boolean async(FileConfiguration config) {
-        return config.getBoolean(ASYNC, true);
+        return featureOrConfig(ASYNC, config, ASYNC, true);
     }
 
     public static boolean pruneOnStartup(FileConfiguration config) {
-        return config.getBoolean(PRUNE_ON_STARTUP, false);
+        return featureOrConfig(PRUNE_ON_STARTUP, config, PRUNE_ON_STARTUP, false);
     }
 
     public static int maxRetentionDays(FileConfiguration config) {
@@ -74,7 +91,7 @@ public final class BlockLogConfig {
 
     public static boolean getBoolean(FileConfiguration config, String key,
                                      boolean def) {
-        return config.getBoolean(key, def);
+        return featureOrConfig(key, config, key, def);
     }
 
     public static boolean isWorldLogged(FileConfiguration config, String world) {
@@ -86,23 +103,23 @@ public final class BlockLogConfig {
     }
 
     public static boolean logInteract(FileConfiguration config) {
-        return config.getBoolean(LOG_INTERACT, true);
+        return featureOrConfig(LOG_INTERACT, config, LOG_INTERACT, true);
     }
 
     public static boolean logContainer(FileConfiguration config) {
-        return config.getBoolean(LOG_CONTAINER, true);
+        return featureOrConfig(LOG_CONTAINER, config, LOG_CONTAINER, true);
     }
 
     public static boolean logCraft(FileConfiguration config) {
-        return config.getBoolean(LOG_CRAFT, true);
+        return featureOrConfig(LOG_CRAFT, config, LOG_CRAFT, true);
     }
 
     public static boolean logTrade(FileConfiguration config) {
-        return config.getBoolean(LOG_TRADE, true);
+        return featureOrConfig(LOG_TRADE, config, LOG_TRADE, true);
     }
 
     public static boolean logEntityDeath(FileConfiguration config) {
-        return config.getBoolean(LOG_ENTITY_DEATH, true);
+        return featureOrConfig(LOG_ENTITY_DEATH, config, LOG_ENTITY_DEATH, true);
     }
 
     public static int maxRollbackBlocksPerWorld(FileConfiguration config) {

@@ -19,6 +19,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Set;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -355,6 +356,10 @@ public class BlockLogDatabase {
     }
 
     /** Drains all queues and writes entries in transactions. */
+    public void flushQueuedWrites() {
+        flush();
+    }
+
     private void flush() {
         flushBlockLog();
         flushInventoryLog();
@@ -836,6 +841,33 @@ public class BlockLogDatabase {
 
     public int pruneOlderThan(int days, String world, UUID player,
                                String blockType) {
+        return pruneOlderThan(days, world, player, blockType, null);
+    }
+
+    /**
+     * Prunes rows older than {@code days}. When {@code retainedActions} is
+     * provided, only rows whose action is in that set are deleted; otherwise
+     * the action filter is omitted entirely.
+     *
+     * Passing {@code lowValueOnly=true} is equivalent to passing the low-value
+     * natural-action set.
+     */
+    public int pruneOlderThan(int days, String world, UUID player,
+                               String blockType, boolean lowValueOnly) {
+        return pruneOlderThan(days, world, player, blockType,
+            lowValueOnly ? LOW_VALUE_NATURAL_ACTIONS : null);
+    }
+
+    private static final Set<BlockChange.Action> LOW_VALUE_NATURAL_ACTIONS =
+        Set.of(
+            BlockChange.Action.LEAF_DECAY,
+            BlockChange.Action.FLUID,
+            BlockChange.Action.FADE,
+            BlockChange.Action.GROWTH
+        );
+
+    public int pruneOlderThan(int days, String world, UUID player,
+                               String blockType, Set<BlockChange.Action> actionFilter) {
         if (days <= 0) return 0;
         LocalDateTime cutoff = LocalDateTime.now().minusDays(days);
         StringBuilder sql = new StringBuilder(
@@ -853,6 +885,15 @@ public class BlockLogDatabase {
         if (blockType != null && !blockType.isEmpty()) {
             sql.append(" AND block_type = ?");
             params.add(blockType.toUpperCase(java.util.Locale.ROOT));
+        }
+        if (actionFilter != null && !actionFilter.isEmpty()) {
+            sql.append(" AND action IN (");
+            for (int i = 0; i < actionFilter.size(); i++) {
+                if (i > 0) sql.append(", ");
+                sql.append("?");
+            }
+            sql.append(")");
+            actionFilter.forEach(action -> params.add(action.name()));
         }
         synchronized (lock) {
             if (connection == null) return 0;
