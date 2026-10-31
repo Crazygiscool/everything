@@ -5,7 +5,6 @@ import me.crazyg.everything.utils.AdventureCompat;
 import me.crazyg.everything.utils.Permissions;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
-import net.milkbowl.vault.economy.Economy;
 import org.bukkit.Bukkit;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.command.Command;
@@ -19,7 +18,7 @@ import java.util.List;
 public class EcoCommand implements CommandExecutor, TabCompleter {
 
     private final Everything plugin;
-    private final Economy econ;
+    private final me.crazyg.everything.utils.economy.EcoProvider econ;
 
     public EcoCommand(Everything plugin) {
         this.plugin = plugin;
