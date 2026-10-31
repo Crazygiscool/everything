@@ -91,14 +91,12 @@ public class Updater implements Listener {
                                         .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD))
                                 .append(Component.text(". Download: ").color(NamedTextColor.YELLOW))
                                 .append(Component.text(downloadUrl != null ? downloadUrl : "(no link)")
-                                        .color(NamedTextColor.BLUE)
-                                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(
-                                                downloadUrl != null ? downloadUrl : "")))
+                                        .color(NamedTextColor.BLUE))
                         );
 
                         if (!notifiedUpdate) {
                             notifiedUpdate = true;
-                            Bukkit.getOnlinePlayers().forEach(p -> AdventureCompat.sendMessage(p, updateMsg));
+                            Bukkit.getOnlinePlayers().forEach(p -> AdventureCompat.sendInteractiveMessage(p, updateMsg));
                             AdventureCompat.sendMessage(Bukkit.getConsoleSender(), updateMsg);
                         }
 
@@ -197,7 +195,7 @@ public class Updater implements Listener {
                             .append(Component.text(newJar.getName()).color(NamedTextColor.AQUA))
                             .append(Component.text(". Restart your server to apply it.").color(NamedTextColor.YELLOW))
                     );
-                    org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> AdventureCompat.sendMessage(p, doneMsg));
+                    org.bukkit.Bukkit.getOnlinePlayers().forEach(p -> AdventureCompat.sendInteractiveMessage(p, doneMsg));
                     AdventureCompat.sendMessage(org.bukkit.Bukkit.getConsoleSender(), doneMsg);
                 }
 
@@ -211,7 +209,7 @@ public class Updater implements Listener {
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
         if (updateAvailable && player.hasPermission("everything.update")) {
-            AdventureCompat.sendMessage(player, Component.text("")
+            AdventureCompat.sendInteractiveMessage(player, Component.text("")
                 .append(Component.text("A new version of Everything is available! ").color(NamedTextColor.GREEN))
                 .append(Component.text("Current version: ").color(NamedTextColor.YELLOW))
                 .append(Component.text(currentVersion).color(NamedTextColor.WHITE))

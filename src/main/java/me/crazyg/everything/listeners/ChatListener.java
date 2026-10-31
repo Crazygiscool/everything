@@ -17,13 +17,13 @@ public class ChatListener implements Listener {
     
     private final Everything plugin;
     private final boolean vaultEnabled;
-    private final net.milkbowl.vault.chat.Chat vaultChat;
+    private final Object vaultChat;
     private final MiniMessage miniMessage;
 
     public ChatListener(Everything plugin) {
         this.plugin = plugin;
         this.vaultEnabled = plugin.isVaultChatEnabled();
-        this.vaultChat = Everything.getChat();
+        this.vaultChat = plugin.getExternalChatProvider();
         this.miniMessage = MiniMessage.miniMessage();
     }
 
@@ -40,12 +40,22 @@ public class ChatListener implements Listener {
         String suffix = "";
         if (vaultEnabled && vaultChat != null) {
             try {
-                prefix = vaultChat.getPlayerPrefix(player);
-                suffix = vaultChat.getPlayerSuffix(player);
-
+                Object world = player.getWorld().getName();
+                java.lang.reflect.Method prefixMethod = vaultChat.getClass().getMethod(
+                    "getPlayerPrefix", String.class, String.class);
+                Object prefixResult = prefixMethod.invoke(
+                    vaultChat, world, player.getName());
+                Object suffixResult = vaultChat.getClass()
+                    .getMethod("getPlayerSuffix", String.class, String.class)
+                    .invoke(vaultChat, world, player.getName());
+                prefix = prefixResult == null ? "" : prefixResult.toString();
+                suffix = suffixResult == null ? "" : suffixResult.toString();
                 prefix = prefix != null ? prefix : "";
                 suffix = suffix != null ? suffix : "";
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                prefix = "";
+                suffix = "";
+            }
         }
 
         Component prefixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);

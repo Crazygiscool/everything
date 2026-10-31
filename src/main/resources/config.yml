@@ -66,6 +66,11 @@ blocklog:
     list: []
   # Material used for the selection wand tool (//wand).
   selection-wand-material: "WOODEN_AXE"
+  # Which selection backend should be preferred for logs, lookup, and rollback.
+  # auto: use WorldEdit when available, otherwise use the built-in selection.
+  # worldedit: use WorldEdit when available, and otherwise require a selection.
+  # built-in: always use /wand, //pos1, //pos2 selections.
+  selection-backend: "auto"
   # Max number of blocks a single selection may contain (safety cap).
   selection-max-size: 5000
   # Max number of history entries shown per block in inspect mode.
@@ -185,3 +190,337 @@ teleport:
     safety-failed: "<red>Destination is not safe (inside block or hazard). Try again."
     tpa-expired: "<red>Your TPA request to <gold>%player%<red> has expired."
     tpa-expired-target: "<red>TPA request from <gold>%player%<red> has expired."
+
+# ===========================
+# GUI / help routing
+# ===========================
+gui:
+  # menu | chat | command-list
+  default-open: "menu"
+  # lock | hide
+  unauthorized-mode: "lock"
+  chat-shortcuts-enabled: true
+  help:
+    # everything | command | default
+    mode: "everything"
+    # Used when help.mode = command
+    target-command: ""
+
+  # Defaults for player-controlled settings
+  player-settings:
+    defaults:
+      particles: true
+      join-messages: true
+      teleport-warmup-messages: true
+
+# ===========================
+# Config-driven menus
+# ===========================
+menus:
+  primary:
+    title: "<aqua><bold>Everything</bold></aqua>"
+    size: 27
+    filler: "BLACK_STAINED_GLASS_PANE"
+    unauthorized-mode: "lock"
+    items:
+      info:
+        slot: 4
+        icon: "NETHER_STAR"
+        name: "<aqua>Everything"
+        lore:
+          - "Version: <green>%version%"
+          - "See all commands and features."
+        action: "close"
+      commands:
+        slot: 10
+        icon: "BOOK"
+        name: "<yellow>Command List"
+        lore: "<gray>View commands and usage."
+        action: "perform_command"
+        target: "everything help"
+        chat: true
+      settings:
+        slot: 12
+        icon: "COMMAND_BLOCK"
+        name: "<green>Player Settings"
+        lore: "<gray>Personal cosmetic and chat options."
+        permission: "everything.settings.self"
+        action: "open_menu"
+        target: "player-settings"
+        chat: true
+      admin:
+        slot: 14
+        icon: "REDSTONE"
+        name: "<red>Admin Controls"
+        permission: "everything.menu.admin"
+        lore: "<gray>Feature toggles and runtime controls."
+        action: "open_menu"
+        target: "admin"
+        chat: true
+      help:
+        slot: 16
+        icon: "PAPER"
+        name: "<aqua>Help Pages"
+        lore: "<gray>Open the add-on help menu."
+        action: "open_help"
+        chat: true
+      close:
+        slot: 26
+        icon: "BARRIER"
+        name: "<red>Close"
+        action: "close"
+
+# ===========================
+# Config-driven admin controls
+# ===========================
+  admin:
+    title: "<red><bold>Admin Feature Controls</bold></red>"
+    size: 45
+    filler: "BLACK_STAINED_GLASS_PANE"
+    unauthorized-mode: "hide"
+    items:
+      particles-master:
+        slot: 10
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particles: Master"
+        lore: "<gray>Feature toggle"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.master"
+        chat: true
+      particles-tp:
+        slot: 11
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particles: Teleport"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.commands.tp"
+        chat: true
+      particles-home:
+        slot: 12
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particles: Home"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.commands.home"
+      particles-rtp:
+        slot: 13
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particles: RTP"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.commands.rtp"
+      blocklog-master:
+        slot: 19
+        icon: "CHEST"
+        name: "<aqua>Block Logging: Master"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.enabled"
+        chat: true
+      blocklog-natural:
+        slot: 20
+        icon: "CHEST"
+        name: "<aqua>Block Logging: Natural"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.log-natural"
+      blocklog-container:
+        slot: 21
+        icon: "CHEST"
+        name: "<aqua>Block Logging: Containers"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.log-container"
+      blocklog-interact:
+        slot: 22
+        icon: "CHEST"
+        name: "<aqua>Block Logging: Interactions"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.log-interact"
+      cosmetics-join:
+        slot: 28
+        icon: "INK_SAC"
+        name: "<green>Join/Leave Messages"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "cosmetics.join-messages"
+        chat: true
+      automation-auto-update:
+        slot: 29
+        icon: "BUCKET"
+        name: "<gold>Auto Update"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "auto-update"
+      reload:
+        slot: 37
+        icon: "COMMAND_BLOCK"
+        name: "<yellow>Reload Config/Features"
+        permission: "everything.reload"
+        action: "perform_command"
+        target: "everything reload"
+        chat: true
+      close:
+        slot: 44
+        icon: "BARRIER"
+        name: "<red>Close"
+        action: "close"
+
+
+# ===========================
+# Config-driven player settings
+# ===========================
+
+  player-settings:
+    title: "<green><bold>Player Settings</bold></green>"
+    size: 27
+    filler: "BLACK_STAINED_GLASS_PANE"
+    unauthorized-mode: "hide"
+    items:
+      particles:
+        slot: 10
+        icon: "REDSTONE"
+        name: "<yellow>Particle Effects"
+        lore:
+          - "<gray>Personal particle preference."
+          - "<gray>Status: <aqua>%setting:particles%"
+        permission: "everything.settings.self"
+        action: "toggle_setting"
+        target: "particles"
+        chat: true
+      join-messages:
+        slot: 11
+        icon: "ENCHANTED_BOOK"
+        name: "<yellow>Join/Leave Messages"
+        lore:
+          - "<gray>Chat display preference."
+          - "<gray>Status: <aqua>%setting:join-messages%"
+        permission: "everything.settings.self"
+        action: "toggle_setting"
+        target: "join-messages"
+        chat: true
+      teleport-warmup:
+        slot: 12
+        icon: "CLOCK"
+        name: "<yellow>Teleport Warmup"
+        lore:
+          - "<gray>Messaging preference."
+          - "<gray>Status: <aqua>%setting:teleport-warmup-messages%"
+        permission: "everything.settings.self"
+        action: "toggle_setting"
+        target: "teleport-warmup-messages"
+        chat: true
+      help-behavior:
+        slot: 14
+        icon: "ENDER_EYE"
+        name: "<yellow>Help Behavior"
+        lore:
+          - "<gray>Current mode: <aqua>%setting:help-mode%"
+        permission: "everything.settings.help"
+        action: "cycle_help_mode"
+      help-test:
+        slot: 15
+        icon: "PAPER"
+        name: "<aqua>Test Help"
+        lore: "<gray>Run your selected help behavior."
+        permission: "everything.settings.help"
+        action: "perform_command"
+        target: "help"
+      close:
+        slot: 26
+        icon: "BARRIER"
+        name: "<red>Close"
+        action: "close"
+
+  # ===========================
+  # Config-driven admin permissions
+  # ===========================
+  admin-features:
+    title: "<red><bold>Admin Feature Controls</bold></red>"
+    size: 45
+    filler: "BLACK_STAINED_GLASS_PANE"
+    unauthorized-mode: "hide"
+    items:
+      particle-master:
+        slot: 10
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particle Master"
+        lore: "<gray>Status: %feature:particles.master%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.master"
+        chat: true
+      particle-tp:
+        slot: 11
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particle: Teleport"
+        lore: "<gray>Status: <aqua>%feature:particles.commands.tp%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.commands.tp"
+      particle-rtp:
+        slot: 12
+        icon: "REDSTONE_LAMP"
+        name: "<yellow>Particle: RTP"
+        lore: "<gray>Status: <aqua>%feature:particles.commands.rtp%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "particles.commands.rtp"
+      blocklog-master:
+        slot: 19
+        icon: "CHEST"
+        name: "<aqua>Block Logging"
+        lore: "<gray>Status: <aqua>%feature:blocklog.enabled%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.enabled"
+        chat: true
+      blocklog-natural:
+        slot: 20
+        icon: "CHEST"
+        name: "<aqua>Natural Block Changes"
+        lore: "<gray>Status: <aqua>%feature:blocklog.log-natural%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.log-natural"
+      blocklog-container:
+        slot: 21
+        icon: "CHEST"
+        name: "<aqua>Container Changes"
+        lore: "<gray>Status: <aqua>%feature:blocklog.log-container%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "blocklog.log-container"
+      cosmetics-join:
+        slot: 28
+        icon: "INK_SAC"
+        name: "<green>Join/Leave Messages"
+        lore: "<gray>Status: <aqua>%feature:cosmetics.join-messages%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "cosmetics.join-messages"
+        chat: true
+      automation-update:
+        slot: 29
+        icon: "BUCKET"
+        name: "<gold>Auto Update"
+        lore: "<gray>Status: <aqua>%feature:auto-update%"
+        permission: "everything.menu.admin"
+        action: "toggle_feature"
+        target: "auto-update"
+      reload:
+        slot: 37
+        icon: "COMMAND_BLOCK"
+        name: "<yellow>Reload Config and Features"
+        lore: "<gray>Reads the latest YAML values."
+        permission: "everything.menu.admin"
+        action: "perform_command"
+        target: "everything reload"
+        chat: true
+      close:
+        slot: 44
+        icon: "BARRIER"
+        name: "<red>Close"
+        action: "close"

@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.gui.menu.DynamicMenuGUI;
 import me.crazyg.everything.gui.help.*;
 import me.crazyg.everything.utils.AdventureCompat;
 import net.kyori.adventure.text.Component;
@@ -34,7 +35,33 @@ public class HelpCommand implements CommandExecutor {
             return true;
         }
 
-        new HelpMainGUI(p, manager).open();
-        return true;
+        Everything plugin = manager.getPlugin();
+        String mode;
+        if (plugin.getPlayerSettingsManager() != null) {
+            mode = plugin.getPlayerSettingsManager().getHelpMode(p.getUniqueId());
+        } else {
+            mode = plugin.getConfig().getString("gui.help.mode", "everything");
+        }
+        if (mode == null) {
+            mode = "everything";
+        }
+
+        switch (mode.toLowerCase()) {
+            case "help":
+                new HelpMainGUI(p, manager).open();
+                return true;
+            case "disabled":
+                AdventureCompat.sendMessage(p,
+                    Component.text("Help is disabled by your settings.")
+                        .color(NamedTextColor.GRAY));
+                return true;
+            case "everything":
+            default:
+                new DynamicMenuGUI(p,
+                    Everything.getInstance(),
+                    Everything.getInstance().getConfig()
+                        .getString("gui.primary-menu", "primary")).open();
+                return true;
+        }
     }
 }

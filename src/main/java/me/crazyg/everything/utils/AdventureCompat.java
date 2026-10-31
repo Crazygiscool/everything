@@ -30,11 +30,46 @@ public final class AdventureCompat {
      * Falls back to legacy serialization on Spigot.
      */
     public static void sendInteractiveMessage(Player player, Component component) {
-        if (tryNativeSend(player, component)) return;
-        player.sendMessage(SERIALIZER.serialize(component));
+        sendInteractiveMessage(player, component, null);
     }
 
-    private static boolean tryNativeSend(Player player, Component component) {
+    /**
+     * Sends an interactive component to a player. On Paper, click and hover
+     * events are preserved. On platform builds that serialize messages to
+     * legacy text, {@code fallback} is appended as a plain command hint.
+     */
+    public static void sendInteractiveMessage(Player player,
+                                            Component component,
+                                            String fallback) {
+        if (supportsInteractive(player) && tryNativeSend(player, component)) {
+            return;
+        }
+        String legacy = SERIALIZER.serialize(component);
+        if (fallback != null && !fallback.trim().isEmpty()) {
+            legacy = legacy + " " + fallback.trim();
+        }
+        player.sendMessage(legacy);
+    }
+
+    /**
+     * Whether the server's Adventure implementation can carry interactive
+     * components reliably. Falls back to legacy messages otherwise.
+     */
+    public static boolean supportsInteractive(Player player) {
+        if (!nativeAdventureChecked) {
+            try {
+                sendMessageMethod = player.getClass().getMethod(
+                    "sendMessage", Component.class);
+                supportsNativeAdventure = true;
+            } catch (NoSuchMethodException e) {
+                supportsNativeAdventure = false;
+            }
+            nativeAdventureChecked = true;
+        }
+        return supportsNativeAdventure && sendMessageMethod != null;
+    }
+
+    public static boolean tryNativeSend(Player player, Component component) {
         if (!nativeAdventureChecked) {
             try {
                 sendMessageMethod = player.getClass().getMethod(

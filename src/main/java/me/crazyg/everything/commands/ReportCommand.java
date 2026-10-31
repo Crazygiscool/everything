@@ -113,22 +113,12 @@ public class ReportCommand extends me.crazyg.everything.utils.storage.YamlReposi
                     .append(Component.text(String.valueOf(reportData.get("reason"))).color(NamedTextColor.WHITE));
 
             if (sender instanceof Player p && p.hasPermission(VIEW_REPORTS_PERMISSION)) {
-                Component acceptBtn = Component.text(" [Accept]")
-                        .color(NamedTextColor.GREEN)
-                        .decorate(TextDecoration.BOLD)
-                        .clickEvent(ClickEvent.runCommand("/report accept " + index))
-                        .hoverEvent(HoverEvent.showText(Component.text("Accept this report")));
-
-                Component denyBtn = Component.text(" [Deny]")
-                        .color(NamedTextColor.RED)
-                        .decorate(TextDecoration.BOLD)
-                        .clickEvent(ClickEvent.runCommand("/report deny " + index))
-                        .hoverEvent(HoverEvent.showText(Component.text("Deny this report")));
-
-                reportLine = Component.text("").append(reportLine).append(acceptBtn).append(denyBtn);
+                reportLine = Component.text("").append(reportLine)
+                    .append(Component.text(" Accept: /report accept " + index).color(NamedTextColor.GREEN))
+                    .append(Component.text(" Deny: /report deny " + index).color(NamedTextColor.RED));
             }
 
-            AdventureCompat.sendMessage(sender, reportLine);
+            Everything.sendFancy(sender, reportLine);
             index++;
         }
     }

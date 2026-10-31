@@ -1,0 +1,4 @@
+# Player-specific settings for the hybrid Everything GUI.
+# Values are written by the plugin; defaults live in config.yml.
+
+settings: {}

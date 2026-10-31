@@ -1,6 +1,7 @@
 package me.crazyg.everything.commands;
 import java.util.*;
 import me.crazyg.everything.Everything;
+import me.crazyg.everything.gui.menu.DynamicMenuGUI;
 import me.crazyg.everything.utils.Updater;
 import me.crazyg.everything.utils.particle.ParticleEffect;
 import net.kyori.adventure.text.Component;
@@ -47,40 +48,66 @@ public class EverythingCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (args.length == 0) {
-            // Blue theme, not bold, prefix for every message
-            Everything.sendFancy(sender, Component.text("")
-                .append(Component.text("❓ Everything Help & Commands\n").color(NamedTextColor.BLUE))
-                .append(Component.text("Click a command for usage. Hover for description.\n").color(NamedTextColor.GRAY)));
-
-            List<String> commandNames = getPluginCommands();
-            if (!commandNames.isEmpty()) {
-                for (String cmd : commandNames) {
-                    org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
-                    String usage = pluginCmd != null ? pluginCmd.getUsage() : "";
-                    String descText = pluginCmd != null ? pluginCmd.getDescription() : "";
-                    StringBuilder usageLine = new StringBuilder();
-                    usageLine.append("/").append(cmd);
-                    if (usage != null && !usage.isEmpty() && !usage.equalsIgnoreCase("/" + cmd)) {
-                        String u = usage.split("\n")[0].trim();
-                        if (!u.startsWith("/")) {
-                            usageLine.append(" ").append(u);
-                        }
-                    }
-                    Component cmdComponent = Component.text("")
-                        .append(Component.text("• ").color(NamedTextColor.BLUE))
-                        .append(Component.text(usageLine.toString())
-                            .color(NamedTextColor.AQUA)
-                            .clickEvent(net.kyori.adventure.text.event.ClickEvent.suggestCommand("/" + cmd))
-                            .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
-                                Component.text(descText == null || descText.isEmpty() ? "No description." : descText)
-                                    .color(NamedTextColor.YELLOW)
-                            ))
-                        );
-                    Everything.sendFancy(sender, cmdComponent);
-                }
-            } else {
-                Everything.sendFancy(sender, Component.text("No commands found for this plugin, you may need to update.").color(NamedTextColor.RED));
+            String defaultOpen = plugin.getConfig().getString("gui.default-open", "menu");
+            if ("menu".equalsIgnoreCase(defaultOpen) && sender instanceof org.bukkit.entity.Player player && player.hasPermission("everything.menu")) {
+                new DynamicMenuGUI(player, plugin, plugin.getConfig().getString("gui.primary-menu", "primary")).open();
+                return true;
             }
+            if ("chat".equalsIgnoreCase(defaultOpen)) {
+                me.crazyg.everything.utils.HybridChatMenu.send(plugin, sender);
+                return true;
+            }
+            showCommandList(sender);
+            return true;
+        }
+
+        if (args.length == 1 && (args[0].equalsIgnoreCase("menu") || args[0].equalsIgnoreCase("dashboard"))) {
+            if (!(sender instanceof org.bukkit.entity.Player player) || !player.hasPermission("everything.menu")) {
+                Everything.sendFancy(sender, Component.text("You do not have permission to open the menu.").color(NamedTextColor.RED));
+                return true;
+            }
+            String menuId = "primary";
+            if (args.length >= 2) {
+                menuId = args[1].trim();
+            }
+            new DynamicMenuGUI(player, plugin, menuId).open();
+            return true;
+        }
+
+        if (args.length >= 1 && args[0].equalsIgnoreCase("chat")) {
+            me.crazyg.everything.utils.HybridChatMenu.send(plugin, sender);
+            return true;
+        }
+
+        if (args.length >= 1 && args[0].equalsIgnoreCase("settings")) {
+            if (!(sender instanceof org.bukkit.entity.Player player)) {
+                Everything.sendFancy(sender, Component.text("This command can only be used by players.").color(NamedTextColor.RED));
+                return true;
+            }
+            if (!player.hasPermission("everything.settings.self")) {
+                Everything.sendFancy(sender, Component.text("You do not have permission to change settings.").color(NamedTextColor.RED));
+                return true;
+            }
+            new me.crazyg.everything.gui.menu.DynamicMenuGUI(player, plugin,
+                plugin.getConfig().getString("gui.player-settings-menu", "player-settings")).open();
+            return true;
+        }
+
+        if (args.length >= 1 && args[0].equalsIgnoreCase("admin")) {
+            if (!(sender instanceof org.bukkit.entity.Player player)) {
+                Everything.sendFancy(sender, Component.text("This command can only be used by players.").color(NamedTextColor.RED));
+                return true;
+            }
+            if (!player.hasPermission("everything.menu.admin")) {
+                Everything.sendFancy(sender, Component.text("You do not have permission for admin tools.").color(NamedTextColor.RED));
+                return true;
+            }
+            new me.crazyg.everything.gui.menu.DynamicMenuGUI(player, plugin, "admin").open();
+            return true;
+        }
+
+        if (args.length >= 1 && (args[0].equalsIgnoreCase("help") || args[0].equalsIgnoreCase("commands") || args[0].equalsIgnoreCase("list"))) {
+            showCommandList(sender);
             return true;
         }
 
@@ -92,13 +119,22 @@ public class EverythingCommand implements CommandExecutor {
                     return true;
                 }
                 plugin.reloadConfig();
+                plugin.getFeatureManager().reload();
                 plugin.getSpawnCommand().reload();
                 plugin.getServerListListener().reload();
+                plugin.getParticleManager().loadConfig();
                 if (plugin.getBlockLogListener() != null) {
                     plugin.getBlockLogListener().reloadConfig();
                 }
+                if (plugin.getPlayerSettingsManager() != null) {
+                    plugin.getPlayerSettingsManager().getStorage().reloadSettings();
+                }
                 if (sender instanceof org.bukkit.entity.Player player && plugin.getParticleManager().isEnabled("everything")) {
-                    plugin.getParticleManager().playEffect(player, ParticleEffect.EVERYTHING_RELOAD);
+                    try {
+                        plugin.getParticleManager().playEffect(player, ParticleEffect.EVERYTHING_RELOAD);
+                    } catch (RuntimeException ignored) {
+                        // Mock servers and some bundled particle providers may not spawn particles.
+                    }
                 }
                 Everything.sendFancy(sender, Component.text("Plugin configuration reloaded successfully!").color(NamedTextColor.GREEN));
                 return true;
@@ -148,7 +184,6 @@ public class EverythingCommand implements CommandExecutor {
                     .append(Component.text(version)
                         .color(NamedTextColor.AQUA)
                         .decorate(net.kyori.adventure.text.format.TextDecoration.BOLD)
-                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(githubUrl))
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Click to view releases on GitHub!")))
                     ));
                 Everything.sendFancy(sender, Component.text("")
@@ -167,7 +202,6 @@ public class EverythingCommand implements CommandExecutor {
                     .append(Component.text("GitHub: ").color(NamedTextColor.YELLOW))
                     .append(Component.text(githubUrl)
                         .color(NamedTextColor.BLUE)
-                        .clickEvent(net.kyori.adventure.text.event.ClickEvent.openUrl(githubUrl))
                         .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(Component.text("Click to open GitHub repo!")))
                     ));
                 return true;
@@ -292,4 +326,41 @@ public class EverythingCommand implements CommandExecutor {
                 return true;
         }
     }
+    private void showCommandList(CommandSender sender) {
+        // Blue theme, not bold, prefix for every message
+        Everything.sendFancy(sender, Component.text("")
+                .append(Component.text("❓ Everything Help & Commands\n").color(NamedTextColor.BLUE))
+                .append(Component.text("Click a command for usage. Hover for description.\n").color(NamedTextColor.GRAY)));
+
+        List<String> commandNames = getPluginCommands();
+        if (!commandNames.isEmpty()) {
+            for (String cmd : commandNames) {
+                org.bukkit.command.PluginCommand pluginCmd = plugin.getCommand(cmd);
+                String usage = pluginCmd != null ? pluginCmd.getUsage() : "";
+                String descText = pluginCmd != null ? pluginCmd.getDescription() : "";
+                StringBuilder usageLine = new StringBuilder();
+                usageLine.append("/").append(cmd);
+                if (usage != null && !usage.isEmpty() && !usage.equalsIgnoreCase("/" + cmd)) {
+                    String u = usage.split("\n")[0].trim();
+                    if (!u.startsWith("/")) {
+                        usageLine.append(" ").append(u);
+                    }
+                }
+                Component cmdComponent = Component.text("")
+                        .append(Component.text("• ").color(NamedTextColor.BLUE))
+                        .append(Component.text(usageLine.toString())
+                            .color(NamedTextColor.AQUA)
+                            .hoverEvent(net.kyori.adventure.text.event.HoverEvent.showText(
+                                Component.text(descText == null || descText.isEmpty() ? "No description." : descText)
+                                    .color(NamedTextColor.YELLOW)
+                            ))
+                        );
+                Everything.sendFancy(sender, cmdComponent);
+            }
+        } else {
+            Everything.sendFancy(sender, Component.text("No commands found for this plugin, you may need to update.").color(NamedTextColor.RED));
+        }
+    }
+
+
 }
